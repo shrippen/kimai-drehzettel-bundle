@@ -19,6 +19,7 @@ final class Ruleset
      * @param array<string, CategorySurcharge> $categorySurcharges keyed by DayCategory value
      * @param ?int $sixthDayBasisPoints fixed surcharge on 6th day; null pools it as weekly overtime
      * @param ?int $seventhDayBasisPoints fixed surcharge on 7th day; null pools it as weekly overtime
+     * @param int $minDayMinutes shorter days count as under-time (TV FFS 5.3.1: a begun day counts 8 h)
      */
     public function __construct(
         public readonly string $name,
@@ -37,6 +38,7 @@ final class Ruleset
         public readonly array $categorySurcharges,
         public readonly ?int $sixthDayBasisPoints,
         public readonly ?int $seventhDayBasisPoints,
+        public readonly int $minDayMinutes = 480,
     ) {
         $this->dailyTiers = self::sorted($dailyTiers);
         $this->weeklyTiers = self::sorted($weeklyTiers);

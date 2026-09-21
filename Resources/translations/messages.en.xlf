@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="DrehzettelBundle">
+    <body>
+      <trans-unit id="d000" resname="drehzettel.pdf.title">
+        <source>drehzettel.pdf.title</source>
+        <target>Timesheet</target>
+      </trans-unit>
+      <trans-unit id="d001" resname="drehzettel.pdf.period">
+        <source>drehzettel.pdf.period</source>
+        <target>Period:</target>
+      </trans-unit>
+      <trans-unit id="d002" resname="drehzettel.pdf.name_line">
+        <source>drehzettel.pdf.name_line</source>
+        <target>Name: %value%</target>
+      </trans-unit>
+      <trans-unit id="d003" resname="drehzettel.pdf.project_line">
+        <source>drehzettel.pdf.project_line</source>
+        <target>Project: %value%</target>
+      </trans-unit>
+      <trans-unit id="d004" resname="drehzettel.pdf.role_line">
+        <source>drehzettel.pdf.role_line</source>
+        <target>Role: %value%</target>
+      </trans-unit>
+      <trans-unit id="d005" resname="drehzettel.pdf.name">
+        <source>drehzettel.pdf.name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="d006" resname="drehzettel.pdf.project">
+        <source>drehzettel.pdf.project</source>
+        <target>Project</target>
+      </trans-unit>
+      <trans-unit id="d007" resname="drehzettel.pdf.role">
+        <source>drehzettel.pdf.role</source>
+        <target>Role</target>
+      </trans-unit>
+      <trans-unit id="d008" resname="drehzettel.pdf.date">
+        <source>drehzettel.pdf.date</source>
+        <target>Date</target>
+      </trans-unit>
+      <trans-unit id="d009" resname="drehzettel.pdf.begin">
+        <source>drehzettel.pdf.begin</source>
+        <target>Begin</target>
+      </trans-unit>
+      <trans-unit id="d010" resname="drehzettel.pdf.end">
+        <source>drehzettel.pdf.end</source>
+        <target>End</target>
+      </trans-unit>
+      <trans-unit id="d011" resname="drehzettel.pdf.break">
+        <source>drehzettel.pdf.break</source>
+        <target>Break</target>
+      </trans-unit>
+      <trans-unit id="d012" resname="drehzettel.pdf.work">
+        <source>drehzettel.pdf.work</source>
+        <target>Work time</target>
+      </trans-unit>
+      <trans-unit id="d013" resname="drehzettel.pdf.night">
+        <source>drehzettel.pdf.night</source>
+        <target>Night work</target>
+      </trans-unit>
+      <trans-unit id="d014" resname="drehzettel.pdf.under">
+        <source>drehzettel.pdf.under</source>
+        <target>Under-time</target>
+      </trans-unit>
+      <trans-unit id="d015" resname="drehzettel.pdf.catering">
+        <source>drehzettel.pdf.catering</source>
+        <target>Catering</target>
+      </trans-unit>
+      <trans-unit id="d016" resname="drehzettel.pdf.day_type">
+        <source>drehzettel.pdf.day_type</source>
+        <target>Day type</target>
+      </trans-unit>
+      <trans-unit id="d017" resname="drehzettel.pdf.pay">
+        <source>drehzettel.pdf.pay</source>
+        <target>Pay</target>
+      </trans-unit>
+      <trans-unit id="d018" resname="drehzettel.pdf.notes">
+        <source>drehzettel.pdf.notes</source>
+        <target>Remarks</target>
+      </trans-unit>
+      <trans-unit id="d019" resname="drehzettel.pdf.production">
+        <source>drehzettel.pdf.production</source>
+        <target>Production management</target>
+      </trans-unit>
+      <trans-unit id="d020" resname="drehzettel.pdf.crew">
+        <source>drehzettel.pdf.crew</source>
+        <target>Crew member</target>
+      </trans-unit>
+      <trans-unit id="d021" resname="drehzettel.pdf.total">
+        <source>drehzettel.pdf.total</source>
+        <target>Total</target>
+      </trans-unit>
+      <trans-unit id="d022" resname="drehzettel.pdf.week">
+        <source>drehzettel.pdf.week</source>
+        <target>Week</target>
+      </trans-unit>
+      <trans-unit id="d023" resname="drehzettel.pdf.yes">
+        <source>drehzettel.pdf.yes</source>
+        <target>Yes</target>
+      </trans-unit>
+      <trans-unit id="d024" resname="drehzettel.pdf.no">
+        <source>drehzettel.pdf.no</source>
+        <target>No</target>
+      </trans-unit>
+      <trans-unit id="d025" resname="drehzettel.pdf.weekly_overtime">
+        <source>drehzettel.pdf.weekly_overtime</source>
+        <target>Weekly overtime: %parts%</target>
+      </trans-unit>
+      <trans-unit id="d026" resname="drehzettel.pdf.weekly_part">
+        <source>drehzettel.pdf.weekly_part</source>
+        <target>%time% at %percent%</target>
+      </trans-unit>
+      <trans-unit id="d027" resname="drehzettel.pdf.rounding">
+        <source>drehzettel.pdf.rounding</source>
+        <target>Rounding: work time %work%, surcharges %surcharge%.</target>
+      </trans-unit>
+      <trans-unit id="d028" resname="drehzettel.rounding.exact">
+        <source>drehzettel.rounding.exact</source>
+        <target>to the minute</target>
+      </trans-unit>
+      <trans-unit id="d029" resname="drehzettel.rounding.rule">
+        <source>drehzettel.rounding.rule</source>
+        <target>%unit% (%mode%)</target>
+      </trans-unit>
+      <trans-unit id="d030" resname="drehzettel.rounding.unit.1">
+        <source>drehzettel.rounding.unit.1</source>
+        <target>1 min</target>
+      </trans-unit>
+      <trans-unit id="d031" resname="drehzettel.rounding.unit.15">
+        <source>drehzettel.rounding.unit.15</source>
+        <target>15 min</target>
+      </trans-unit>
+      <trans-unit id="d032" resname="drehzettel.rounding.unit.30">
+        <source>drehzettel.rounding.unit.30</source>
+        <target>30 min</target>
+      </trans-unit>
+      <trans-unit id="d033" resname="drehzettel.rounding.unit.60">
+        <source>drehzettel.rounding.unit.60</source>
+        <target>1 hour</target>
+      </trans-unit>
+      <trans-unit id="d034" resname="drehzettel.rounding.mode.up">
+        <source>drehzettel.rounding.mode.up</source>
+        <target>rounded up</target>
+      </trans-unit>
+      <trans-unit id="d035" resname="drehzettel.rounding.mode.down">
+        <source>drehzettel.rounding.mode.down</source>
+        <target>rounded down</target>
+      </trans-unit>
+      <trans-unit id="d036" resname="drehzettel.rounding.mode.nearest">
+        <source>drehzettel.rounding.mode.nearest</source>
+        <target>to the nearest</target>
+      </trans-unit>
+      <trans-unit id="d037" resname="drehzettel.day_type.workday">
+        <source>drehzettel.day_type.workday</source>
+        <target>Workday</target>
+      </trans-unit>
+      <trans-unit id="d038" resname="drehzettel.day_type.travel">
+        <source>drehzettel.day_type.travel</source>
+        <target>Travel day</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

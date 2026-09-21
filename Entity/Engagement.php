@@ -6,6 +6,7 @@ use App\Entity\Project;
 use App\Entity\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 
@@ -55,6 +56,10 @@ class Engagement
     /** @var array<string, mixed> */
     #[ORM\Column(type: Types::JSON)]
     private array $rules = [];
+
+    /** @var list<string>|null null means the defaults */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $pdfOptions = null;
 
     public function getId(): ?int
     {
@@ -149,6 +154,16 @@ class Engagement
     public function setRulesetName(string $name): void
     {
         $this->rulesetName = $name;
+    }
+
+    public function getPdfOptions(): PdfOptions
+    {
+        return PdfOptions::fromKeys($this->pdfOptions);
+    }
+
+    public function setPdfOptions(PdfOptions $options): void
+    {
+        $this->pdfOptions = $options->toKeys();
     }
 
     /**

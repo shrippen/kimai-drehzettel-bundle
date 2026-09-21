@@ -82,6 +82,9 @@ foreach ($setups as $project => [$rules, $terms]) {
             check("$name work", $row['workMinutes'], $day->workMinutes);
             check("$name tiers", $row['tierMinutes'], shareMinutes($day->dailyShares));
             check("$name night", $row['nightMinutes'], $day->nightMinutes);
+            if (isset($row['underMinutes'])) {
+                check("$name under-time", $row['underMinutes'], $day->underMinutes);
+            }
 
             if ($terms === null || $row['cents'] === null) {
                 continue;

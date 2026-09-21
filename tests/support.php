@@ -44,3 +44,22 @@ function shareMinutes(array $shares): array
 {
     return array_map(static fn ($s): int => $s->minutes, $shares);
 }
+
+// Labels stub: returns the key, with parameters when given. Keeps view tests readable.
+function stubLabels(): KimaiPlugin\DrehzettelBundle\Service\Labels
+{
+    return new class implements KimaiPlugin\DrehzettelBundle\Service\Labels {
+        public function t(string $key, string $locale, array $params = []): string
+        {
+            if ($params === []) {
+                return $key;
+            }
+            $parts = [];
+            foreach ($params as $name => $value) {
+                $parts[] = "$name=$value";
+            }
+
+            return $key . '(' . implode(',', $parts) . ')';
+        }
+    };
+}

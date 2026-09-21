@@ -48,6 +48,7 @@ final class RulesetCodec
             'categories' => $categories,
             'sixthDayBp' => $rules->sixthDayBasisPoints,
             'seventhDayBp' => $rules->seventhDayBasisPoints,
+            'minDayMinutes' => $rules->minDayMinutes,
         ];
     }
 
@@ -97,6 +98,7 @@ final class RulesetCodec
             categorySurcharges: $categories,
             sixthDayBasisPoints: $data['sixthDayBp'],
             seventhDayBasisPoints: $data['seventhDayBp'],
+            minDayMinutes: $data['minDayMinutes'] ?? 480,
         );
     }
 

@@ -16,3 +16,5 @@ services:
             - '../../tests/'
             - '../../dev/'
             - '../../reference/'
+
+    KimaiPlugin\DrehzettelBundle\Service\Labels: '@KimaiPlugin\DrehzettelBundle\Service\TranslatorLabels'

@@ -48,6 +48,7 @@ class DayInputBuilder
                 catering: $extra?->getCatering() ?? Catering::NO,
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
+                note: $extra?->getNote(),
             );
         }
 

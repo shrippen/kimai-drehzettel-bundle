@@ -480,6 +480,48 @@
       "cents": null
      }
     ]
+   },
+   {
+    "file": "week 10",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-09-22",
+      "begin": "13:00",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": null,
+      "underMinutes": 0
+     },
+     {
+      "date": "2025-09-23",
+      "begin": "10:00",
+      "end": "23:45",
+      "breakMinutes": 45,
+      "workMinutes": 780,
+      "tierMinutes": [
+       60,
+       120,
+       0
+      ],
+      "nightMinutes": 105,
+      "catering": true,
+      "cents": null,
+      "underMinutes": 0
+     }
+    ]
    }
   ]
  },

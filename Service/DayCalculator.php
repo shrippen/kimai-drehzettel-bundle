@@ -56,6 +56,10 @@ class DayCalculator
             dayNumber: $dayNumber,
             catering: $day->catering,
             amountCents: null,
+            dayType: $day->type,
+            category: $day->category,
+            note: $day->note,
+            underMinutes: $surcharged && $work > 0 ? max(0, $rules->minDayMinutes - $work) : 0,
         );
 
         if ($terms === null) {
@@ -154,6 +158,10 @@ class DayCalculator
             $day->dayNumber,
             $day->catering,
             $cents,
+            $day->dayType,
+            $day->category,
+            $day->note,
+            $day->underMinutes,
         );
     }
 }

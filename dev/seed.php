@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Dev seed: customer, project, timesheet entries of one reference week,
+ * Dev seed: customer, project, timesheet entries of all reference weeks,
  * engagement and film days. Idempotent by project name.
  * Run inside the Kimai container:
  *   docker compose -f dev/compose.yaml exec -T kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/seed.php
@@ -61,7 +61,6 @@ $em->persist($activity);
 $em->flush();
 
 $fixtures = json_decode(file_get_contents(__DIR__ . '/../tests/fixtures/reference_days.json'), true, flags: JSON_THROW_ON_ERROR);
-$week = $fixtures['weekly_gage']['weeks'][0];
 $zone = new DateTimeZone(ZONE);
 
 $engagements = new EngagementRepository($registry);
@@ -77,27 +76,34 @@ $engagement = $service->open(
 );
 
 $filmDays = new FilmDayService(new FilmDayRepository($registry));
-foreach ($week['rows'] as $row) {
-    $begin = new DateTime("{$row['date']} {$row['begin']}", $zone);
-    $end = new DateTime("{$row['date']} {$row['end']}", $zone);
-    if ($end <= $begin) {
-        $end->modify('+1 day');
+$isFirstDay = true;
+foreach ($fixtures['weekly_gage']['weeks'] as $week) {
+    foreach ($week['rows'] as $row) {
+        $begin = new DateTime("{$row['date']} {$row['begin']}", $zone);
+        $end = new DateTime("{$row['date']} {$row['end']}", $zone);
+        if ($end <= $begin) {
+            $end->modify('+1 day');
+        }
+
+        $sheet = new Timesheet();
+        $sheet->setUser($user);
+        $sheet->setActivity($activity);
+        $sheet->setProject($project);
+        $sheet->setBegin($begin);
+        $sheet->setEnd($end);
+        $em->persist($sheet);
+
+        // One note, to see it on the PDF.
+        $note = $isFirstDay ? 'Studio rebuild in the morning' : null;
+        $isFirstDay = false;
+        $filmDays->save(
+            $engagement,
+            new DateTimeImmutable($row['date']),
+            $row['breakMinutes'],
+            $row['catering'] ? Catering::YES : Catering::NO,
+            note: $note,
+        );
     }
-
-    $sheet = new Timesheet();
-    $sheet->setUser($user);
-    $sheet->setActivity($activity);
-    $sheet->setProject($project);
-    $sheet->setBegin($begin);
-    $sheet->setEnd($end);
-    $em->persist($sheet);
-
-    $filmDays->save(
-        $engagement,
-        new DateTimeImmutable($row['date']),
-        $row['breakMinutes'],
-        $row['catering'] ? Catering::YES : Catering::NO,
-    );
 }
 $em->flush();
 

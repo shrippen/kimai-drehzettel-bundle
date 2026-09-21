@@ -1,0 +1,148 @@
+{# Timesheet PDF for mPDF: A4 landscape, black on white. Data from TimesheetViewBuilder. #}
+{% set c = v.columns %}
+{% set t = v.t %}
+{% set tierCount = c.tiers|length %}
+{% set labelSpan = 3 + (c.break ? 1 : 0) %}
+<!DOCTYPE html>
+<html lang="{{ v.locale }}">
+<head>
+<meta charset="utf-8">
+<title>{{ t.title }}</title>
+<style>
+    body { font-family: dejavusans; font-size: 8.5pt; color: #111111; }
+    table { border-collapse: collapse; width: 100%; }
+    .head td { padding: 0 0 6px 0; vertical-align: bottom; }
+    .title { font-size: 16pt; }
+    .period { font-size: 10.5pt; font-weight: bold; text-align: right; }
+    .rule { border-bottom: 0.4mm solid #bbbbbb; height: 1px; }
+    .meta { font-size: 10.5pt; margin: 3mm 0 0 0; }
+    .grid { margin-top: 9mm; }
+    .grid th { font-size: 7.5pt; text-align: center; padding: 1mm 1mm; border-bottom: 0.3mm solid #999999; }
+    .grid td { font-size: 8pt; text-align: center; padding: 1.1mm 1mm; border-bottom: 0.2mm solid #dddddd; }
+    .grid .date { text-align: left; white-space: nowrap; }
+    .grid .empty td { border: 0.2mm solid #dddddd; }
+    .grid .sum td { border-bottom: 0; padding-top: 1.6mm; }
+    .grid .weekly { text-align: left; font-size: 7.5pt; font-weight: bold; border: 0.4mm solid #111111; padding: 1mm 2mm; }
+    .grid .total td { font-weight: bold; border-top: 0.4mm solid #111111; }
+    .notes-title { font-size: 10.5pt; font-weight: bold; margin: 8mm 0 1.5mm 0; }
+    .note { font-size: 8pt; margin: 0 0 1mm 0; }
+    .note i { font-style: italic; }
+    .rounding { font-size: 7pt; color: #555555; margin-top: 4mm; }
+    .sign { margin-top: 14mm; width: 100%; }
+    .sign td { text-align: center; vertical-align: bottom; font-size: 8pt; }
+    .sign .line { border-top: 0.3mm solid #111111; padding-top: 1mm; }
+    .sign img { height: 14mm; }
+</style>
+</head>
+<body>
+
+<table class="head">
+    <tr>
+        <td class="title">{{ t.title }}</td>
+        <td class="period">{{ t.period }} {{ v.period }}</td>
+    </tr>
+</table>
+<div class="rule"></div>
+
+<p class="meta">{{ t.name_line }}</p>
+<p class="meta">{{ t.project_line }}</p>
+<p class="meta">{{ t.role_line }}</p>
+
+<table class="grid">
+    <thead>
+        <tr>
+            <th style="text-align: left;">{{ t.date }}</th>
+            <th style="width: 6%;">{{ t.begin }}</th>
+            <th style="width: 6%;">{{ t.end }}</th>
+            {% if c.break %}<th style="width: 6%;">{{ t.break }}</th>{% endif %}
+            <th style="width: 9%;">{{ t.work }}</th>
+            {% for h in c.tiers %}<th style="width: 7%;">{{ h }}</th>{% endfor %}
+            {% if c.night %}<th style="width: 15%; white-space: nowrap;">{{ t.night }} (+ {{ c.night_percent }})</th>{% endif %}
+            {% if c.under %}<th style="width: 9%;">{{ t.under }}</th>{% endif %}
+            {% if c.catering %}<th style="width: 8%;">{{ t.catering }}</th>{% endif %}
+            {% if c.day_type %}<th style="width: 9%;">{{ t.day_type }}</th>{% endif %}
+            {% if c.pay %}<th style="width: 10%;">{{ t.pay }}</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for week in v.weeks %}
+        {% for row in week.rows %}
+            {% if row.empty %}
+                <tr class="empty">
+                    <td class="date">{{ row.date }}</td>
+                    <td colspan="{{ 2 + (c.break ? 1 : 0) + 1 + tierCount + (c.night ? 1 : 0) + (c.under ? 1 : 0) + (c.catering ? 1 : 0) + (c.day_type ? 1 : 0) + (c.pay ? 1 : 0) }}">&nbsp;</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td class="date">{{ row.date }}</td>
+                    <td>{{ row.begin }}</td>
+                    <td>{{ row.end }}</td>
+                    {% if c.break %}<td>{{ row.break }}</td>{% endif %}
+                    <td>{{ row.work }}</td>
+                    {% for x in row.tiers|slice(0, tierCount) %}<td>{{ x }}</td>{% endfor %}
+                    {% if c.night %}<td>{{ row.night }}</td>{% endif %}
+                    {% if c.under %}<td>{{ row.under }}</td>{% endif %}
+                    {% if c.catering %}<td>{{ row.catering }}</td>{% endif %}
+                    {% if c.day_type %}<td>{{ row.day_type }}</td>{% endif %}
+                    {% if c.pay %}<td>{{ row.pay }}</td>{% endif %}
+                </tr>
+            {% endif %}
+        {% endfor %}
+        <tr class="sum">
+            {% if week.weekly %}
+                <td class="weekly" colspan="{{ labelSpan }}">{{ week.weekly }}</td>
+            {% else %}
+                <td colspan="{{ labelSpan }}">&nbsp;</td>
+            {% endif %}
+            <td>{{ week.sums.work }}</td>
+            {% for x in week.sums.tiers|slice(0, tierCount) %}<td>{{ x }}</td>{% endfor %}
+            {% if c.night %}<td>{{ week.sums.night }}</td>{% endif %}
+            {% if c.under %}<td>{{ week.sums.under }}</td>{% endif %}
+            {% if c.catering %}<td>{{ week.sums.catering }}</td>{% endif %}
+            {% if c.day_type %}<td>&nbsp;</td>{% endif %}
+            {% if c.pay %}<td>{{ week.sums.pay }}</td>{% endif %}
+        </tr>
+    {% endfor %}
+    {% if v.total %}
+        <tr class="total">
+            <td colspan="{{ labelSpan }}" style="text-align: right;">{{ t.total }}</td>
+            <td>{{ v.total.work }}</td>
+            {% for x in v.total.tiers|slice(0, tierCount) %}<td>{{ x }}</td>{% endfor %}
+            {% if c.night %}<td>{{ v.total.night }}</td>{% endif %}
+            {% if c.under %}<td>{{ v.total.under }}</td>{% endif %}
+            {% if c.catering %}<td>{{ v.total.catering }}</td>{% endif %}
+            {% if c.day_type %}<td>&nbsp;</td>{% endif %}
+            {% if c.pay %}<td>{{ v.total.pay }}</td>{% endif %}
+        </tr>
+    {% endif %}
+    </tbody>
+</table>
+
+{% if v.notes %}
+    <p class="notes-title">{{ t.notes }}:</p>
+    {% for n in v.notes %}
+        <p class="note"><i>{{ n.date }}:</i> {{ n.text }}</p>
+    {% endfor %}
+{% endif %}
+
+{% if v.rounding %}<p class="rounding">{{ v.rounding }}</p>{% endif %}
+
+{% if v.signature_lines %}
+    <table class="sign">
+        <tr>
+            <td style="width: 48%;"></td>
+            <td style="width: 24%; height: 15mm;"></td>
+            <td style="width: 4%;"></td>
+            <td style="width: 24%; height: 15mm;">{% if v.signature_image %}<img src="{{ v.signature_image }}" alt="">{% endif %}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td class="line">{{ t.production }}</td>
+            <td></td>
+            <td class="line">{{ t.crew }}</td>
+        </tr>
+    </table>
+{% endif %}
+
+</body>
+</html>

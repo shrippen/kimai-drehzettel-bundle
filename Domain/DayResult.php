@@ -3,6 +3,8 @@
 namespace KimaiPlugin\DrehzettelBundle\Domain;
 
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
+use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
+use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 
 final class DayResult
 {
@@ -10,6 +12,7 @@ final class DayResult
      * @param list<Share> $dailyShares one per daily tier
      * @param int $countedMinutes regular minutes that count toward the weekly base
      * @param ?int $amountCents null without pay terms; excludes weekly surcharges
+     * @param int $underMinutes work time missing to the minimum day of the ruleset
      */
     public function __construct(
         public readonly \DateTimeImmutable $begin,
@@ -25,6 +28,10 @@ final class DayResult
         public readonly int $dayNumber,
         public readonly Catering $catering,
         public readonly ?int $amountCents,
+        public readonly DayType $dayType = DayType::WORKDAY,
+        public readonly DayCategory $category = DayCategory::WORKDAY,
+        public readonly ?string $note = null,
+        public readonly int $underMinutes = 0,
     ) {
     }
 }

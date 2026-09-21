@@ -76,11 +76,14 @@ Timesheets exported from the TimeSheet app were the reference. The PDFs stay loc
 
 ### Phase 3 — PDF
 
-- [ ] One PDF type, period: week, month, free range
-- [ ] Optional columns, defaults per engagement, changeable at export
-- [ ] Signature image on crew line
-- [ ] Rounding note in footer
-- [ ] File name `Timesheet_<Surname>_<Project>_<from>-<to>.pdf`
+- [x] One PDF type, period: week, month, free range (weeks always calculated whole)
+- [x] Optional columns and sections, defaults per engagement, changeable at export
+- [x] Signature image on the crew line
+- [x] Rounding note in footer
+- [x] File name `Timesheet_<Surname>_<Project>_<from>-<to>.pdf`
+- [x] Under-time column, all weekdays, weekly overtime line, remarks from film days (all seen on the app's own timesheets)
+- [x] German and English, `--locale` override
+- [x] `drehzettel:pdf` command, checked on the dev instance against timesheets of the app
 
 ### Phase 4 — UI
 
@@ -103,6 +106,7 @@ Timesheets exported from the TimeSheet app were the reference. The PDFs stay loc
 - Pause over 45 min: TV FFS counts the excess as work time, the app deducts it fully. Ruleset option.
 - "Begun hour" surcharge reading (TV FFS 5.4.3.2): default in TV FFS preset is round up.
 - Interplay with Holiday plugin target hours.
+- Under-time (`Unterstunden`): assumed to be the work time missing to 8 h on a shooting day. The app's info text could not be read, and no sample sheet has a day under 8 h with that column.
 - Unverified against real PDFs (no example with these cases): weekly overtime above 50 h, 6th/7th day, Sunday/holiday pay, Saturday pay. The "Like TimeSheet app" preset copies the app's settings, but assumes: 6th/7th day surcharges stack with Saturday/Sunday surcharges; Sunday/holiday use the day rate.
 - Half-cent ties: the app shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.

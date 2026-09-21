@@ -30,12 +30,18 @@ class FilmWeekService
     }
 
     /**
+     * Calculates every ISO week that touches [from, to). Weekly overtime needs
+     * whole weeks, so a range that starts mid-week still reads the full week.
+     *
      * @return list<WeekResult> one per ISO week that has entries, in date order
      */
     public function period(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
+        $start = $from->modify('monday this week');
+        $end = $to->modify('-1 day')->modify('monday this week')->modify('+7 days');
+
         $byWeek = [];
-        foreach ($this->inputs->build($engagement, $from, $to) as $input) {
+        foreach ($this->inputs->build($engagement, $start, $end) as $input) {
             $byWeek[$input->begin->format(self::WEEK_FORMAT)][] = $input;
         }
         ksort($byWeek);

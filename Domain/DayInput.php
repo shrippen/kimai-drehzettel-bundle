@@ -17,6 +17,7 @@ final class DayInput
         public readonly Catering $catering = Catering::NO,
         public readonly ?int $breakMinutes = null,
         public readonly ?int $productionDay = null,
+        public readonly ?string $note = null,
     ) {
     }
 }
