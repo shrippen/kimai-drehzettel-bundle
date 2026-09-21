@@ -1,0 +1,10 @@
+# Generate a new migration with:
+# bin/console doctrine:migrations:diff --em=default --configuration=var/plugins/DrehzettelBundle/Migrations/doctrine_migrations.yaml
+#
+# Execute all migrations with:
+# bin/console kimai:bundle:drehzettel:install
+
+table_storage:
+    table_name: 'bundle_migration_drehzettel'
+migrations_paths:
+    'DrehzettelBundle\Migrations': 'var/plugins/DrehzettelBundle/Migrations'
