@@ -1,0 +1,6 @@
+# Exported timesheets contain a name and a signature.
+reference/
+*.pdf
+.idea/
+.vscode/
+vendor/
