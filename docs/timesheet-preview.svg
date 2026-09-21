@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 877" width="1240" height="877" font-family="DejaVu Sans, Verdana, sans-serif">
+<rect width="1240" height="877" fill="#ffffff"/>
+<text x="78" y="105" font-size="26" fill="#111">Arbeitszeitnachweis</text>
+<text x="1162" y="100" font-size="17" fill="#111" text-anchor="end" font-weight="bold">Zeitraum: Montag, 2. März 2026 - Donnerstag, 5. März 2026 / KW 10</text>
+<line x1="78" y1="132" x2="1162" y2="132" stroke="#cfcfcf" stroke-width="1.5"/>
+<text x="78" y="178" font-size="21" fill="#111">Name: Muster, Erika</text>
+<text x="78" y="216" font-size="21" fill="#111">Projekt: Musterfilm</text>
+<text x="78" y="254" font-size="21" fill="#111">Tätigkeit: Oberbeleuchterin</text>
+<text x="78" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="start">Datum</text>
+<text x="320" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Beginn</text>
+<text x="400" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Ende</text>
+<text x="480" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Pause</text>
+<text x="580" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Arbeitszeit</text>
+<text x="675" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">+ 25%</text>
+<text x="760" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">+ 50%</text>
+<text x="880" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Nachtarbeit (+ 25%)</text>
+<text x="1022" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Catering</text>
+<text x="1108" y="372" font-size="14" font-weight="bold" fill="#111" text-anchor="middle">Tagestyp</text>
+<line x1="78" y1="382" x2="1162" y2="382" stroke="#bdbdbd"/>
+<text x="78" y="414" font-size="15" fill="#222" text-anchor="start">Montag, 2. März 2026</text>
+<text x="320" y="414" font-size="15" fill="#222" text-anchor="middle">08:00</text>
+<text x="400" y="414" font-size="15" fill="#222" text-anchor="middle">19:15</text>
+<text x="480" y="414" font-size="15" fill="#222" text-anchor="middle">00:45</text>
+<text x="580" y="414" font-size="15" fill="#222" text-anchor="middle">10:30 h</text>
+<text x="675" y="414" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="760" y="414" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="880" y="414" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="1022" y="414" font-size="15" fill="#222" text-anchor="middle">Ja</text>
+<text x="1108" y="414" font-size="15" fill="#222" text-anchor="middle">Arbeitstag</text>
+<line x1="78" y1="427" x2="1162" y2="427" stroke="#e2e2e2"/>
+<text x="78" y="448" font-size="15" fill="#222" text-anchor="start">Dienstag, 3. März 2026</text>
+<text x="320" y="448" font-size="15" fill="#222" text-anchor="middle">09:00</text>
+<text x="400" y="448" font-size="15" fill="#222" text-anchor="middle">21:45</text>
+<text x="480" y="448" font-size="15" fill="#222" text-anchor="middle">00:45</text>
+<text x="580" y="448" font-size="15" fill="#222" text-anchor="middle">12:00 h</text>
+<text x="675" y="448" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="760" y="448" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="880" y="448" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="1022" y="448" font-size="15" fill="#222" text-anchor="middle">Ja</text>
+<text x="1108" y="448" font-size="15" fill="#222" text-anchor="middle">Arbeitstag</text>
+<line x1="78" y1="461" x2="1162" y2="461" stroke="#e2e2e2"/>
+<text x="78" y="482" font-size="15" fill="#222" text-anchor="start">Mittwoch, 4. März 2026</text>
+<text x="320" y="482" font-size="15" fill="#222" text-anchor="middle">13:30</text>
+<text x="400" y="482" font-size="15" fill="#222" text-anchor="middle">22:45</text>
+<text x="480" y="482" font-size="15" fill="#222" text-anchor="middle">00:45</text>
+<text x="580" y="482" font-size="15" fill="#222" text-anchor="middle">08:30 h</text>
+<text x="675" y="482" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="760" y="482" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="880" y="482" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="1022" y="482" font-size="15" fill="#222" text-anchor="middle">Ja</text>
+<text x="1108" y="482" font-size="15" fill="#222" text-anchor="middle">Arbeitstag</text>
+<line x1="78" y1="495" x2="1162" y2="495" stroke="#e2e2e2"/>
+<text x="78" y="516" font-size="15" fill="#222" text-anchor="start">Donnerstag, 5. März 2026</text>
+<text x="320" y="516" font-size="15" fill="#222" text-anchor="middle">12:00</text>
+<text x="400" y="516" font-size="15" fill="#222" text-anchor="middle">23:30</text>
+<text x="480" y="516" font-size="15" fill="#222" text-anchor="middle">00:45</text>
+<text x="580" y="516" font-size="15" fill="#222" text-anchor="middle">10:45 h</text>
+<text x="675" y="516" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="760" y="516" font-size="15" fill="#222" text-anchor="middle">00:00 h</text>
+<text x="880" y="516" font-size="15" fill="#222" text-anchor="middle">02:00 h</text>
+<text x="1022" y="516" font-size="15" fill="#222" text-anchor="middle">Ja</text>
+<text x="1108" y="516" font-size="15" fill="#222" text-anchor="middle">Arbeitstag</text>
+<line x1="78" y1="529" x2="1162" y2="529" stroke="#e2e2e2"/>
+<text x="78" y="550" font-size="15" fill="#222" text-anchor="start"></text>
+<text x="320" y="550" font-size="15" fill="#222" text-anchor="middle"></text>
+<text x="400" y="550" font-size="15" fill="#222" text-anchor="middle"></text>
+<text x="480" y="550" font-size="15" fill="#222" text-anchor="middle"></text>
+<text x="580" y="550" font-size="15" fill="#222" text-anchor="middle">41:45 h</text>
+<text x="675" y="550" font-size="15" fill="#222" text-anchor="middle">03:00 h</text>
+<text x="760" y="550" font-size="15" fill="#222" text-anchor="middle">01:00 h</text>
+<text x="880" y="550" font-size="15" fill="#222" text-anchor="middle">03:00 h</text>
+<text x="1022" y="550" font-size="15" fill="#222" text-anchor="middle">4x</text>
+<text x="1108" y="550" font-size="15" fill="#222" text-anchor="middle"></text>
+<text x="78" y="640" font-size="21" font-weight="bold" fill="#111">Anmerkungen:</text>
+<text x="78" y="672" font-size="14" fill="#555">Rundung: Arbeitszeit minutengenau, Zuschläge auf begonnene Stunden (TV FFS 2024).</text>
+<line x1="742" y1="790" x2="960" y2="790" stroke="#111" stroke-width="2"/>
+<line x1="1000" y1="790" x2="1162" y2="790" stroke="#111" stroke-width="2"/>
+<text x="851" y="820" font-size="16" fill="#333" text-anchor="middle">Produktionsleitung</text>
+<text x="1081" y="820" font-size="16" fill="#333" text-anchor="middle">Filmschaffende/r</text>
+</svg>
