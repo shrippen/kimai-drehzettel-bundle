@@ -1,0 +1,704 @@
+{
+ "weekly_gage": {
+  "weeks": [
+   {
+    "file": "week 1",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-05-19",
+      "begin": "08:30",
+      "end": "17:30",
+      "breakMinutes": 0,
+      "workMinutes": 540,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 28458
+     },
+     {
+      "date": "2025-05-20",
+      "begin": "08:30",
+      "end": "20:15",
+      "breakMinutes": 0,
+      "workMinutes": 705,
+      "tierMinutes": [
+       60,
+       45,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 39130
+     },
+     {
+      "date": "2025-05-21",
+      "begin": "11:15",
+      "end": "17:00",
+      "breakMinutes": 45,
+      "workMinutes": 300,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 15810
+     },
+     {
+      "date": "2025-05-22",
+      "begin": "13:00",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": false,
+      "cents": 28063
+     },
+     {
+      "date": "2025-05-23",
+      "begin": "12:45",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 26915
+     }
+    ]
+   },
+   {
+    "file": "week 2",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-05-27",
+      "begin": "13:00",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": 27113
+     },
+     {
+      "date": "2025-05-28",
+      "begin": "12:15",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 570,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": 29484
+     },
+     {
+      "date": "2025-05-29",
+      "begin": "12:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 540,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 27706
+     },
+     {
+      "date": "2025-05-30",
+      "begin": "12:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 540,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 27706
+     }
+    ]
+   },
+   {
+    "file": "week 3",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-06-02",
+      "begin": "12:30",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 555,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": 28694
+     },
+     {
+      "date": "2025-06-03",
+      "begin": "13:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 480,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 24544
+     },
+     {
+      "date": "2025-06-04",
+      "begin": "13:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 480,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 24544
+     },
+     {
+      "date": "2025-06-05",
+      "begin": "12:30",
+      "end": "22:00",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": 26718
+     },
+     {
+      "date": "2025-06-06",
+      "begin": "12:45",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 540,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": 27903
+     }
+    ]
+   },
+   {
+    "file": "week 4",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-06-09",
+      "begin": "13:15",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 495,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 25334
+     },
+     {
+      "date": "2025-06-10",
+      "begin": "12:30",
+      "end": "22:00",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": 26718
+     },
+     {
+      "date": "2025-06-11",
+      "begin": "12:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 540,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": 27706
+     }
+    ]
+   },
+   {
+    "file": "week 5",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-06-16",
+      "begin": "13:30",
+      "end": "22:15",
+      "breakMinutes": 45,
+      "workMinutes": 480,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 15,
+      "catering": true,
+      "cents": null
+     },
+     {
+      "date": "2025-06-17",
+      "begin": "13:30",
+      "end": "21:30",
+      "breakMinutes": 45,
+      "workMinutes": 435,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": null
+     },
+     {
+      "date": "2025-06-18",
+      "begin": "14:00",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 465,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": null
+     },
+     {
+      "date": "2025-06-19",
+      "begin": "13:30",
+      "end": "22:45",
+      "breakMinutes": 45,
+      "workMinutes": 510,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 45,
+      "catering": true,
+      "cents": null
+     }
+    ]
+   },
+   {
+    "file": "week 6",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-06-23",
+      "begin": "13:30",
+      "end": "22:30",
+      "breakMinutes": 45,
+      "workMinutes": 495,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 30,
+      "catering": true,
+      "cents": null
+     }
+    ]
+   },
+   {
+    "file": "week 7",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-07-03",
+      "begin": "10:30",
+      "end": "21:30",
+      "breakMinutes": 75,
+      "workMinutes": 585,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": null
+     }
+    ]
+   },
+   {
+    "file": "week 8",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-07-23",
+      "begin": "10:30",
+      "end": "19:30",
+      "breakMinutes": 45,
+      "workMinutes": 495,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": null
+     },
+     {
+      "date": "2025-07-25",
+      "begin": "10:30",
+      "end": "19:00",
+      "breakMinutes": 45,
+      "workMinutes": 465,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": null
+     }
+    ]
+   },
+   {
+    "file": "week 9",
+    "tierPercents": [
+     25,
+     50,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-09-04",
+      "begin": "11:30",
+      "end": "22:00",
+      "breakMinutes": 45,
+      "workMinutes": 585,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": true,
+      "cents": null
+     }
+    ]
+   }
+  ]
+ },
+ "daily_gage": {
+  "weeks": [
+   {
+    "file": "week 1",
+    "tierPercents": [
+     0,
+     25,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-04-14",
+      "begin": "08:30",
+      "end": "20:30",
+      "breakMinutes": 45,
+      "workMinutes": 675,
+      "tierMinutes": [
+       120,
+       75,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 57812
+     },
+     {
+      "date": "2025-04-16",
+      "begin": "08:00",
+      "end": "19:00",
+      "breakMinutes": 45,
+      "workMinutes": 615,
+      "tierMinutes": [
+       120,
+       15,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 51562
+     },
+     {
+      "date": "2025-04-17",
+      "begin": "07:00",
+      "end": "17:15",
+      "breakMinutes": 45,
+      "workMinutes": 570,
+      "tierMinutes": [
+       90,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 47500
+     },
+     {
+      "date": "2025-04-18",
+      "begin": "10:00",
+      "end": "20:00",
+      "breakMinutes": 45,
+      "workMinutes": 555,
+      "tierMinutes": [
+       75,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 46250
+     }
+    ]
+   },
+   {
+    "file": "week 2",
+    "tierPercents": [
+     0,
+     25,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2025-04-21",
+      "begin": "06:45",
+      "end": "16:15",
+      "breakMinutes": 45,
+      "workMinutes": 525,
+      "tierMinutes": [
+       45,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 43750
+     },
+     {
+      "date": "2025-04-22",
+      "begin": "10:15",
+      "end": "19:15",
+      "breakMinutes": 45,
+      "workMinutes": 495,
+      "tierMinutes": [
+       15,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 41250
+     },
+     {
+      "date": "2025-04-23",
+      "begin": "06:45",
+      "end": "18:15",
+      "breakMinutes": 45,
+      "workMinutes": 645,
+      "tierMinutes": [
+       120,
+       45,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 54687
+     },
+     {
+      "date": "2025-04-24",
+      "begin": "07:00",
+      "end": "15:00",
+      "breakMinutes": 45,
+      "workMinutes": 435,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 40000
+     }
+    ]
+   }
+  ]
+ },
+ "custom_tiers": {
+  "weeks": [
+   {
+    "file": "week 1",
+    "tierPercents": [
+     0,
+     60,
+     100
+    ],
+    "rows": [
+     {
+      "date": "2024-08-12",
+      "begin": "07:30",
+      "end": "19:00",
+      "breakMinutes": 45,
+      "workMinutes": 645,
+      "tierMinutes": [
+       45,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 28423
+     },
+     {
+      "date": "2024-08-13",
+      "begin": "08:15",
+      "end": "18:15",
+      "breakMinutes": 45,
+      "workMinutes": 555,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 24457
+     },
+     {
+      "date": "2024-08-14",
+      "begin": "09:00",
+      "end": "18:00",
+      "breakMinutes": 45,
+      "workMinutes": 495,
+      "tierMinutes": [
+       0,
+       0,
+       0
+      ],
+      "nightMinutes": 0,
+      "catering": false,
+      "cents": 21813
+     },
+     {
+      "date": "2024-08-15",
+      "begin": "07:30",
+      "end": "00:00",
+      "breakMinutes": 45,
+      "workMinutes": 945,
+      "tierMinutes": [
+       120,
+       60,
+       165
+      ],
+      "nightMinutes": 120,
+      "catering": false,
+      "cents": 51822
+     }
+    ]
+   }
+  ]
+ }
+}
