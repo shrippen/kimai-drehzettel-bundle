@@ -45,6 +45,10 @@ docker compose -f dev/compose.yaml exec -T kimai /opt/kimai/bin/console drehzett
 ```
 
 Run `kimai:reload` after every change to service or config files (prod cache).
+Console commands run as root and write cache files as root; Apache's www-data worker
+then can't overwrite them (500s on the next page load). Fix: `docker compose -f dev/compose.yaml
+exec -T kimai chown -R www-data:www-data /opt/kimai/var/cache /opt/kimai/var/data` (done automatically
+by `dev/reset.sh`).
 Unit tests need no Kimai: `php tests/run.php`.
 
 ## Reference data
@@ -87,23 +91,37 @@ Timesheets exported from the TimeSheet app were the reference. The PDFs stay loc
 
 ### Phase 4 — UI
 
-- [ ] Week view: edit break, catering, day type; live totals
-- [ ] Ruleset and engagement management
-- [ ] Menu entry only for users with an active engagement
-- [ ] Permissions: own engagement, manage engagements
-- [ ] Translations de/en
+- [x] Week view: edit break, catering, day type, category, note; live preview via AJAX
+- [x] Ruleset management (copy a preset or an existing custom ruleset, edit, delete)
+- [x] Engagement management (create, edit, edit rules, delete) for `drehzettel_manage`
+- [x] Menu entry for users with the `drehzettel` permission who have at least one engagement, or who can manage
+- [x] Permissions: `drehzettel` (own), `drehzettel_manage` (all)
+- [x] Translations de/en (112 keys)
+- [x] Signature upload, checked by content (`getimagesizefromstring`), not by extension
+- [x] Checked end to end on the dev instance: login, overview, week, save, reload, week/month PDF, preview, engagement and ruleset creation, signature upload and rejection of a non-image file
 
 ### Phase 5 — Compliance and extras
 
-- [ ] Warnings: > 12 h/day, > 60 h/week, rest time < 11 h (11.5 h after 12th hour)
-- [ ] Reduced weekly pay contract (80 %)
-- [ ] Holiday plugin integration for public holidays
-- [ ] Time account (AZV day)
-- [ ] Mail PDF to production
+- [x] Warnings: > 12 h/day, > 60 h/week, rest time < 11 h (11.5 h after a begun 12th hour), shown on the week page
+- [x] Mail the week's PDF to the production office, remembers the last address per engagement
+- [ ] Reduced weekly pay contract (80 %) — deferred. TV FFS 5.4.4.2 routes hours 41-50 through the weekly
+      mechanism but hours beyond 50 through the *daily* tier mechanism (5.4.3.2), which the current
+      `Ruleset`/`WeekCalculator` split (independent daily tiers per day, one weekly pool) cannot express
+      without a real risk of an incorrect pay result. Needs a small model change, not a stopgap.
+- [ ] Holiday plugin integration for public holidays — deferred. `DayCategory::HOLIDAY` already exists and
+      can be set by hand on a film day; wiring it to HolidayBundle's `PublicHolidayRepository` automatically
+      needs an optional cross-plugin dependency (HolidayBundle may not be installed), which needs a safe DI
+      pattern (service locator / `class_exists` guard) that hasn't been designed yet.
+- [ ] Time account (AZV day) — deferred. A real accrual ledger (2.5 h + 30 min per consecutive shooting day,
+      TV FFS §6), not a one-line addition; out of scope for this pass.
 
 ## Open
 
 - Pause over 45 min: TV FFS counts the excess as work time, the app deducts it fully. Ruleset option.
+- Rest-time compliance only checks days inside one calculated week; the gap across a week boundary
+  (last day of one week to the first day of the next) is not checked.
+- `MailConfiguration` needs a "from" address configured in Kimai (system settings), otherwise
+  `KimaiMailer` throws. Checked on the dev instance with the `null://` transport (no real send).
 - "Begun hour" surcharge reading (TV FFS 5.4.3.2): default in TV FFS preset is round up.
 - Interplay with Holiday plugin target hours.
 - Under-time (`Unterstunden`): assumed to be the work time missing to 8 h on a shooting day. The app's info text could not be read, and no sample sheet has a day under 8 h with that column.

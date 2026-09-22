@@ -15,4 +15,8 @@ until [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/en/login
 $CONSOLE kimai:bundle:drehzettel:install
 $COMPOSE exec -T kimai php "$PLUGIN/dev/seed.php"
 $CONSOLE kimai:user:create crew2 crew2@example.test ROLE_USER crew2-dev-pass
+
+# Console commands run as root in this image and (re)write cache files as
+# root; Apache's own worker runs as www-data and then can't overwrite them.
+$COMPOSE exec -T kimai chown -R www-data:www-data /opt/kimai/var/cache /opt/kimai/var/data
 echo "Ready: http://localhost:8001  admin@example.test / admin-dev-pass"
