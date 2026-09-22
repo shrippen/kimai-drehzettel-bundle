@@ -129,6 +129,10 @@ ROWS = [
     ("drehzettel.rules.unused", "Not used", "Nicht genutzt"),
     ("drehzettel.rules.pooled", "Pooled into weekly overtime", "Fließt in Wochenüberstunden"),
     ("drehzettel.rules.surcharge", "Surcharge", "Zuschlag"),
+    ("drehzettel.rules.mode_simple", "Simple", "Einfach"),
+    ("drehzettel.rules.mode_advanced", "Advanced", "Erweitert"),
+    ("drehzettel.rules.mode_advanced_hint", "Advanced: enter your own values instead of presets, e.g. 42 min or 37.5%.", "Erweitert: eigene Werte statt Presets, z. B. 42 Min. oder 37,5 %."),
+    ("drehzettel.week.compliance_ok", "No warnings for this week", "Keine Hinweise für diese Woche"),
 ]
 
 

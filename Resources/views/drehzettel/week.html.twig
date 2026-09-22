@@ -2,6 +2,49 @@
 
 {% block page_content %}
     {% set e = v.engagement %}
+    <style>
+        .dz-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-bottom:1rem;}
+        .dz-stat{background:var(--tblr-bg-surface,#fff);border:1px solid var(--tblr-border-color);border-radius:var(--tblr-border-radius-lg,10px);padding:.75rem 1rem;}
+        .dz-stat-pay{background:var(--tblr-primary);border-color:var(--tblr-primary);}
+        .dz-stat-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--tblr-secondary-color,#6b7280);margin-bottom:.2rem;}
+        .dz-stat-pay .dz-stat-label{color:rgba(255,255,255,.75);}
+        .dz-stat-value{font-size:1.3rem;font-weight:700;}
+        .dz-stat-pay .dz-stat-value{color:#fff;}
+        .dz-stat-chips{display:flex;flex-wrap:wrap;gap:.3rem;}
+        .dz-compliance{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--tblr-secondary-color,#6b7280);margin-bottom:.6rem;}
+        .dz-compliance.dz-compliance-warn{color:var(--tblr-warning);}
+        .dz-compliance ul{margin:.2rem 0 0;padding-left:1.1rem;}
+        .dz-day-list{display:flex;flex-direction:column;}
+        .dz-day-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding:.6rem 1rem;border-bottom:1px solid var(--tblr-border-color-translucent,#eee);}
+        .dz-day-row:nth-child(even){background:var(--tblr-bg-surface-secondary,#f9fafb);}
+        .dz-day-row:last-child{border-bottom:none;}
+        .dz-day-empty{color:var(--tblr-secondary-color,#9ca3af);font-size:.85rem;}
+        .dz-day-date{flex:0 0 150px;}
+        .dz-day-weekday{font-size:.85rem;font-weight:600;}
+        .dz-day-time{font-size:.75rem;color:var(--tblr-secondary-color,#6b7280);}
+        .dz-break-input{width:3.2rem;display:inline-block;border:1px solid var(--tblr-border-color);border-radius:4px;padding:0 .2rem;font-size:.75rem;text-align:right;}
+        .dz-day-work{flex:0 0 60px;text-align:right;font-size:1.05rem;font-weight:700;}
+        .dz-day-tiers{flex:0 0 auto;display:flex;gap:.3rem;flex-wrap:wrap;}
+        .dz-chip{display:inline-flex;align-items:center;gap:.25rem;border-radius:6px;padding:.15rem .45rem;font-size:.72rem;font-weight:600;white-space:nowrap;}
+        .dz-chip-off{background:var(--tblr-bg-surface-secondary,#f3f4f6);color:var(--tblr-secondary-color,#9ca3af);}
+        .dz-chip-tier1{background:var(--tblr-warning-lt,#fef3e0);color:#9a6700;}
+        .dz-chip-tier2{background:#ffe8d6;color:#b3540a;}
+        .dz-chip-tier3, .dz-chip-tier4{background:var(--tblr-danger-lt,#fbeaea);color:#a72424;}
+        .dz-chip-night{background:var(--tblr-info-lt,#eaf4fc);color:#1c5c8a;}
+        .dz-chip-under{background:var(--tblr-warning-lt,#fef3e0);color:#9a6700;}
+        .dz-day-extra{flex:0 0 auto;display:flex;gap:.3rem;}
+        .dz-day-actions{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+        .dz-catering{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--tblr-secondary-color,#6b7280);}
+        .dz-pill{border:1px solid var(--tblr-border-color);background:var(--tblr-bg-surface-secondary,#f9fafb);border-radius:100px;font-size:.75rem;padding:.15rem 1.4rem .15rem .55rem;}
+        .dz-day-pay{flex:0 0 80px;text-align:right;font-size:.85rem;font-weight:600;}
+        .dz-day-note{flex:1 1 160px;min-width:140px;}
+        .dz-week-poolline{padding:.4rem 1rem;font-size:.75rem;color:var(--tblr-secondary-color,#6b7280);background:var(--tblr-bg-surface-secondary,#f9fafb);border-top:1px solid var(--tblr-border-color-translucent,#eee);}
+        .dz-week-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;padding:.65rem 1rem;background:var(--tblr-primary-lt,#e6f1fa);border-top:1px solid var(--tblr-border-color);border-radius:0 0 var(--tblr-border-radius-lg,10px) var(--tblr-border-radius-lg,10px);}
+        .dz-week-footer-values{display:flex;gap:1.1rem;flex-wrap:wrap;}
+        .dz-week-footer-values span{font-size:.8rem;color:var(--tblr-primary);}
+        .dz-week-footer-values strong{font-size:1rem;}
+    </style>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <div>
             <h2 class="mb-0">{{ e.project.name }} — {{ e.role }}</h2>
@@ -16,21 +59,51 @@
         </div>
     </div>
 
-    {% if v.warnings is not empty %}
-        <div class="alert alert-warning">
-            <strong>{{ 'drehzettel.compliance.title'|trans }}</strong>
-            <ul class="mb-0">
-                {% for w in v.warnings %}
-                    <li>{{ ('drehzettel.compliance.' ~ w.issue.value)|trans({'%date%': w.date|date('D, Y-m-d'), '%measured%': (w.minutes / 60)|number_format(1), '%limit%': (w.limitMinutes / 60)|number_format(1)}) }}</li>
-                {% endfor %}
-            </ul>
+    <div class="dz-stat-grid">
+        <div class="dz-stat">
+            <div class="dz-stat-label">{{ 'drehzettel.pdf.work'|trans }}</div>
+            <div class="dz-stat-value">{{ v.sums.work }}</div>
         </div>
+        <div class="dz-stat">
+            <div class="dz-stat-label">{{ 'drehzettel.rules.surcharge_rounding'|trans }}</div>
+            <div class="dz-stat-chips">
+                {% for x in v.sums.tiers %}
+                    <span class="dz-chip {{ x starts with '00:00' ? 'dz-chip-off' : 'dz-chip-tier' ~ min(loop.index, 4) }}">{{ v.columns.tiers[loop.index0] }} {{ x starts with '00:00' ? '–' : x }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="dz-stat">
+            <div class="dz-stat-label">{{ 'drehzettel.pdf.night'|trans }}</div>
+            <div class="dz-stat-value">{{ v.sums.night }}</div>
+        </div>
+        {% if v.has_pay %}
+            <div class="dz-stat dz-stat-pay">
+                <div class="dz-stat-label">{{ 'drehzettel.pdf.pay'|trans }}</div>
+                <div class="dz-stat-value">{{ v.sums.pay }}</div>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if v.warnings is not empty %}
+        <div class="dz-compliance dz-compliance-warn align-items-start">
+            <i class="fas fa-triangle-exclamation mt-1"></i>
+            <div>
+                <strong>{{ 'drehzettel.compliance.title'|trans }}</strong>
+                <ul>
+                    {% for w in v.warnings %}
+                        <li>{{ ('drehzettel.compliance.' ~ w.issue.value)|trans({'%date%': w.date|date('D, Y-m-d'), '%measured%': (w.minutes / 60)|number_format(1), '%limit%': (w.limitMinutes / 60)|number_format(1)}) }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <div class="dz-compliance"><i class="fas fa-circle-check text-success"></i> {{ 'drehzettel.week.compliance_ok'|trans }}</div>
     {% endif %}
 
     <form method="post" action="{{ path('drehzettel_week_save', {id: e.id, year: v.year, week: v.week}) }}" id="drehzettel-form">
         <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_week') }}">
         <div class="card">
-            <div class="card-body p-0 table-responsive" id="drehzettel-table-wrap">
+            <div class="card-body p-0" id="drehzettel-table-wrap">
                 {% include '@Drehzettel/drehzettel/_week_table.html.twig' %}
             </div>
         </div>

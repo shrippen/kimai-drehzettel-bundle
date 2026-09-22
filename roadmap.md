@@ -134,6 +134,15 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 - Half-cent ties: the reference source shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
+- **UX question raised while reworking the week/rules pages (see `research/ux-flows-film-day-data.md`, 2026-09-22):**
+  where does per-day data (break, catering, day type, category override, note) belong, and where should it be
+  edited? Today it all lives in the plugin's own `FilmDay` entity (one row per engagement + date, unrelated to
+  Kimai's `Timesheet` entity beyond sharing a date), and the week view's inline dropdowns are its *only* edit
+  surface - not a duplicate of some other Kimai-native editor, since Kimai has no such fields at all. Whether
+  inline-in-the-week-table is still the right interaction once the page gets busier (vs. a per-day detail
+  view/drawer opened by clicking a day) needs an actual user-flow exploration before more UI work goes into
+  that page. First-pass flow diagrams are in the research note above as a discussion starting point, not a
+  decision.
 
 Resolved, previously listed here:
 

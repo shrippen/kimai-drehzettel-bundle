@@ -466,6 +466,22 @@
         <source>drehzettel.rules.surcharge</source>
         <target>Zuschlag</target>
       </trans-unit>
+      <trans-unit id="d116" resname="drehzettel.rules.mode_simple">
+        <source>drehzettel.rules.mode_simple</source>
+        <target>Einfach</target>
+      </trans-unit>
+      <trans-unit id="d117" resname="drehzettel.rules.mode_advanced">
+        <source>drehzettel.rules.mode_advanced</source>
+        <target>Erweitert</target>
+      </trans-unit>
+      <trans-unit id="d118" resname="drehzettel.rules.mode_advanced_hint">
+        <source>drehzettel.rules.mode_advanced_hint</source>
+        <target>Erweitert: eigene Werte statt Presets, z. B. 42 Min. oder 37,5 %.</target>
+      </trans-unit>
+      <trans-unit id="d119" resname="drehzettel.week.compliance_ok">
+        <source>drehzettel.week.compliance_ok</source>
+        <target>Keine Hinweise für diese Woche</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

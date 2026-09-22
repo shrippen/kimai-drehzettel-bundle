@@ -466,6 +466,22 @@
         <source>drehzettel.rules.surcharge</source>
         <target>Surcharge</target>
       </trans-unit>
+      <trans-unit id="d116" resname="drehzettel.rules.mode_simple">
+        <source>drehzettel.rules.mode_simple</source>
+        <target>Simple</target>
+      </trans-unit>
+      <trans-unit id="d117" resname="drehzettel.rules.mode_advanced">
+        <source>drehzettel.rules.mode_advanced</source>
+        <target>Advanced</target>
+      </trans-unit>
+      <trans-unit id="d118" resname="drehzettel.rules.mode_advanced_hint">
+        <source>drehzettel.rules.mode_advanced_hint</source>
+        <target>Advanced: enter your own values instead of presets, e.g. 42 min or 37.5%.</target>
+      </trans-unit>
+      <trans-unit id="d119" resname="drehzettel.week.compliance_ok">
+        <source>drehzettel.week.compliance_ok</source>
+        <target>No warnings for this week</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

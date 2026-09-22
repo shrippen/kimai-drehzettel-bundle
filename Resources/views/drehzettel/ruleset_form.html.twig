@@ -1,148 +1,229 @@
 {% extends 'base.html.twig' %}
 {% import '@Drehzettel/drehzettel/_preset_field.html.twig' as preset %}
+{% import '@Drehzettel/drehzettel/_tier_ladder.html.twig' as ladder %}
 
 {# Ruleset editor: hours and percent, not minutes and basis points. One field pair per tier slot;
    an empty "after" field drops that tier. Used for both the engagement snapshot and custom templates.
    Break and surcharge values use the preset+custom field (_preset_field.html.twig): a dropdown of the
-   common values, with a "Custom" checkbox that swaps it for a free number field. #}
+   common values, with a "Custom" checkbox that swaps it for a free number field. The "Einfach/Erweitert"
+   toggle at the top just checks/unchecks every field's own custom-toggle checkbox at once - it does not
+   change what gets submitted by itself. #}
 {% block page_content %}
-    <h2>{{ engagement ? 'drehzettel.rules.edit'|trans ~ ' — ' ~ engagement.project.name : (ruleset_name ?? 'drehzettel.ruleset.new'|trans) }}</h2>
-    <form method="post" class="card" style="max-width: 820px;">
-        <div class="card-body">
+    <style>
+        .dz-seg{display:inline-flex;border:1px solid var(--tblr-border-color);border-radius:8px;overflow:hidden;}
+        .dz-segopt{padding:.35rem .8rem;font-size:.8rem;color:var(--tblr-secondary-color,#6b7280);background:var(--tblr-bg-surface,#fff);border:none;border-right:1px solid var(--tblr-border-color);cursor:pointer;}
+        .dz-segopt:last-child{border-right:none;}
+        .dz-segopt.on{background:var(--tblr-primary);color:#fff;font-weight:600;}
+        .dz-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:1rem;}
+        .dz-navitem{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;border-radius:7px;font-size:.82rem;color:var(--tblr-secondary-color,#6b7280);text-decoration:none;}
+        .dz-navitem:hover{background:var(--tblr-bg-surface-secondary,#f3f4f6);color:var(--tblr-body-color);}
+        .dz-navitem i{width:16px;text-align:center;color:var(--tblr-primary);}
+        .dz-card{background:var(--tblr-bg-surface,#fff);border:1px solid var(--tblr-border-color);border-radius:var(--tblr-border-radius-lg,10px);padding:1.1rem 1.3rem;margin-bottom:.9rem;scroll-margin-top:1rem;}
+        .dz-cardhead{display:flex;align-items:center;gap:.6rem;margin-bottom:.15rem;}
+        .dz-cardhead i{color:var(--tblr-primary);font-size:1.05rem;}
+        .dz-cardtitle{font-size:.95rem;font-weight:600;}
+        .dz-carddesc{font-size:.78rem;color:var(--tblr-secondary-color,#6b7280);margin:0 0 .9rem 1.6rem;}
+        .dz-ladder{margin-bottom:1rem;}
+        .dz-ladder-bar{position:relative;height:32px;border-radius:7px;overflow:hidden;display:flex;font-size:.72rem;font-weight:600;color:#fff;}
+        .dz-ladder-seg{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;}
+        .dz-ladder-base{background:var(--tblr-bg-surface-tertiary,#d1d5db);color:var(--tblr-body-color,#374151);}
+        .dz-ladder-tier1{background:#f2b53d;}
+        .dz-ladder-tier2{background:#e8770f;}
+        .dz-ladder-tier3, .dz-ladder-tier4{background:var(--tblr-danger,#d63939);}
+        .dz-ladder-marks{position:relative;height:16px;}
+        .dz-ladder-mark{position:absolute;top:0;transform:translateX(-50%);font-size:.68rem;color:var(--tblr-secondary-color,#6b7280);white-space:nowrap;}
+        .dz-cat-card{border-radius:8px;padding:.8rem 1rem;flex:1;min-width:220px;}
+        .dz-cat-saturday{background:#fef3e0;}
+        .dz-cat-sunday{background:#fbeaea;}
+        .dz-cat-holiday{background:#efe9fc;}
+    </style>
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-1 gap-2">
+        <h2 class="mb-0">{{ engagement ? 'drehzettel.rules.edit'|trans ~ ' — ' ~ engagement.project.name : (ruleset_name ?? 'drehzettel.ruleset.new'|trans) }}</h2>
+        <div class="d-flex align-items-center gap-3">
+            <div class="dz-seg" id="dz-mode-toggle">
+                <button type="button" class="dz-segopt on" data-mode="simple">{{ 'drehzettel.rules.mode_simple'|trans }}</button>
+                <button type="button" class="dz-segopt" data-mode="advanced">{{ 'drehzettel.rules.mode_advanced'|trans }}</button>
+            </div>
+            <button type="submit" form="dz-rules-form" class="btn btn-primary">{{ 'action.save'|trans }}</button>
+        </div>
+    </div>
+    <div class="text-end text-muted small mb-3" id="dz-mode-hint" style="display:none;">{{ 'drehzettel.rules.mode_advanced_hint'|trans }}</div>
+
+    <div class="d-flex gap-4 align-items-start flex-wrap">
+        <div class="dz-nav" style="flex:0 0 190px;">
+            <a href="#sec-break" class="dz-navitem"><i class="fas fa-mug-hot"></i> {{ 'drehzettel.rules.break'|trans }}</a>
+            <a href="#sec-rounding" class="dz-navitem"><i class="fas fa-stopwatch"></i> {{ 'drehzettel.rules.rounding'|trans }}</a>
+            <a href="#sec-daily" class="dz-navitem"><i class="fas fa-stairs"></i> {{ 'drehzettel.rules.daily_tiers'|trans }}</a>
+            <a href="#sec-weekly" class="dz-navitem"><i class="fas fa-calendar-week"></i> {{ 'drehzettel.rules.weekly_tiers'|trans }}</a>
+            <a href="#sec-night" class="dz-navitem"><i class="fas fa-moon"></i> {{ 'drehzettel.rules.night'|trans }}</a>
+            <a href="#sec-category" class="dz-navitem"><i class="fas fa-sun"></i> {{ 'drehzettel.rules.category'|trans }}</a>
+            <a href="#sec-week-count" class="dz-navitem"><i class="fas fa-calendar-days"></i> {{ 'drehzettel.rules.week_count'|trans }}</a>
+        </div>
+
+        <form method="post" id="dz-rules-form" style="flex:1 1 480px;min-width:0;max-width:820px;">
             <input type="hidden" name="_token" value="{{ csrf_token(engagement ? 'drehzettel_engagement' : 'drehzettel_ruleset') }}">
 
             {% if not engagement and not ruleset_name is defined %}
-                <div class="mb-3">
+                <div class="dz-card">
                     <label class="form-label">{{ 'drehzettel.ruleset.name'|trans }}</label>
                     <input type="text" name="name" class="form-control" value="{{ suggest_name ?? '' }}" required>
                 </div>
             {% endif %}
 
-            <h5>{{ 'drehzettel.rules.break'|trans }}</h5>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ preset.field('defaultBreakMinutes', 'drehzettel.rules.default_break'|trans, [0, 30, 45, 60], form.defaultBreakMinutes, ' min') }}
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.break_rule'|trans }}</label>
-                    <select name="breakRule" class="form-select">
-                        <option value="deduct_all" {% if form.breakRule == 'deduct_all' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.deduct_all'|trans }}</option>
-                        <option value="excess_counts_as_work" {% if form.breakRule == 'excess_counts_as_work' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.excess_counts_as_work'|trans }}</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    {{ preset.field('freeBreakMinutes', 'drehzettel.rules.free_break'|trans, [0, 30, 45, 60], form.freeBreakMinutes, ' min') }}
+            <div class="dz-card" id="sec-break">
+                <div class="dz-cardhead"><i class="fas fa-mug-hot"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.break'|trans }}</span></div>
+                <div class="dz-carddesc">{{ 'drehzettel.rules.default_break'|trans }}, {{ 'drehzettel.rules.break_rule'|trans|lower }}, {{ 'drehzettel.rules.free_break'|trans|lower }}.</div>
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ preset.field('defaultBreakMinutes', 'drehzettel.rules.default_break'|trans, [0, 30, 45, 60], form.defaultBreakMinutes, ' min') }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.break_rule'|trans }}</label>
+                        <select name="breakRule" class="form-select">
+                            <option value="deduct_all" {% if form.breakRule == 'deduct_all' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.deduct_all'|trans }}</option>
+                            <option value="excess_counts_as_work" {% if form.breakRule == 'excess_counts_as_work' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.excess_counts_as_work'|trans }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        {{ preset.field('freeBreakMinutes', 'drehzettel.rules.free_break'|trans, [0, 30, 45, 60], form.freeBreakMinutes, ' min') }}
+                    </div>
                 </div>
             </div>
 
-            <h5>{{ 'drehzettel.rules.rounding'|trans }}</h5>
-            <div class="row">
-                {% for prefix, label in {'work': 'drehzettel.rules.work_rounding', 'surcharge': 'drehzettel.rules.surcharge_rounding'} %}
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">{{ label|trans }}</label>
-                        <div class="input-group">
-                            <select name="{{ prefix }}RoundingUnit" class="form-select">
-                                <option value="1" {% if form[prefix ~ 'RoundingUnit'] == 1 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.1'|trans }}</option>
-                                <option value="15" {% if form[prefix ~ 'RoundingUnit'] == 15 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.15'|trans }}</option>
-                                <option value="30" {% if form[prefix ~ 'RoundingUnit'] == 30 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.30'|trans }}</option>
-                                <option value="60" {% if form[prefix ~ 'RoundingUnit'] == 60 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.60'|trans }}</option>
-                            </select>
-                            <select name="{{ prefix }}RoundingMode" class="form-select">
-                                <option value="up" {% if form[prefix ~ 'RoundingMode'] == 'up' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.up'|trans }}</option>
-                                <option value="down" {% if form[prefix ~ 'RoundingMode'] == 'down' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.down'|trans }}</option>
-                                <option value="nearest" {% if form[prefix ~ 'RoundingMode'] == 'nearest' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.nearest'|trans }}</option>
-                            </select>
+            <div class="dz-card" id="sec-rounding">
+                <div class="dz-cardhead"><i class="fas fa-stopwatch"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.rounding'|trans }}</span></div>
+                <div class="dz-carddesc">Erst die Arbeitszeit runden, dann jeden Zuschlagsanteil einzeln.</div>
+                <div class="row">
+                    {% for prefix, label in {'work': 'drehzettel.rules.work_rounding', 'surcharge': 'drehzettel.rules.surcharge_rounding'} %}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ label|trans }}</label>
+                            <div class="input-group">
+                                <select name="{{ prefix }}RoundingUnit" class="form-select">
+                                    <option value="1" {% if form[prefix ~ 'RoundingUnit'] == 1 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.1'|trans }}</option>
+                                    <option value="15" {% if form[prefix ~ 'RoundingUnit'] == 15 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.15'|trans }}</option>
+                                    <option value="30" {% if form[prefix ~ 'RoundingUnit'] == 30 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.30'|trans }}</option>
+                                    <option value="60" {% if form[prefix ~ 'RoundingUnit'] == 60 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.60'|trans }}</option>
+                                </select>
+                                <select name="{{ prefix }}RoundingMode" class="form-select">
+                                    <option value="up" {% if form[prefix ~ 'RoundingMode'] == 'up' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.up'|trans }}</option>
+                                    <option value="down" {% if form[prefix ~ 'RoundingMode'] == 'down' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.down'|trans }}</option>
+                                    <option value="nearest" {% if form[prefix ~ 'RoundingMode'] == 'nearest' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.nearest'|trans }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="dz-card" id="sec-daily">
+                <div class="dz-cardhead"><i class="fas fa-stairs"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.daily_tiers'|trans }}</span></div>
+                <div class="dz-carddesc">Ab wie vielen Stunden am Tag welcher Zuschlag greift.</div>
+                {{ ladder.bar([
+                    {after: form.dailyTier1After, percent: form.dailyTier1Percent},
+                    {after: form.dailyTier2After, percent: form.dailyTier2Percent},
+                    {after: form.dailyTier3After, percent: form.dailyTier3Percent},
+                    {after: form.dailyTier4After, percent: form.dailyTier4Percent},
+                ]) }}
+                {% for i in 1..4 %}
+                    <div class="row align-items-start">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
+                            <input type="number" step="0.25" name="dailyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['dailyTier' ~ i ~ 'After'] }}">
+                        </div>
+                        <div class="col-md-5">
+                            {{ preset.field('dailyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['dailyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
                         </div>
                     </div>
                 {% endfor %}
             </div>
 
-            <h5>{{ 'drehzettel.rules.daily_tiers'|trans }}</h5>
-            {% for i in 1..4 %}
-                <div class="row align-items-start">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
-                        <input type="number" step="0.25" name="dailyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['dailyTier' ~ i ~ 'After'] }}">
+            <div class="dz-card" id="sec-weekly">
+                <div class="dz-cardhead"><i class="fas fa-calendar-week"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.weekly_tiers'|trans }}</span></div>
+                <div class="dz-carddesc">Ab wie vielen Stunden in der Woche welcher Zuschlag greift.</div>
+                {{ ladder.bar([
+                    {after: form.weeklyTier1After, percent: form.weeklyTier1Percent},
+                    {after: form.weeklyTier2After, percent: form.weeklyTier2Percent},
+                    {after: form.weeklyTier3After, percent: form.weeklyTier3Percent},
+                ]) }}
+                {% for i in 1..3 %}
+                    <div class="row align-items-start">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
+                            <input type="number" step="0.5" name="weeklyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['weeklyTier' ~ i ~ 'After'] }}">
+                        </div>
+                        <div class="col-md-5">
+                            {{ preset.field('weeklyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['weeklyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                        </div>
                     </div>
-                    <div class="col-md-5">
-                        {{ preset.field('dailyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['dailyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
-                    </div>
-                </div>
-            {% endfor %}
-
-            <h5>{{ 'drehzettel.rules.weekly_tiers'|trans }}</h5>
-            {% for i in 1..3 %}
-                <div class="row align-items-start">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
-                        <input type="number" step="0.5" name="weeklyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['weeklyTier' ~ i ~ 'After'] }}">
-                    </div>
-                    <div class="col-md-5">
-                        {{ preset.field('weeklyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['weeklyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
-                    </div>
-                </div>
-            {% endfor %}
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.weekly_gage_hours'|trans }}</label>
-                    <input type="number" name="weeklyGageHours" class="form-control" value="{{ form.weeklyGageHours }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.daily_gage_hours'|trans }}</label>
-                    <input type="number" name="dailyGageHours" class="form-control" value="{{ form.dailyGageHours }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.min_day_hours'|trans }}</label>
-                    <input type="number" step="0.25" name="minDayHours" class="form-control" value="{{ form.minDayHours }}">
-                </div>
-            </div>
-
-            <h5>{{ 'drehzettel.rules.night'|trans }}</h5>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.night_from'|trans }}</label>
-                    <input type="time" name="nightFrom" class="form-control" value="{{ form.nightFrom }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.rules.night_to'|trans }}</label>
-                    <input type="time" name="nightTo" class="form-control" value="{{ form.nightTo }}">
-                </div>
-                <div class="col-md-4">
-                    {{ preset.field('nightPercent', 'drehzettel.rules.night_percent'|trans, [25, 50, 75, 100], form.nightPercent, '%') }}
-                </div>
-            </div>
-
-            <h5>{{ 'drehzettel.rules.category'|trans }}</h5>
-            {% for cat in ['saturday', 'sunday', 'holiday'] %}
-                <div class="row align-items-start">
-                    <div class="col-md-5">
-                        {{ preset.field(cat ~ 'Percent', ('drehzettel.category.' ~ cat)|trans, [25, 50, 75, 100], form[cat ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                {% endfor %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.weekly_gage_hours'|trans }}</label>
+                        <input type="number" name="weeklyGageHours" class="form-control" value="{{ form.weeklyGageHours }}">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">{{ 'drehzettel.rules.basis'|trans }}</label>
-                        <select name="{{ cat }}Basis" class="form-select form-select-sm">
-                            <option value="hourly" {% if form[cat ~ 'Basis'] == 'hourly' %}selected{% endif %}>{{ 'drehzettel.rules.basis.hourly'|trans }}</option>
-                            <option value="day_rate" {% if form[cat ~ 'Basis'] == 'day_rate' %}selected{% endif %}>{{ 'drehzettel.rules.basis.day_rate'|trans }}</option>
-                        </select>
+                        <label class="form-label">{{ 'drehzettel.rules.daily_gage_hours'|trans }}</label>
+                        <input type="number" name="dailyGageHours" class="form-control" value="{{ form.dailyGageHours }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.min_day_hours'|trans }}</label>
+                        <input type="number" step="0.25" name="minDayHours" class="form-control" value="{{ form.minDayHours }}">
                     </div>
                 </div>
-            {% endfor %}
+            </div>
 
-            <h5>{{ 'drehzettel.rules.week_count'|trans }}</h5>
-            <div class="row align-items-start">
-                <div class="col-md-5">
-                    {{ preset.field('sixthDayPercent', 'drehzettel.category.saturday'|trans ~ ' (6.)', [25, 50, 75, 100], form.sixthDayPercent, '%', 'drehzettel.rules.pooled'|trans) }}
-                </div>
-                <div class="col-md-5">
-                    {{ preset.field('seventhDayPercent', 'drehzettel.category.sunday'|trans ~ ' (7.)', [25, 50, 75, 100], form.seventhDayPercent, '%', 'drehzettel.rules.pooled'|trans) }}
+            <div class="dz-card" id="sec-night">
+                <div class="dz-cardhead"><i class="fas fa-moon"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.night'|trans }}</span></div>
+                <div class="dz-carddesc">Zeitfenster und Zuschlag für Nachtarbeit.</div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.night_from'|trans }}</label>
+                        <input type="time" name="nightFrom" class="form-control" value="{{ form.nightFrom }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.night_to'|trans }}</label>
+                        <input type="time" name="nightTo" class="form-control" value="{{ form.nightTo }}">
+                    </div>
+                    <div class="col-md-4">
+                        {{ preset.field('nightPercent', 'drehzettel.rules.night_percent'|trans, [25, 50, 75, 100], form.nightPercent, '%') }}
+                    </div>
                 </div>
             </div>
-            <div class="form-text mb-3">{{ 'drehzettel.rules.week_count_help'|trans }}</div>
 
-            <button type="submit" class="btn btn-primary">{{ 'action.save'|trans }}</button>
-            <a href="{{ engagement ? path('drehzettel_week', {id: engagement.id}) : path('drehzettel_ruleset_list') }}" class="btn btn-link">{{ 'action.close'|trans }}</a>
-        </div>
-    </form>
+            <div class="dz-card" id="sec-category">
+                <div class="dz-cardhead"><i class="fas fa-sun"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.category'|trans }}</span></div>
+                <div class="dz-carddesc">Zuschlag und Berechnungsbasis je Tageskategorie.</div>
+                <div class="d-flex gap-3 flex-wrap">
+                    {% for cat in ['saturday', 'sunday', 'holiday'] %}
+                        <div class="dz-cat-card dz-cat-{{ cat }}">
+                            {{ preset.field(cat ~ 'Percent', ('drehzettel.category.' ~ cat)|trans, [25, 50, 75, 100], form[cat ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                            <label class="form-label">{{ 'drehzettel.rules.basis'|trans }}</label>
+                            <select name="{{ cat }}Basis" class="form-select form-select-sm">
+                                <option value="hourly" {% if form[cat ~ 'Basis'] == 'hourly' %}selected{% endif %}>{{ 'drehzettel.rules.basis.hourly'|trans }}</option>
+                                <option value="day_rate" {% if form[cat ~ 'Basis'] == 'day_rate' %}selected{% endif %}>{{ 'drehzettel.rules.basis.day_rate'|trans }}</option>
+                            </select>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="dz-card" id="sec-week-count">
+                <div class="dz-cardhead"><i class="fas fa-calendar-days"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.week_count'|trans }}</span></div>
+                <div class="dz-carddesc">{{ 'drehzettel.rules.week_count_help'|trans }}</div>
+                <div class="row align-items-start">
+                    <div class="col-md-5">
+                        {{ preset.field('sixthDayPercent', 'drehzettel.category.saturday'|trans ~ ' (6.)', [25, 50, 75, 100], form.sixthDayPercent, '%', 'drehzettel.rules.pooled'|trans) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ preset.field('seventhDayPercent', 'drehzettel.category.sunday'|trans ~ ' (7.)', [25, 50, 75, 100], form.seventhDayPercent, '%', 'drehzettel.rules.pooled'|trans) }}
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ engagement ? path('drehzettel_week', {id: engagement.id}) : path('drehzettel_ruleset_list') }}" class="btn btn-link ps-0">{{ 'action.close'|trans }}</a>
+        </form>
+    </div>
 
     <script>
     // Preset/Custom toggle for _preset_field.html.twig: exactly one of the
@@ -162,7 +243,6 @@
                     select.classList.add('d-none');
                     input.disabled = false;
                     input.classList.remove('d-none');
-                    input.focus();
                 } else {
                     var match = Array.from(select.options).some(function (o) { return o.value !== '' && o.value === input.value; });
                     select.value = match ? input.value : (select.querySelector('option[value=""]') ? '' : select.options[0].value);
@@ -170,6 +250,30 @@
                     input.classList.add('d-none');
                     select.disabled = false;
                     select.classList.remove('d-none');
+                }
+            });
+        });
+    })();
+
+    // Global Einfach/Erweitert switch: flips every field's own custom-toggle checkbox at once.
+    // It is not itself submitted - each field still sends whichever of its own two inputs is enabled.
+    (function () {
+        var group = document.getElementById('dz-mode-toggle');
+        var hint = document.getElementById('dz-mode-hint');
+        if (!group) { return; }
+
+        group.addEventListener('click', function (event) {
+            var btn = event.target.closest('.dz-segopt');
+            if (!btn) { return; }
+            var advanced = btn.dataset.mode === 'advanced';
+
+            group.querySelectorAll('.dz-segopt').forEach(function (b) { b.classList.toggle('on', b === btn); });
+            hint.style.display = advanced ? '' : 'none';
+
+            document.querySelectorAll('.dz-custom-toggle').forEach(function (toggle) {
+                if (toggle.checked !== advanced) {
+                    toggle.checked = advanced;
+                    toggle.dispatchEvent(new Event('change'));
                 }
             });
         });

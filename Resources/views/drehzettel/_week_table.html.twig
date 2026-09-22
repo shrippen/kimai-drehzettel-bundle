@@ -1,75 +1,73 @@
-{# Rows, weekly line and sums of one week. Rendered on load and re-rendered as a preview fragment. #}
+{# Rows, weekly line and sums of one week, as a day-list instead of a wide table.
+   Rendered on load and re-rendered as a preview fragment (Controller/WeekController::preview()). #}
 {% set c = v.columns %}
-<table class="table table-sm mb-0" id="drehzettel-table">
-    <thead>
-        <tr>
-            <th>{{ 'drehzettel.pdf.date'|trans }}</th>
-            <th>{{ 'drehzettel.pdf.begin'|trans }}</th>
-            <th>{{ 'drehzettel.pdf.end'|trans }}</th>
-            <th>{{ 'drehzettel.pdf.break'|trans }}</th>
-            <th>{{ 'drehzettel.pdf.work'|trans }}</th>
-            {% for h in c.tiers %}<th>{{ h }}</th>{% endfor %}
-            <th>{{ 'drehzettel.pdf.night'|trans }}</th>
-            <th>{{ 'drehzettel.pdf.under'|trans }}</th>
-            <th>{{ 'drehzettel.catering.title'|trans }}</th>
-            <th>{{ 'drehzettel.day_type.title'|trans }}</th>
-            <th>{{ 'drehzettel.category.title'|trans }}</th>
-            {% if c.pay %}<th>{{ 'drehzettel.pdf.pay'|trans }}</th>{% endif %}
-            <th>{{ 'drehzettel.note'|trans }}</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="dz-day-list">
     {% for row in v.rows %}
         {% set film = v.film[row.key] ?? null %}
-        <tr>
-            <td class="text-nowrap">{{ row.date }}</td>
+        <div class="dz-day-row">
             {% if row.empty %}
-                <td colspan="{{ 4 + c.tiers|length + (c.pay ? 1 : 0) }}" class="text-muted">{{ 'drehzettel.week.no_entry'|trans }}</td>
+                <div class="dz-day-date"><div class="dz-day-weekday">{{ row.date }}</div></div>
+                <div class="dz-day-empty">{{ 'drehzettel.week.no_entry'|trans }}</div>
             {% else %}
-                <td>{{ row.begin }}</td>
-                <td>{{ row.end }}</td>
-                <td><input type="number" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][break]" min="0" max="720" placeholder="{{ v.default_break }}" value="{{ film.break ?? '' }}"></td>
-                <td>{{ row.work }}</td>
-                {% for x in row.tiers %}<td>{{ x }}</td>{% endfor %}
-                <td>{{ row.night }}</td>
-                <td>{{ row.under }}</td>
-                <td class="text-center"><input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}></td>
-                <td>
-                    <select class="form-select form-select-sm dz-field" name="day[{{ row.key }}][type]">
+                <div class="dz-day-date">
+                    <div class="dz-day-weekday">{{ row.date }}</div>
+                    <div class="dz-day-time">
+                        {{ row.begin }}–{{ row.end }} ·
+                        <input type="number" class="dz-break-input dz-field" name="day[{{ row.key }}][break]" min="0" max="720" placeholder="{{ v.default_break }}" value="{{ film.break ?? '' }}">{{ 'drehzettel.pdf.break'|trans }}
+                    </div>
+                </div>
+
+                <div class="dz-day-work">{{ row.work }}</div>
+
+                <div class="dz-day-tiers">
+                    {% for x in row.tiers %}
+                        <span class="dz-chip {{ x starts with '00:00' ? 'dz-chip-off' : 'dz-chip-tier' ~ min(loop.index, 4) }}">{{ c.tiers[loop.index0] }} {{ x starts with '00:00' ? '–' : x }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="dz-day-extra">
+                    {% if not (row.night starts with '00:00') %}<span class="dz-chip dz-chip-night"><i class="fas fa-moon"></i> {{ row.night }}</span>{% endif %}
+                    {% if not (row.under starts with '00:00') %}<span class="dz-chip dz-chip-under"><i class="fas fa-triangle-exclamation"></i> {{ row.under }}</span>{% endif %}
+                </div>
+
+                <div class="dz-day-actions">
+                    <label class="dz-catering">
+                        <input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}>
+                        {{ 'drehzettel.catering.title'|trans }}
+                    </label>
+                    <select class="dz-pill dz-field" name="day[{{ row.key }}][type]">
                         <option value="workday" {% if (film.type ?? 'workday') == 'workday' %}selected{% endif %}>{{ 'drehzettel.day_type.workday'|trans }}</option>
                         <option value="travel" {% if (film.type ?? '') == 'travel' %}selected{% endif %}>{{ 'drehzettel.day_type.travel'|trans }}</option>
                     </select>
-                </td>
-                <td>
-                    <select class="form-select form-select-sm dz-field" name="day[{{ row.key }}][category]">
+                    <select class="dz-pill dz-field" name="day[{{ row.key }}][category]">
                         <option value="">{{ 'drehzettel.category.auto'|trans }}</option>
                         <option value="workday" {% if (film.category ?? '') == 'workday' %}selected{% endif %}>{{ 'drehzettel.category.workday'|trans }}</option>
                         <option value="saturday" {% if (film.category ?? '') == 'saturday' %}selected{% endif %}>{{ 'drehzettel.category.saturday'|trans }}</option>
                         <option value="sunday" {% if (film.category ?? '') == 'sunday' %}selected{% endif %}>{{ 'drehzettel.category.sunday'|trans }}</option>
                         <option value="holiday" {% if (film.category ?? '') == 'holiday' %}selected{% endif %}>{{ 'drehzettel.category.holiday'|trans }}</option>
                     </select>
-                </td>
-                {% if c.pay %}<td>{{ row.pay }}</td>{% endif %}
-                <td><input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ film.note ?? '' }}"></td>
+                </div>
+
+                {% if c.pay %}<div class="dz-day-pay">{{ row.pay }}</div>{% endif %}
+
+                <div class="dz-day-note">
+                    <input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ film.note ?? '' }}" placeholder="{{ 'drehzettel.note'|trans }}">
+                </div>
             {% endif %}
-        </tr>
+        </div>
     {% endfor %}
-    </tbody>
-    <tfoot>
-        {% if v.weekly %}
-            <tr><td colspan="{{ 5 + c.tiers|length + (c.pay ? 1 : 0) + 3 }}"><strong>{{ v.weekly }}</strong></td></tr>
-        {% endif %}
-        <tr class="fw-bold">
-            <td colspan="4">{{ 'drehzettel.pdf.total'|trans }}</td>
-            <td>{{ v.sums.work }}</td>
-            {% for x in v.sums.tiers %}<td>{{ x }}</td>{% endfor %}
-            <td>{{ v.sums.night }}</td>
-            <td>{{ v.sums.under }}</td>
-            <td>{{ v.sums.catering }}</td>
-            <td></td>
-            <td></td>
-            {% if c.pay %}<td>{{ v.sums.pay }}</td>{% endif %}
-            <td></td>
-        </tr>
-    </tfoot>
-</table>
+</div>
+
+{% if v.weekly %}<div class="dz-week-poolline">{{ v.weekly }}</div>{% endif %}
+
+<div class="dz-week-footer">
+    <div class="dz-week-footer-label">{{ 'drehzettel.pdf.total'|trans }}</div>
+    <div class="dz-week-footer-values">
+        <span><strong>{{ v.sums.work }}</strong></span>
+        {% for x in v.sums.tiers %}<span>{{ c.tiers[loop.index0] }} <strong>{{ x }}</strong></span>{% endfor %}
+        <span><i class="fas fa-moon"></i> <strong>{{ v.sums.night }}</strong></span>
+        <span>{{ 'drehzettel.pdf.under'|trans }} <strong>{{ v.sums.under }}</strong></span>
+        <span>{{ 'drehzettel.catering.title'|trans }} <strong>{{ v.sums.catering }}</strong></span>
+        {% if c.pay %}<span><strong>{{ v.sums.pay }}</strong></span>{% endif %}
+    </div>
+</div>

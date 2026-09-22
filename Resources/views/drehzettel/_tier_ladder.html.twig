@@ -1,0 +1,29 @@
+{# Visual summary of a tier list (daily or weekly overtime): a proportional bar showing
+   where each surcharge starts, plus small threshold marks. Purely decorative - the actual
+   after/percent fields below it are still what gets submitted. #}
+{% macro bar(tiers) %}
+    {% set defined = [] %}
+    {% for t in tiers %}
+        {% if t.after is not null and t.after != '' %}
+            {% set defined = defined|merge([t]) %}
+        {% endif %}
+    {% endfor %}
+    {% if defined|length > 0 %}
+        {% set maxAfter = defined|last.after %}
+        {% set scale = maxAfter + (maxAfter > 20 ? 4 : 2) %}
+        <div class="dz-ladder">
+            <div class="dz-ladder-bar">
+                <div class="dz-ladder-seg dz-ladder-base" style="width:{{ (defined|first.after / scale * 100) }}%">0–{{ defined|first.after }}</div>
+                {% for t in defined %}
+                    {% set nextAfter = defined[loop.index] is defined ? defined[loop.index].after : scale %}
+                    <div class="dz-ladder-seg dz-ladder-tier{{ min(loop.index, 4) }}" style="width:{{ ((nextAfter - t.after) / scale * 100) }}%">+{{ t.percent }}%</div>
+                {% endfor %}
+            </div>
+            <div class="dz-ladder-marks">
+                {% for t in defined %}
+                    <div class="dz-ladder-mark" style="left:{{ (t.after / scale * 100) }}%">{{ t.after }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
