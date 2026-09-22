@@ -10,6 +10,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
+use KimaiPlugin\DrehzettelBundle\Service\HolidayLookupInterface;
 use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 
 /**
@@ -27,6 +28,7 @@ class DayInputBuilder
     public function __construct(
         private readonly TimesheetRangeRepository $timesheets,
         private readonly FilmDayRepository $filmDays,
+        private readonly HolidayLookupInterface $holidays,
     ) {
     }
 
@@ -45,7 +47,7 @@ class DayInputBuilder
             $inputs[] = new DayInput(
                 begin: $begin,
                 end: $end,
-                category: $extra?->getCategory() ?? $this->weekdayCategory($begin),
+                category: $extra?->getCategory() ?? $this->categoryFor($engagement, $begin),
                 type: $extra?->getDayType() ?? DayType::WORKDAY,
                 catering: $extra?->getCatering() ?? Catering::NO,
                 breakMinutes: $extra?->getBreakMinutes(),
@@ -116,7 +118,16 @@ class DayInputBuilder
         return $byDate;
     }
 
-    // Holidays are not known here yet. The Holiday plugin integration comes later.
+    // A film day override always wins (checked by the caller); this is only the fallback.
+    private function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
+    {
+        if ($this->holidays->isHoliday($engagement->getUser(), $date)) {
+            return DayCategory::HOLIDAY;
+        }
+
+        return $this->weekdayCategory($date);
+    }
+
     private function weekdayCategory(\DateTimeImmutable $date): DayCategory
     {
         return match ($date->format('N')) {

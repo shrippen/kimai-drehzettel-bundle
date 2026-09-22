@@ -71,7 +71,7 @@ class WeekPageBuilder
             'default_break' => $rules->defaultBreakMinutes,
             'has_pay' => $engagement->getGageCents() > 0,
             'locale' => $locale,
-            'warnings' => $this->compliance->check($result),
+            'warnings' => $this->compliance->check($result, $this->weeks->lastDayBefore($engagement, $period->from)),
             'mail_to' => $this->mailRecipients->findForEngagement($engagement)?->getEmail() ?? '',
         ];
     }

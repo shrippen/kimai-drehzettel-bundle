@@ -110,25 +110,45 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       mechanism but hours beyond 50 through the *daily* tier mechanism (5.4.3.2), which the current
       `Ruleset`/`WeekCalculator` split (independent daily tiers per day, one weekly pool) cannot express
       without a real risk of an incorrect pay result. Needs a small model change, not a stopgap.
-- [ ] Holiday plugin integration for public holidays — deferred. `DayCategory::HOLIDAY` already exists and
-      can be set by hand on a film day; wiring it to HolidayBundle's `PublicHolidayRepository` automatically
-      needs an optional cross-plugin dependency (HolidayBundle may not be installed), which needs a safe DI
-      pattern (service locator / `class_exists` guard) that hasn't been designed yet.
+- [x] Holiday plugin integration for public holidays. `DayInputBuilder` now asks a `HolidayLookupInterface`
+      before falling back to the weekday; a film day override still always wins. Default implementation
+      (`NullHolidayLookup`) says no to everything, so the plugin behaves exactly as before when no holiday
+      plugin is installed. `DrehzettelExtension::configureHolidayLookup()` swaps in
+      `Service\Holiday\HolidayBundleLookup` — reading the user's public holiday group and its holidays —
+      only when `KimaiPlugin\HolidayBundle` (github.com/shrippen/kimai-holiday-bundle) is actually present,
+      guarded by `class_exists()`. That adapter class is excluded from the plugin's normal service
+      auto-discovery (`services.yaml`) so the container still compiles when the holiday plugin is absent.
+      Not covered by `php tests/run.php` (needs Kimai entities); checked manually with `kimai:reload` +
+      `dev/check.php` + `drehzettel:pdf` on the dev instance without the holiday plugin installed. Still
+      needs a manual check with the holiday plugin actually installed once that's convenient to set up.
 - [ ] Time account (AZV day) — deferred. A real accrual ledger (2.5 h + 30 min per consecutive shooting day,
       TV FFS §6), not a one-line addition; out of scope for this pass.
 
 ## Open
 
-- Pause over 45 min: TV FFS counts the excess as work time, the app deducts it fully. Ruleset option.
-- Rest-time compliance only checks days inside one calculated week; the gap across a week boundary
-  (last day of one week to the first day of the next) is not checked.
 - `MailConfiguration` needs a "from" address configured in Kimai (system settings), otherwise
   `KimaiMailer` throws. Checked on the dev instance with the `null://` transport (no real send).
 - "Begun hour" surcharge reading (TV FFS 5.4.3.2): default in TV FFS preset is round up.
-- Interplay with Holiday plugin target hours.
 - Under-time (`Unterstunden`): assumed to be the work time missing to 8 h on a shooting day. The source's info text could not be read, and no sample sheet has a day under 8 h with that column.
 - Unverified against real PDFs (no example with these cases): weekly overtime above 50 h, 6th/7th day, Sunday/holiday pay, Saturday pay. The "Quarter-Hour Ruleset" preset copies the reference source's settings, but assumes: 6th/7th day surcharges stack with Saturday/Sunday surcharges; Sunday/holiday use the day rate.
 - Half-cent ties: the reference source shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
-- Holidays are not detected yet; category comes from the weekday or the film day override.
+- `dev/check.php`'s `period weeks` check fails on current `main` (expects 1, gets 2) - found while verifying
+  the holiday-integration and rest-time changes below, pre-existing and unrelated to them (reproduces with
+  `git stash` back to a clean checkout too). Needs its own investigation: `FilmWeekService::period()` splits
+  one month of entries that should sit in a single ISO week into two `WeekResult`s.
+
+Resolved, previously listed here:
+
+- ~~Pause over 45 min ruleset option~~ — already implemented (`BreakRule::EXCESS_COUNTS_AS_WORK` +
+  `freeBreakMinutes`, used by the TV FFS preset) and tested (`tests/cases/day.php`, "tv break excess is
+  work"). This roadmap file just hadn't been updated to say so.
+- ~~Rest-time compliance across a week boundary~~ — `ComplianceChecker::check()` now takes an optional
+  `$previousDay` (the last shooting day before the current week, from `FilmWeekService::lastDayBefore()`)
+  and checks rest time against it too. `WeekPageBuilder` wires it in. Tested in `tests/cases/compliance.php`.
+- ~~Interplay with Holiday plugin target hours~~ — moot now that public holidays are detected automatically
+  (see Phase 5): a holiday gets `DayCategory::HOLIDAY` and its surcharge like any other day, same as before
+  for a hand-set film day override. Kimai's own "expected work hours" accounting is out of this plugin's
+  scope either way.
+- ~~Holidays are not detected yet~~ — see Phase 5, holiday plugin integration.

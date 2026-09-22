@@ -6,6 +6,8 @@
 
 namespace KimaiPlugin\DrehzettelBundle\DependencyInjection;
 
+use KimaiPlugin\DrehzettelBundle\Service\Holiday\HolidayBundleLookup;
+use KimaiPlugin\DrehzettelBundle\Service\HolidayLookupInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -22,6 +24,26 @@ class DrehzettelExtension extends Extension implements PrependExtensionInterface
     {
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
+
+        $this->configureHolidayLookup($container);
+    }
+
+    // KimaiPlugin\HolidayBundle (github.com/shrippen/kimai-holiday-bundle) is optional.
+    // class_exists() only checks the autoloader, never fatals when the plugin is absent,
+    // so this is the safe way to bind an optional cross-plugin service: services.yaml
+    // never references HolidayBundle's classes directly, only this method does, and only
+    // once they are confirmed present.
+    private function configureHolidayLookup(ContainerBuilder $container): void
+    {
+        if (!class_exists(\KimaiPlugin\HolidayBundle\Repository\PublicHolidayRepository::class)
+            || !class_exists(\KimaiPlugin\HolidayBundle\Service\UserWorkContract::class)) {
+            return;
+        }
+
+        $container->register(HolidayBundleLookup::class, HolidayBundleLookup::class)
+            ->setAutowired(true)
+            ->setAutoconfigured(true);
+        $container->setAlias(HolidayLookupInterface::class, HolidayBundleLookup::class);
     }
 
     public function prepend(ContainerBuilder $container): void

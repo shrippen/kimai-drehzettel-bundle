@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
+use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
@@ -15,10 +16,12 @@ use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 class FilmWeekService
 {
     private const WEEK_FORMAT = 'o-W';
+    private const BOUNDARY_LOOKBACK_DAYS = 7;
 
     public function __construct(
         private readonly DayInputBuilder $inputs,
         private readonly WeekCalculator $weeks,
+        private readonly DayCalculator $days,
         private readonly EngagementService $engagements,
     ) {
     }
@@ -51,6 +54,22 @@ class FilmWeekService
         ksort($byWeek);
 
         return array_map(fn (array $days): WeekResult => $this->calc($engagement, $days), array_values($byWeek));
+    }
+
+    /**
+     * The last shooting day strictly before $date, for rest-time compliance checks that
+     * reach across a week boundary (last day of one week to the first day of the next).
+     * Calculated on its own, without a weekly pool, since only begin/end/gross are needed.
+     */
+    public function lastDayBefore(Engagement $engagement, \DateTimeImmutable $date): ?DayResult
+    {
+        $from = $date->modify(sprintf('-%d days', self::BOUNDARY_LOOKBACK_DAYS));
+        $inputs = $this->inputs->build($engagement, $from, $date);
+        if ($inputs === []) {
+            return null;
+        }
+
+        return $this->days->calc($inputs[count($inputs) - 1], $this->engagements->ruleset($engagement), null);
     }
 
     /**

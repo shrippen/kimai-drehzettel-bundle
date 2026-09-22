@@ -73,3 +73,17 @@ $extendedOk = weekCalc()->calc([
     shift('2026-06-16', '07:00', '17:00', 0),
 ], $tv, null);
 check('compliance: 11.5h rest ok after long day', [], issues($checker->check($extendedOk)));
+
+// Week boundary: last day of the previous week (Sunday) ends 23:00, this week's
+// Monday begins 08:00 -> 9h rest, too short. Not visible without $previousDay.
+$sundayBefore = dayCalc()->calc(shift('2026-06-21', '13:00', '23:00', 0), $tv, null);
+$mondayAfter = weekCalc()->calc([shift('2026-06-22', '08:00', '18:00', 0)], $tv, null);
+check('compliance: week boundary rest ignored without previous day', [], issues($checker->check($mondayAfter)));
+$warnings = $checker->check($mondayAfter, $sundayBefore);
+check('compliance: week boundary rest flagged with previous day', [ComplianceIssue::REST_TIME->value], issues($warnings));
+check('compliance: week boundary rest minutes measured', 540, $warnings[0]->minutes);
+
+// Week boundary: 11 h rest across the boundary is fine.
+$sundayOk = dayCalc()->calc(shift('2026-06-21', '13:00', '23:00', 0), $tv, null);
+$mondayOk = weekCalc()->calc([shift('2026-06-22', '10:00', '18:00', 0)], $tv, null);
+check('compliance: week boundary 11h rest ok', [], issues($checker->check($mondayOk, $sundayOk)));

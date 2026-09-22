@@ -23,6 +23,7 @@ use KimaiPlugin\DrehzettelBundle\Service\DayCalculator;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\FilmWeekService;
+use KimaiPlugin\DrehzettelBundle\Service\NullHolidayLookup;
 use KimaiPlugin\DrehzettelBundle\Service\PayCalculator;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
 use KimaiPlugin\DrehzettelBundle\Service\WeekCalculator;
@@ -52,9 +53,11 @@ $zone = new DateTimeZone('Europe/Berlin');
 $engagements = new EngagementRepository($registry);
 $service = new EngagementService($engagements, new RulesetCatalog(new FilmRulesetRepository($registry)));
 $pay = new PayCalculator();
+$dayCalc = new DayCalculator($pay);
 $weeks = new FilmWeekService(
-    new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry)),
-    new WeekCalculator(new DayCalculator($pay), $pay),
+    new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry), new NullHolidayLookup()),
+    new WeekCalculator($dayCalc, $pay),
+    $dayCalc,
     $service,
 );
 

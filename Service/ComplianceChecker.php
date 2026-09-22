@@ -15,9 +15,9 @@ use KimaiPlugin\DrehzettelBundle\Enum\ComplianceIssue;
  * TZ 5.2.5: 12 h/day, 60 h/week. TZ 5.9.1: 11 h rest between two shooting
  * days, or 11.5 h once the earlier day reached a begun 12th hour.
  *
- * Rest time is only checked between days inside the same calculated week;
- * the gap across a week boundary (e.g. Sunday to the next Monday) is not
- * covered, since weeks are calculated one at a time.
+ * Rest time also covers the gap across a week boundary (last day of the
+ * previous week to the first day of this one) when the caller passes that
+ * day in as $previousDay (see FilmWeekService::lastDayBefore()).
  */
 class ComplianceChecker
 {
@@ -31,7 +31,7 @@ class ComplianceChecker
     /**
      * @return list<ComplianceWarning>
      */
-    public function check(WeekResult $week): array
+    public function check(WeekResult $week, ?DayResult $previousDay = null): array
     {
         $warnings = [];
         foreach ($week->days as $day) {
@@ -44,19 +44,21 @@ class ComplianceChecker
             $warnings[] = new ComplianceWarning(ComplianceIssue::WEEKLY_MAX, $week->days[0]->begin, $week->workMinutes, self::WEEKLY_MAX_MINUTES);
         }
 
-        return [...$warnings, ...$this->restTimeWarnings($week->days)];
+        return [...$warnings, ...$this->restTimeWarnings($week->days, $previousDay)];
     }
 
     /**
      * @param list<DayResult> $days sorted by begin (WeekCalculator's contract)
      * @return list<ComplianceWarning>
      */
-    private function restTimeWarnings(array $days): array
+    private function restTimeWarnings(array $days, ?DayResult $previousDay): array
     {
+        $all = $previousDay !== null ? [$previousDay, ...$days] : $days;
+
         $warnings = [];
-        for ($i = 1; $i < count($days); ++$i) {
-            $previous = $days[$i - 1];
-            $current = $days[$i];
+        for ($i = 1; $i < count($all); ++$i) {
+            $previous = $all[$i - 1];
+            $current = $all[$i];
             $rest = intdiv($current->begin->getTimestamp() - $previous->end->getTimestamp(), 60);
             $required = $previous->grossMinutes > self::EXTENDED_REST_TRIGGER_MINUTES
                 ? self::REST_EXTENDED_MINUTES

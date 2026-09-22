@@ -5,6 +5,9 @@ services:
         public: false
 
     # Domain and Enum are plain value objects, not services.
+    # Service/Holiday/ is excluded because it type-hints classes from the optional
+    # KimaiPlugin\HolidayBundle plugin: DrehzettelExtension registers it by hand,
+    # only when that plugin is installed, so the container still compiles without it.
     KimaiPlugin\DrehzettelBundle\:
         resource: '../../*'
         exclude:
@@ -16,8 +19,10 @@ services:
             - '../../tests/'
             - '../../dev/'
             - '../../reference/'
+            - '../../Service/Holiday/'
 
     KimaiPlugin\DrehzettelBundle\Service\Labels: '@KimaiPlugin\DrehzettelBundle\Service\TranslatorLabels'
+    KimaiPlugin\DrehzettelBundle\Service\HolidayLookupInterface: '@KimaiPlugin\DrehzettelBundle\Service\NullHolidayLookup'
 
     KimaiPlugin\DrehzettelBundle\Controller\:
         resource: '../../Controller'
