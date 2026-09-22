@@ -134,12 +134,15 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 - Half-cent ties: the reference source shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
-- `dev/check.php`'s `period weeks` check fails on current `main` (expects 1, gets 2) - found while verifying
-  the holiday-integration and rest-time changes below, pre-existing and unrelated to them (reproduces with
-  `git stash` back to a clean checkout too). Needs its own investigation: `FilmWeekService::period()` splits
-  one month of entries that should sit in a single ISO week into two `WeekResult`s.
 
 Resolved, previously listed here:
+
+- ~~`dev/check.php`'s `period weeks` check fails (expects 1, gets 2)~~ — not a `FilmWeekService::period()`
+  bug: `dev/seed.php` seeds *all* weeks of the `weekly_gage` reference fixture for the admin user (May
+  through September 2025), not just week 21 as the check's comment assumed. Its query range (May 2 to
+  June 2) legitimately covers two ISO weeks with entries (21 and 22), so getting 2 `WeekResult`s back was
+  correct. Narrowed the check's range to week 21 only (`2025-05-19` to `2025-05-24`) to match its original
+  intent.
 
 - ~~Pause over 45 min ruleset option~~ — already implemented (`BreakRule::EXCESS_COUNTS_AS_WORK` +
   `freeBreakMinutes`, used by the TV FFS preset) and tested (`tests/cases/day.php`, "tv break excess is

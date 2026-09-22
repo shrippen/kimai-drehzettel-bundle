@@ -91,8 +91,10 @@ expect('crew2 break default 45 min, excess rule', 45, $theirs->days[0]->breakMin
 expect('crew2 work 11:00 (no break entered -> default 45)', 660, $theirs->days[0]->workMinutes);
 expect('snapshot names differ', ['Quarter-Hour Ruleset', 'TV FFS 2024'], [$engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20'))->getRulesetName(), $engagement->getRulesetName()]);
 
-// Period over May: entries only in week 21 -> exactly one week result.
-$period = $weeks->period($engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20')), new DateTimeImmutable('2025-05-02', $zone), new DateTimeImmutable('2025-06-02', $zone));
+// Period over one week: query range narrowed to week 21 only -> exactly one week result.
+// (The seed data spans many weeks of the reference fixtures, not just week 21, so a wider
+// range here would legitimately split into several WeekResults - that's not a bug.)
+$period = $weeks->period($engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20')), new DateTimeImmutable('2025-05-19', $zone), new DateTimeImmutable('2025-05-24', $zone));
 expect('period weeks', 1, count($period));
 expect('period work', 43 * 60 + 15, $period[0]->workMinutes);
 
