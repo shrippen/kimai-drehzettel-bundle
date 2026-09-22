@@ -150,13 +150,305 @@
         <source>drehzettel.rounding.mode.nearest</source>
         <target>kaufmännisch</target>
       </trans-unit>
-      <trans-unit id="d037" resname="drehzettel.day_type.workday">
+      <trans-unit id="d037" resname="drehzettel.day_type.title">
+        <source>drehzettel.day_type.title</source>
+        <target>Tagestyp</target>
+      </trans-unit>
+      <trans-unit id="d038" resname="drehzettel.day_type.workday">
         <source>drehzettel.day_type.workday</source>
         <target>Arbeitstag</target>
       </trans-unit>
-      <trans-unit id="d038" resname="drehzettel.day_type.travel">
+      <trans-unit id="d039" resname="drehzettel.day_type.travel">
         <source>drehzettel.day_type.travel</source>
         <target>Reisetag</target>
+      </trans-unit>
+      <trans-unit id="d040" resname="drehzettel.menu">
+        <source>drehzettel.menu</source>
+        <target>Drehzettel</target>
+      </trans-unit>
+      <trans-unit id="d041" resname="drehzettel.overview.empty">
+        <source>drehzettel.overview.empty</source>
+        <target>Noch keine Engagements.</target>
+      </trans-unit>
+      <trans-unit id="d042" resname="drehzettel.user">
+        <source>drehzettel.user</source>
+        <target>Nutzer</target>
+      </trans-unit>
+      <trans-unit id="d043" resname="drehzettel.project">
+        <source>drehzettel.project</source>
+        <target>Projekt</target>
+      </trans-unit>
+      <trans-unit id="d044" resname="drehzettel.role">
+        <source>drehzettel.role</source>
+        <target>Tätigkeit</target>
+      </trans-unit>
+      <trans-unit id="d045" resname="drehzettel.ruleset">
+        <source>drehzettel.ruleset</source>
+        <target>Regelwerk</target>
+      </trans-unit>
+      <trans-unit id="d046" resname="drehzettel.valid_from">
+        <source>drehzettel.valid_from</source>
+        <target>Gültig ab</target>
+      </trans-unit>
+      <trans-unit id="d047" resname="drehzettel.valid_to">
+        <source>drehzettel.valid_to</source>
+        <target>Gültig bis</target>
+      </trans-unit>
+      <trans-unit id="d048" resname="drehzettel.valid_to_help">
+        <source>drehzettel.valid_to_help</source>
+        <target>Leer bedeutet unbefristet.</target>
+      </trans-unit>
+      <trans-unit id="d049" resname="drehzettel.open">
+        <source>drehzettel.open</source>
+        <target>Öffnen</target>
+      </trans-unit>
+      <trans-unit id="d050" resname="drehzettel.signature">
+        <source>drehzettel.signature</source>
+        <target>Unterschrift</target>
+      </trans-unit>
+      <trans-unit id="d051" resname="drehzettel.signature.help">
+        <source>drehzettel.signature.help</source>
+        <target>Einmal hinterlegt, auf jedem Arbeitszeitnachweis, den du unterschreibst.</target>
+      </trans-unit>
+      <trans-unit id="d052" resname="drehzettel.signature.stored">
+        <source>drehzettel.signature.stored</source>
+        <target>Eine Unterschrift ist hinterlegt.</target>
+      </trans-unit>
+      <trans-unit id="d053" resname="drehzettel.signature.file_help">
+        <source>drehzettel.signature.file_help</source>
+        <target>PNG oder JPEG, bis 512 KB.</target>
+      </trans-unit>
+      <trans-unit id="d054" resname="drehzettel.rulesets">
+        <source>drehzettel.rulesets</source>
+        <target>Regelwerke</target>
+      </trans-unit>
+      <trans-unit id="d055" resname="drehzettel.ruleset.builtin">
+        <source>drehzettel.ruleset.builtin</source>
+        <target>Eingebaut</target>
+      </trans-unit>
+      <trans-unit id="d056" resname="drehzettel.ruleset.custom">
+        <source>drehzettel.ruleset.custom</source>
+        <target>Eigene</target>
+      </trans-unit>
+      <trans-unit id="d057" resname="drehzettel.ruleset.none">
+        <source>drehzettel.ruleset.none</source>
+        <target>Noch keine eigenen Regelwerke.</target>
+      </trans-unit>
+      <trans-unit id="d058" resname="drehzettel.ruleset.copy">
+        <source>drehzettel.ruleset.copy</source>
+        <target>Kopieren</target>
+      </trans-unit>
+      <trans-unit id="d059" resname="drehzettel.ruleset.new">
+        <source>drehzettel.ruleset.new</source>
+        <target>Neues Regelwerk</target>
+      </trans-unit>
+      <trans-unit id="d060" resname="drehzettel.ruleset.name">
+        <source>drehzettel.ruleset.name</source>
+        <target>Name</target>
+      </trans-unit>
+      <trans-unit id="d061" resname="drehzettel.ruleset.delete_confirm">
+        <source>drehzettel.ruleset.delete_confirm</source>
+        <target>Dieses Regelwerk löschen?</target>
+      </trans-unit>
+      <trans-unit id="d062" resname="drehzettel.engagement.new">
+        <source>drehzettel.engagement.new</source>
+        <target>Neues Engagement</target>
+      </trans-unit>
+      <trans-unit id="d063" resname="drehzettel.pay_kind">
+        <source>drehzettel.pay_kind</source>
+        <target>Vergütungsart</target>
+      </trans-unit>
+      <trans-unit id="d064" resname="drehzettel.pay_kind.weekly">
+        <source>drehzettel.pay_kind.weekly</source>
+        <target>Wochengage</target>
+      </trans-unit>
+      <trans-unit id="d065" resname="drehzettel.pay_kind.daily">
+        <source>drehzettel.pay_kind.daily</source>
+        <target>Tagesgage</target>
+      </trans-unit>
+      <trans-unit id="d066" resname="drehzettel.gage">
+        <source>drehzettel.gage</source>
+        <target>Gage (€)</target>
+      </trans-unit>
+      <trans-unit id="d067" resname="drehzettel.catering_deduction">
+        <source>drehzettel.catering_deduction</source>
+        <target>Catering-Abzug (€)</target>
+      </trans-unit>
+      <trans-unit id="d068" resname="drehzettel.rules.edit">
+        <source>drehzettel.rules.edit</source>
+        <target>Regeln bearbeiten</target>
+      </trans-unit>
+      <trans-unit id="d069" resname="drehzettel.rules.break">
+        <source>drehzettel.rules.break</source>
+        <target>Pause</target>
+      </trans-unit>
+      <trans-unit id="d070" resname="drehzettel.rules.default_break">
+        <source>drehzettel.rules.default_break</source>
+        <target>Standard-Pause (Min.)</target>
+      </trans-unit>
+      <trans-unit id="d071" resname="drehzettel.rules.break_rule">
+        <source>drehzettel.rules.break_rule</source>
+        <target>Pausenregel</target>
+      </trans-unit>
+      <trans-unit id="d072" resname="drehzettel.rules.break_rule.deduct_all">
+        <source>drehzettel.rules.break_rule.deduct_all</source>
+        <target>Ganze Pause abziehen</target>
+      </trans-unit>
+      <trans-unit id="d073" resname="drehzettel.rules.break_rule.excess_counts_as_work">
+        <source>drehzettel.rules.break_rule.excess_counts_as_work</source>
+        <target>Überschuss zählt als Arbeit</target>
+      </trans-unit>
+      <trans-unit id="d074" resname="drehzettel.rules.free_break">
+        <source>drehzettel.rules.free_break</source>
+        <target>Unbezahlt bis (Min.)</target>
+      </trans-unit>
+      <trans-unit id="d075" resname="drehzettel.rules.rounding">
+        <source>drehzettel.rules.rounding</source>
+        <target>Rundung</target>
+      </trans-unit>
+      <trans-unit id="d076" resname="drehzettel.rules.work_rounding">
+        <source>drehzettel.rules.work_rounding</source>
+        <target>Arbeitszeit</target>
+      </trans-unit>
+      <trans-unit id="d077" resname="drehzettel.rules.surcharge_rounding">
+        <source>drehzettel.rules.surcharge_rounding</source>
+        <target>Zuschläge</target>
+      </trans-unit>
+      <trans-unit id="d078" resname="drehzettel.rules.daily_tiers">
+        <source>drehzettel.rules.daily_tiers</source>
+        <target>Tägliche Überstundenstufen</target>
+      </trans-unit>
+      <trans-unit id="d079" resname="drehzettel.rules.weekly_tiers">
+        <source>drehzettel.rules.weekly_tiers</source>
+        <target>Wöchentliche Überstundenstufen</target>
+      </trans-unit>
+      <trans-unit id="d080" resname="drehzettel.rules.tier">
+        <source>drehzettel.rules.tier</source>
+        <target>Stufe</target>
+      </trans-unit>
+      <trans-unit id="d081" resname="drehzettel.rules.after_h">
+        <source>drehzettel.rules.after_h</source>
+        <target>ab Std.</target>
+      </trans-unit>
+      <trans-unit id="d082" resname="drehzettel.rules.weekly_gage_hours">
+        <source>drehzettel.rules.weekly_gage_hours</source>
+        <target>Wochengage-Stunden</target>
+      </trans-unit>
+      <trans-unit id="d083" resname="drehzettel.rules.daily_gage_hours">
+        <source>drehzettel.rules.daily_gage_hours</source>
+        <target>Tagesgage-Stunden</target>
+      </trans-unit>
+      <trans-unit id="d084" resname="drehzettel.rules.min_day_hours">
+        <source>drehzettel.rules.min_day_hours</source>
+        <target>Mindest-Tagesstunden</target>
+      </trans-unit>
+      <trans-unit id="d085" resname="drehzettel.rules.night">
+        <source>drehzettel.rules.night</source>
+        <target>Nachtarbeit</target>
+      </trans-unit>
+      <trans-unit id="d086" resname="drehzettel.rules.night_from">
+        <source>drehzettel.rules.night_from</source>
+        <target>Von</target>
+      </trans-unit>
+      <trans-unit id="d087" resname="drehzettel.rules.night_to">
+        <source>drehzettel.rules.night_to</source>
+        <target>Bis</target>
+      </trans-unit>
+      <trans-unit id="d088" resname="drehzettel.rules.night_percent">
+        <source>drehzettel.rules.night_percent</source>
+        <target>Zuschlag %</target>
+      </trans-unit>
+      <trans-unit id="d089" resname="drehzettel.rules.category">
+        <source>drehzettel.rules.category</source>
+        <target>Samstag, Sonntag, Feiertag</target>
+      </trans-unit>
+      <trans-unit id="d090" resname="drehzettel.rules.basis">
+        <source>drehzettel.rules.basis</source>
+        <target>Basis</target>
+      </trans-unit>
+      <trans-unit id="d091" resname="drehzettel.rules.basis.hourly">
+        <source>drehzettel.rules.basis.hourly</source>
+        <target>Stundensatz</target>
+      </trans-unit>
+      <trans-unit id="d092" resname="drehzettel.rules.basis.day_rate">
+        <source>drehzettel.rules.basis.day_rate</source>
+        <target>Tagessatz</target>
+      </trans-unit>
+      <trans-unit id="d093" resname="drehzettel.rules.week_count">
+        <source>drehzettel.rules.week_count</source>
+        <target>6. und 7. Tag</target>
+      </trans-unit>
+      <trans-unit id="d094" resname="drehzettel.rules.week_count_help">
+        <source>drehzettel.rules.week_count_help</source>
+        <target>Leer lässt den Tag in die Wochenüberstunden einfließen.</target>
+      </trans-unit>
+      <trans-unit id="d095" resname="drehzettel.week.iso">
+        <source>drehzettel.week.iso</source>
+        <target>KW</target>
+      </trans-unit>
+      <trans-unit id="d096" resname="drehzettel.week.no_entry">
+        <source>drehzettel.week.no_entry</source>
+        <target>Kein Zeiteintrag</target>
+      </trans-unit>
+      <trans-unit id="d097" resname="drehzettel.note">
+        <source>drehzettel.note</source>
+        <target>Anmerkung</target>
+      </trans-unit>
+      <trans-unit id="d098" resname="drehzettel.category.title">
+        <source>drehzettel.category.title</source>
+        <target>Kategorie</target>
+      </trans-unit>
+      <trans-unit id="d099" resname="drehzettel.category.auto">
+        <source>drehzettel.category.auto</source>
+        <target>Automatisch (Wochentag)</target>
+      </trans-unit>
+      <trans-unit id="d100" resname="drehzettel.category.workday">
+        <source>drehzettel.category.workday</source>
+        <target>Werktag</target>
+      </trans-unit>
+      <trans-unit id="d101" resname="drehzettel.category.saturday">
+        <source>drehzettel.category.saturday</source>
+        <target>Samstag</target>
+      </trans-unit>
+      <trans-unit id="d102" resname="drehzettel.category.sunday">
+        <source>drehzettel.category.sunday</source>
+        <target>Sonntag</target>
+      </trans-unit>
+      <trans-unit id="d103" resname="drehzettel.category.holiday">
+        <source>drehzettel.category.holiday</source>
+        <target>Feiertag</target>
+      </trans-unit>
+      <trans-unit id="d104" resname="drehzettel.catering.title">
+        <source>drehzettel.catering.title</source>
+        <target>Catering</target>
+      </trans-unit>
+      <trans-unit id="d105" resname="drehzettel.pdf.month">
+        <source>drehzettel.pdf.month</source>
+        <target>Monats-PDF</target>
+      </trans-unit>
+      <trans-unit id="d106" resname="drehzettel.compliance.title">
+        <source>drehzettel.compliance.title</source>
+        <target>Arbeitszeitgrenzen</target>
+      </trans-unit>
+      <trans-unit id="d107" resname="drehzettel.compliance.daily_max">
+        <source>drehzettel.compliance.daily_max</source>
+        <target>%date%: %measured% Std. übersteigen die tägliche Höchstarbeitszeit von 12 Std.</target>
+      </trans-unit>
+      <trans-unit id="d108" resname="drehzettel.compliance.weekly_max">
+        <source>drehzettel.compliance.weekly_max</source>
+        <target>Woche ab %date%: %measured% Std. übersteigen die wöchentliche Höchstarbeitszeit von 60 Std.</target>
+      </trans-unit>
+      <trans-unit id="d109" resname="drehzettel.compliance.rest_time">
+        <source>drehzettel.compliance.rest_time</source>
+        <target>%date%: nur %measured% Std. Ruhezeit vor diesem Tag, nötig sind %limit% Std.</target>
+      </trans-unit>
+      <trans-unit id="d110" resname="drehzettel.mail.to">
+        <source>drehzettel.mail.to</source>
+        <target>Diese Woche als PDF mailen an</target>
+      </trans-unit>
+      <trans-unit id="d111" resname="drehzettel.mail.send">
+        <source>drehzettel.mail.send</source>
+        <target>Senden</target>
       </trans-unit>
     </body>
   </file>

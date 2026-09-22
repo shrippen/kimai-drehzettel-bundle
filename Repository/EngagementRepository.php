@@ -49,6 +49,24 @@ class EngagementRepository extends ServiceEntityRepository
         return $this->findBy(['user' => $user], ['validFrom' => 'DESC']);
     }
 
+    public function countForUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @return list<Engagement> everyone's engagements, newest first
+     */
+    public function findAllSorted(): array
+    {
+        return $this->findBy([], ['validFrom' => 'DESC']);
+    }
+
     public function save(Engagement $engagement): void
     {
         $this->getEntityManager()->persist($engagement);

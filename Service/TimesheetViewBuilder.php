@@ -98,7 +98,7 @@ class TimesheetViewBuilder
         $rows = [];
         foreach ($this->dates($days, $period, $options) as $date) {
             $day = $byDate[$date->format(self::DATE_KEY)] ?? null;
-            $rows[] = $day === null ? ['empty' => true, 'date' => $this->dateLabel($date, $locale)] : $this->row($day, $rules, $locale, $showPay);
+            $rows[] = $day === null ? ['empty' => true, 'key' => $date->format(self::DATE_KEY), 'date' => $this->dateLabel($date, $locale)] : $this->row($day, $rules, $locale, $showPay);
         }
 
         $sums = $this->sums($week, $days, $rules);
@@ -140,6 +140,7 @@ class TimesheetViewBuilder
     {
         return [
             'empty' => false,
+            'key' => $day->begin->format(self::DATE_KEY),
             'date' => $this->dateLabel($day->begin, $locale),
             'begin' => $day->begin->format('H:i'),
             'end' => $day->end->format('H:i'),
@@ -314,7 +315,7 @@ class TimesheetViewBuilder
     }
 
     // "Montag, 15. Juni 2026" / "Monday, 15 June 2026"
-    private function dateLabel(\DateTimeImmutable $date, string $locale): string
+    public function dateLabel(\DateTimeImmutable $date, string $locale): string
     {
         $weekday = self::WEEKDAYS[$locale][(int) $date->format('N') - 1];
         $month = self::MONTHS[$locale][(int) $date->format('n') - 1];

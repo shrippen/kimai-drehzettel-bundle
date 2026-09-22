@@ -32,11 +32,6 @@ class EngagementService
         ?\DateTimeImmutable $validTo,
         string $rulesetKey,
     ): Engagement {
-        if ($validTo !== null && $validTo < $validFrom) {
-            throw new \DomainException('Engagement ends before it starts.');
-        }
-        $this->assertNoOverlap($user, $project, $validFrom, $validTo);
-
         $rules = $this->catalog->get($rulesetKey);
 
         $engagement = new Engagement();
@@ -51,9 +46,39 @@ class EngagementService
         $engagement->setRulesetName($rules->name);
         $engagement->setRules(RulesetCodec::toArray($rules));
 
-        $this->engagements->save($engagement);
+        $this->save($engagement);
 
         return $engagement;
+    }
+
+    /**
+     * Saves a new or changed engagement.
+     *
+     * @throws \DomainException when it ends before it starts or overlaps another one of the same user and project
+     */
+    public function save(Engagement $engagement): void
+    {
+        $from = $engagement->getValidFrom();
+        $to = $engagement->getValidTo();
+        if ($to !== null && $to < $from) {
+            throw new \DomainException('Engagement ends before it starts.');
+        }
+        $this->assertNoOverlap($engagement->getUser(), $engagement->getProject(), $from, $to, $engagement);
+
+        $this->engagements->save($engagement);
+    }
+
+    // Replaces the snapshot of one engagement. Other engagements keep theirs.
+    public function replaceRules(Engagement $engagement, Ruleset $rules): void
+    {
+        $engagement->setRulesetName($rules->name);
+        $engagement->setRules(RulesetCodec::toArray($rules));
+        $this->engagements->save($engagement);
+    }
+
+    public function remove(Engagement $engagement): void
+    {
+        $this->engagements->remove($engagement);
     }
 
     public function active(User $user, Project $project, \DateTimeImmutable $date): ?Engagement
@@ -75,9 +100,12 @@ class EngagementService
         );
     }
 
-    private function assertNoOverlap(User $user, Project $project, \DateTimeImmutable $from, ?\DateTimeImmutable $to): void
+    private function assertNoOverlap(User $user, Project $project, \DateTimeImmutable $from, ?\DateTimeImmutable $to, ?Engagement $except = null): void
     {
         foreach ($this->engagements->findForUserProject($user, $project) as $existing) {
+            if ($existing === $except || ($existing->getId() !== null && $existing->getId() === $except?->getId())) {
+                continue;
+            }
             $existingTo = $existing->getValidTo();
             $endsBefore = $existingTo !== null && $existingTo < $from;
             $startsAfter = $to !== null && $to < $existing->getValidFrom();

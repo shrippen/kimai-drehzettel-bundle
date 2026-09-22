@@ -18,3 +18,8 @@ services:
             - '../../reference/'
 
     KimaiPlugin\DrehzettelBundle\Service\Labels: '@KimaiPlugin\DrehzettelBundle\Service\TranslatorLabels'
+
+    KimaiPlugin\DrehzettelBundle\Controller\:
+        resource: '../../Controller'
+        tags: ['controller.service_arguments']
+        public: true

@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 
@@ -22,11 +23,14 @@ class FilmWeekService
     ) {
     }
 
-    public function week(Engagement $engagement, int $isoYear, int $isoWeek): WeekResult
+    /**
+     * @param array<string, FilmDayDraft> $drafts unsaved film day data by date, for live previews
+     */
+    public function week(Engagement $engagement, int $isoYear, int $isoWeek, array $drafts = []): WeekResult
     {
         $monday = $this->monday($engagement, $isoYear, $isoWeek);
 
-        return $this->calc($engagement, $this->inputs->build($engagement, $monday, $monday->modify('+7 days')));
+        return $this->calc($engagement, $this->inputs->build($engagement, $monday, $monday->modify('+7 days'), $drafts));
     }
 
     /**

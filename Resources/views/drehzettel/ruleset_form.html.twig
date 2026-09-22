@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{# Ruleset editor: hours and percent, not minutes and basis points. One field pair per tier slot;
+   an empty "after" field drops that tier. Used for both the engagement snapshot and custom templates. #}
+{% block page_content %}
+    <h2>{{ engagement ? 'drehzettel.rules.edit'|trans ~ ' — ' ~ engagement.project.name : (ruleset_name ?? 'drehzettel.ruleset.new'|trans) }}</h2>
+    <form method="post" class="card" style="max-width: 820px;">
+        <div class="card-body">
+            <input type="hidden" name="_token" value="{{ csrf_token(engagement ? 'drehzettel_engagement' : 'drehzettel_ruleset') }}">
+
+            {% if not engagement and not ruleset_name is defined %}
+                <div class="mb-3">
+                    <label class="form-label">{{ 'drehzettel.ruleset.name'|trans }}</label>
+                    <input type="text" name="name" class="form-control" value="{{ suggest_name ?? '' }}" required>
+                </div>
+            {% endif %}
+
+            <h5>{{ 'drehzettel.rules.break'|trans }}</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.default_break'|trans }}</label>
+                    <input type="number" name="defaultBreakMinutes" class="form-control" value="{{ form.defaultBreakMinutes }}" min="0">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.break_rule'|trans }}</label>
+                    <select name="breakRule" class="form-select">
+                        <option value="deduct_all" {% if form.breakRule == 'deduct_all' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.deduct_all'|trans }}</option>
+                        <option value="excess_counts_as_work" {% if form.breakRule == 'excess_counts_as_work' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.excess_counts_as_work'|trans }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.free_break'|trans }}</label>
+                    <input type="number" name="freeBreakMinutes" class="form-control" value="{{ form.freeBreakMinutes }}" min="0">
+                </div>
+            </div>
+
+            <h5>{{ 'drehzettel.rules.rounding'|trans }}</h5>
+            <div class="row">
+                {% for prefix, label in {'work': 'drehzettel.rules.work_rounding', 'surcharge': 'drehzettel.rules.surcharge_rounding'} %}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">{{ label|trans }}</label>
+                        <div class="input-group">
+                            <select name="{{ prefix }}RoundingUnit" class="form-select">
+                                <option value="1" {% if form[prefix ~ 'RoundingUnit'] == 1 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.1'|trans }}</option>
+                                <option value="15" {% if form[prefix ~ 'RoundingUnit'] == 15 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.15'|trans }}</option>
+                                <option value="30" {% if form[prefix ~ 'RoundingUnit'] == 30 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.30'|trans }}</option>
+                                <option value="60" {% if form[prefix ~ 'RoundingUnit'] == 60 %}selected{% endif %}>{{ 'drehzettel.rounding.unit.60'|trans }}</option>
+                            </select>
+                            <select name="{{ prefix }}RoundingMode" class="form-select">
+                                <option value="up" {% if form[prefix ~ 'RoundingMode'] == 'up' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.up'|trans }}</option>
+                                <option value="down" {% if form[prefix ~ 'RoundingMode'] == 'down' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.down'|trans }}</option>
+                                <option value="nearest" {% if form[prefix ~ 'RoundingMode'] == 'nearest' %}selected{% endif %}>{{ 'drehzettel.rounding.mode.nearest'|trans }}</option>
+                            </select>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h5>{{ 'drehzettel.rules.daily_tiers'|trans }}</h5>
+            <div class="row">
+                {% for i in 1..4 %}
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }}</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.25" name="dailyTier{{ i }}After" class="form-control" placeholder="{{ 'drehzettel.rules.after_h'|trans }}" value="{{ form['dailyTier' ~ i ~ 'After'] }}">
+                            <input type="number" step="0.5" name="dailyTier{{ i }}Percent" class="form-control" placeholder="%" value="{{ form['dailyTier' ~ i ~ 'Percent'] }}">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h5>{{ 'drehzettel.rules.weekly_tiers'|trans }}</h5>
+            <div class="row">
+                {% for i in 1..3 %}
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }}</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" step="0.5" name="weeklyTier{{ i }}After" class="form-control" placeholder="{{ 'drehzettel.rules.after_h'|trans }}" value="{{ form['weeklyTier' ~ i ~ 'After'] }}">
+                            <input type="number" step="0.5" name="weeklyTier{{ i }}Percent" class="form-control" placeholder="%" value="{{ form['weeklyTier' ~ i ~ 'Percent'] }}">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.weekly_gage_hours'|trans }}</label>
+                    <input type="number" name="weeklyGageHours" class="form-control" value="{{ form.weeklyGageHours }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.daily_gage_hours'|trans }}</label>
+                    <input type="number" name="dailyGageHours" class="form-control" value="{{ form.dailyGageHours }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.min_day_hours'|trans }}</label>
+                    <input type="number" step="0.25" name="minDayHours" class="form-control" value="{{ form.minDayHours }}">
+                </div>
+            </div>
+
+            <h5>{{ 'drehzettel.rules.night'|trans }}</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.night_from'|trans }}</label>
+                    <input type="time" name="nightFrom" class="form-control" value="{{ form.nightFrom }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.night_to'|trans }}</label>
+                    <input type="time" name="nightTo" class="form-control" value="{{ form.nightTo }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.rules.night_percent'|trans }}</label>
+                    <input type="number" step="0.5" name="nightPercent" class="form-control" value="{{ form.nightPercent }}">
+                </div>
+            </div>
+
+            <h5>{{ 'drehzettel.rules.category'|trans }}</h5>
+            {% for cat in ['saturday', 'sunday', 'holiday'] %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ ('drehzettel.category.' ~ cat)|trans }} %</label>
+                        <input type="number" step="0.5" name="{{ cat }}Percent" class="form-control" value="{{ form[cat ~ 'Percent'] }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">{{ 'drehzettel.rules.basis'|trans }}</label>
+                        <select name="{{ cat }}Basis" class="form-select">
+                            <option value="hourly" {% if form[cat ~ 'Basis'] == 'hourly' %}selected{% endif %}>{{ 'drehzettel.rules.basis.hourly'|trans }}</option>
+                            <option value="day_rate" {% if form[cat ~ 'Basis'] == 'day_rate' %}selected{% endif %}>{{ 'drehzettel.rules.basis.day_rate'|trans }}</option>
+                        </select>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <h5>{{ 'drehzettel.rules.week_count'|trans }}</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.category.saturday'|trans }} (6.)</label>
+                    <input type="number" step="0.5" name="sixthDayPercent" class="form-control" value="{{ form.sixthDayPercent }}" placeholder="%">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">{{ 'drehzettel.category.sunday'|trans }} (7.)</label>
+                    <input type="number" step="0.5" name="seventhDayPercent" class="form-control" value="{{ form.seventhDayPercent }}" placeholder="%">
+                    <div class="form-text">{{ 'drehzettel.rules.week_count_help'|trans }}</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">{{ 'action.save'|trans }}</button>
+            <a href="{{ engagement ? path('drehzettel_week', {id: engagement.id}) : path('drehzettel_ruleset_list') }}" class="btn btn-link">{{ 'action.close'|trans }}</a>
+        </div>
+    </form>
+{% endblock %}

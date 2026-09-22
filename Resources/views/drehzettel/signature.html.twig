@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    <h2>{{ 'drehzettel.signature'|trans }}</h2>
+    <div class="card" style="max-width: 480px;">
+        <div class="card-body">
+            <p class="text-muted">{{ 'drehzettel.signature.help'|trans }}</p>
+
+            {% if has_signature %}
+                <p>{{ 'drehzettel.signature.stored'|trans }}</p>
+                <form method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_signature') }}">
+                    <input type="hidden" name="remove" value="1">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">{{ 'action.delete'|trans }}</button>
+                </form>
+                <hr>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_signature') }}">
+                <div class="mb-3">
+                    <input type="file" name="signature" accept="image/png,image/jpeg" class="form-control" required>
+                    <div class="form-text">{{ 'drehzettel.signature.file_help'|trans }}</div>
+                </div>
+                <button type="submit" class="btn btn-primary">{{ 'action.save'|trans }}</button>
+                <a href="{{ path('drehzettel_overview') }}" class="btn btn-link">{{ 'action.close'|trans }}</a>
+            </form>
+        </div>
+    </div>
+{% endblock %}

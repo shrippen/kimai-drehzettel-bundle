@@ -1,0 +1,75 @@
+{# Rows, weekly line and sums of one week. Rendered on load and re-rendered as a preview fragment. #}
+{% set c = v.columns %}
+<table class="table table-sm mb-0" id="drehzettel-table">
+    <thead>
+        <tr>
+            <th>{{ 'drehzettel.pdf.date'|trans }}</th>
+            <th>{{ 'drehzettel.pdf.begin'|trans }}</th>
+            <th>{{ 'drehzettel.pdf.end'|trans }}</th>
+            <th>{{ 'drehzettel.pdf.break'|trans }}</th>
+            <th>{{ 'drehzettel.pdf.work'|trans }}</th>
+            {% for h in c.tiers %}<th>{{ h }}</th>{% endfor %}
+            <th>{{ 'drehzettel.pdf.night'|trans }}</th>
+            <th>{{ 'drehzettel.pdf.under'|trans }}</th>
+            <th>{{ 'drehzettel.catering.title'|trans }}</th>
+            <th>{{ 'drehzettel.day_type.title'|trans }}</th>
+            <th>{{ 'drehzettel.category.title'|trans }}</th>
+            {% if c.pay %}<th>{{ 'drehzettel.pdf.pay'|trans }}</th>{% endif %}
+            <th>{{ 'drehzettel.note'|trans }}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in v.rows %}
+        {% set film = v.film[row.key] ?? null %}
+        <tr>
+            <td class="text-nowrap">{{ row.date }}</td>
+            {% if row.empty %}
+                <td colspan="{{ 4 + c.tiers|length + (c.pay ? 1 : 0) }}" class="text-muted">{{ 'drehzettel.week.no_entry'|trans }}</td>
+            {% else %}
+                <td>{{ row.begin }}</td>
+                <td>{{ row.end }}</td>
+                <td><input type="number" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][break]" min="0" max="720" placeholder="{{ v.default_break }}" value="{{ film.break ?? '' }}"></td>
+                <td>{{ row.work }}</td>
+                {% for x in row.tiers %}<td>{{ x }}</td>{% endfor %}
+                <td>{{ row.night }}</td>
+                <td>{{ row.under }}</td>
+                <td class="text-center"><input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}></td>
+                <td>
+                    <select class="form-select form-select-sm dz-field" name="day[{{ row.key }}][type]">
+                        <option value="workday" {% if (film.type ?? 'workday') == 'workday' %}selected{% endif %}>{{ 'drehzettel.day_type.workday'|trans }}</option>
+                        <option value="travel" {% if (film.type ?? '') == 'travel' %}selected{% endif %}>{{ 'drehzettel.day_type.travel'|trans }}</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm dz-field" name="day[{{ row.key }}][category]">
+                        <option value="">{{ 'drehzettel.category.auto'|trans }}</option>
+                        <option value="workday" {% if (film.category ?? '') == 'workday' %}selected{% endif %}>{{ 'drehzettel.category.workday'|trans }}</option>
+                        <option value="saturday" {% if (film.category ?? '') == 'saturday' %}selected{% endif %}>{{ 'drehzettel.category.saturday'|trans }}</option>
+                        <option value="sunday" {% if (film.category ?? '') == 'sunday' %}selected{% endif %}>{{ 'drehzettel.category.sunday'|trans }}</option>
+                        <option value="holiday" {% if (film.category ?? '') == 'holiday' %}selected{% endif %}>{{ 'drehzettel.category.holiday'|trans }}</option>
+                    </select>
+                </td>
+                {% if c.pay %}<td>{{ row.pay }}</td>{% endif %}
+                <td><input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ film.note ?? '' }}"></td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        {% if v.weekly %}
+            <tr><td colspan="{{ 5 + c.tiers|length + (c.pay ? 1 : 0) + 3 }}"><strong>{{ v.weekly }}</strong></td></tr>
+        {% endif %}
+        <tr class="fw-bold">
+            <td colspan="4">{{ 'drehzettel.pdf.total'|trans }}</td>
+            <td>{{ v.sums.work }}</td>
+            {% for x in v.sums.tiers %}<td>{{ x }}</td>{% endfor %}
+            <td>{{ v.sums.night }}</td>
+            <td>{{ v.sums.under }}</td>
+            <td>{{ v.sums.catering }}</td>
+            <td></td>
+            <td></td>
+            {% if c.pay %}<td>{{ v.sums.pay }}</td>{% endif %}
+            <td></td>
+        </tr>
+    </tfoot>
+</table>

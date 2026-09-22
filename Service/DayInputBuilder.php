@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
@@ -30,16 +31,17 @@ class DayInputBuilder
     }
 
     /**
+     * @param array<string, FilmDayDraft> $drafts unsaved film day data by date (Y-m-d), wins over stored data
      * @return list<DayInput> for entries beginning in [from, to), inside the engagement's validity
      */
-    public function build(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    public function build(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to, array $drafts = []): array
     {
         $spans = $this->spans($engagement, $from, $to);
         $film = $this->filmDaysByDate($engagement, $from, $to);
 
         $inputs = [];
         foreach ($spans as $key => [$begin, $end]) {
-            $extra = $film[$key] ?? null;
+            $extra = isset($drafts[$key]) ? $this->fromDraft($drafts[$key]) : ($film[$key] ?? null);
             $inputs[] = new DayInput(
                 begin: $begin,
                 end: $end,
@@ -53,6 +55,20 @@ class DayInputBuilder
         }
 
         return $inputs;
+    }
+
+    // A draft is applied through a throw-away FilmDay, so both sources read alike.
+    private function fromDraft(FilmDayDraft $draft): FilmDay
+    {
+        $day = new FilmDay();
+        $day->setBreakMinutes($draft->breakMinutes);
+        $day->setCatering($draft->catering);
+        $day->setCategory($draft->category);
+        $day->setDayType($draft->type);
+        $day->setProductionDay($draft->productionDay);
+        $day->setNote($draft->note);
+
+        return $day;
     }
 
     /**

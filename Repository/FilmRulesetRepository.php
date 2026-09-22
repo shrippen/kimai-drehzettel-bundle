@@ -34,4 +34,10 @@ class FilmRulesetRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($ruleset);
         $this->getEntityManager()->flush();
     }
+
+    public function remove(FilmRuleset $ruleset): void
+    {
+        $this->getEntityManager()->remove($ruleset);
+        $this->getEntityManager()->flush();
+    }
 }

@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block page_content %}
+    {% set e = v.engagement %}
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <div>
+            <h2 class="mb-0">{{ e.project.name }} — {{ e.role }}</h2>
+            <span class="text-muted">{{ e.user.displayName }} · {{ v.monday|date('Y-m-d') }} – {{ v.sunday|date('Y-m-d') }} · {{ 'drehzettel.week.iso'|trans }} {{ v.week }}</span>
+        </div>
+        <div>
+            <a href="{{ path('drehzettel_week', {id: e.id, year: v.previous.year, week: v.previous.week}) }}" class="btn btn-sm btn-outline-secondary">&laquo;</a>
+            <a href="{{ path('drehzettel_week', {id: e.id, year: v.next.year, week: v.next.week}) }}" class="btn btn-sm btn-outline-secondary">&raquo;</a>
+            <a href="{{ path('drehzettel_week_pdf', {id: e.id, year: v.year, week: v.week}) }}" class="btn btn-sm btn-primary" target="_blank">{{ 'drehzettel.pdf.title'|trans }}</a>
+            <a href="{{ path('drehzettel_month_pdf', {id: e.id, year: v.year, month: v.monday|date('n')}) }}" class="btn btn-sm btn-outline-primary" target="_blank">{{ 'drehzettel.pdf.month'|trans }}</a>
+            <a href="{{ path('drehzettel_overview') }}" class="btn btn-sm btn-outline-secondary">{{ 'action.back'|trans }}</a>
+        </div>
+    </div>
+
+    {% if v.warnings is not empty %}
+        <div class="alert alert-warning">
+            <strong>{{ 'drehzettel.compliance.title'|trans }}</strong>
+            <ul class="mb-0">
+                {% for w in v.warnings %}
+                    <li>{{ ('drehzettel.compliance.' ~ w.issue.value)|trans({'%date%': w.date|date('D, Y-m-d'), '%measured%': (w.minutes / 60)|number_format(1), '%limit%': (w.limitMinutes / 60)|number_format(1)}) }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" action="{{ path('drehzettel_week_save', {id: e.id, year: v.year, week: v.week}) }}" id="drehzettel-form">
+        <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_week') }}">
+        <div class="card">
+            <div class="card-body p-0 table-responsive" id="drehzettel-table-wrap">
+                {% include '@Drehzettel/drehzettel/_week_table.html.twig' %}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">{{ 'action.save'|trans }}</button>
+    </form>
+
+    <form method="post" action="{{ path('drehzettel_week_mail', {id: e.id, year: v.year, week: v.week}) }}" class="mt-3 d-flex align-items-end gap-2" style="max-width: 480px;">
+        <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_week') }}">
+        <div class="flex-grow-1">
+            <label class="form-label mb-1">{{ 'drehzettel.mail.to'|trans }}</label>
+            <input type="email" name="mail_to" class="form-control form-control-sm" value="{{ v.mail_to }}" required>
+        </div>
+        <button type="submit" class="btn btn-sm btn-outline-primary">{{ 'drehzettel.mail.send'|trans }}</button>
+    </form>
+
+    <script>
+    (function () {
+        var form = document.getElementById('drehzettel-form');
+        var wrap = document.getElementById('drehzettel-table-wrap');
+        if (!form || !wrap) { return; }
+
+        var previewUrl = {{ path('drehzettel_week_preview', {id: e.id, year: v.year, week: v.week})|json_encode|raw }};
+        var timer = null;
+
+        function schedulePreview() {
+            if (timer) { window.clearTimeout(timer); }
+            timer = window.setTimeout(runPreview, 400);
+        }
+
+        function runPreview() {
+            var data = new FormData(form);
+            fetch(previewUrl, { method: 'POST', body: data, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (response) { return response.ok ? response.text() : null; })
+                .then(function (html) { if (html !== null) { wrap.innerHTML = html; } })
+                .catch(function () { /* preview is a convenience, ignore network errors */ });
+        }
+
+        wrap.addEventListener('input', function (event) {
+            if (event.target.classList.contains('dz-field')) { schedulePreview(); }
+        });
+        wrap.addEventListener('change', function (event) {
+            if (event.target.classList.contains('dz-field')) { schedulePreview(); }
+        });
+    })();
+    </script>
+{% endblock %}
