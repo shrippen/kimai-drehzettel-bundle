@@ -1,0 +1,27 @@
+{# A dropdown of common values, with a "Custom" checkbox that swaps it for a
+   free number field. Select and input share one `name`; a disabled control
+   is excluded from form submission, so exactly one of the two is ever sent,
+   whichever the "Custom" checkbox currently shows.
+
+   presets: list of numbers. empty_label: set to allow "not set" (null) as
+   its own option, e.g. for a surcharge that otherwise pools into weekly
+   overtime. #}
+{% macro field(name, label, presets, value, unit, empty_label) %}
+    {% set is_empty = empty_label is not null and (value is null or value == '') %}
+    {% set is_preset = not is_empty and value is not null and value in presets %}
+    {% set is_custom = not is_empty and not is_preset %}
+    <div class="mb-3">
+        <label class="form-label">{{ label }}</label>
+        <div class="d-flex align-items-center gap-2">
+            <select name="{{ name }}" class="form-select form-select-sm dz-preset-select{{ is_custom ? ' d-none' }}" data-preset-for="{{ name }}" {% if is_custom %}disabled{% endif %}>
+                {% if empty_label is not null %}<option value="" {% if is_empty %}selected{% endif %}>{{ empty_label }}</option>{% endif %}
+                {% for p in presets %}<option value="{{ p }}" {% if is_preset and value == p %}selected{% endif %}>{{ p }}{{ unit }}</option>{% endfor %}
+            </select>
+            <input type="number" step="0.01" name="{{ name }}" class="form-control form-control-sm dz-custom-input{{ is_custom ? '' : ' d-none' }}" data-custom-for="{{ name }}" value="{{ is_custom ? value : '' }}" {% if not is_custom %}disabled{% endif %}>
+            <div class="form-check form-check-inline mb-0 text-nowrap">
+                <input type="checkbox" class="form-check-input dz-custom-toggle" data-target="{{ name }}" id="custom-{{ name }}" {% if is_custom %}checked{% endif %}>
+                <label class="form-check-label small" for="custom-{{ name }}">{{ 'drehzettel.rules.custom'|trans }}</label>
+            </div>
+        </div>
+    </div>
+{% endmacro %}

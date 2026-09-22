@@ -450,6 +450,22 @@
         <source>drehzettel.mail.send</source>
         <target>Senden</target>
       </trans-unit>
+      <trans-unit id="d112" resname="drehzettel.rules.custom">
+        <source>drehzettel.rules.custom</source>
+        <target>Benutzerdefiniert</target>
+      </trans-unit>
+      <trans-unit id="d113" resname="drehzettel.rules.unused">
+        <source>drehzettel.rules.unused</source>
+        <target>Nicht genutzt</target>
+      </trans-unit>
+      <trans-unit id="d114" resname="drehzettel.rules.pooled">
+        <source>drehzettel.rules.pooled</source>
+        <target>Fließt in Wochenüberstunden</target>
+      </trans-unit>
+      <trans-unit id="d115" resname="drehzettel.rules.surcharge">
+        <source>drehzettel.rules.surcharge</source>
+        <target>Zuschlag</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

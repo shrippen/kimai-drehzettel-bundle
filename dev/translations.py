@@ -125,6 +125,10 @@ ROWS = [
     ("drehzettel.compliance.rest_time", "%date%: only %measured% h of rest before this day, %limit% h are required.", "%date%: nur %measured% Std. Ruhezeit vor diesem Tag, nötig sind %limit% Std."),
     ("drehzettel.mail.to", "Mail this week's PDF to", "Diese Woche als PDF mailen an"),
     ("drehzettel.mail.send", "Send", "Senden"),
+    ("drehzettel.rules.custom", "Custom", "Benutzerdefiniert"),
+    ("drehzettel.rules.unused", "Not used", "Nicht genutzt"),
+    ("drehzettel.rules.pooled", "Pooled into weekly overtime", "Fließt in Wochenüberstunden"),
+    ("drehzettel.rules.surcharge", "Surcharge", "Zuschlag"),
 ]
 
 
