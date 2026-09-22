@@ -7,7 +7,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\RulesetCodec;
 use KimaiPlugin\DrehzettelBundle\Domain\Rulesets;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 
-foreach ([Rulesets::tvFfs2024(), Rulesets::timesheetApp()] as $rules) {
+foreach ([Rulesets::tvFfs2024(), Rulesets::quarterHour()] as $rules) {
     $data = RulesetCodec::toArray($rules);
     $copy = RulesetCodec::fromArray(json_decode(json_encode($data), true));
     check("codec round trip {$rules->name}", $data, RulesetCodec::toArray($copy));

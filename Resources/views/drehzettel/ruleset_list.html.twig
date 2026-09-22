@@ -10,10 +10,10 @@
         <div class="card-header">{{ 'drehzettel.ruleset.builtin'|trans }}</div>
         <div class="card-body">
             <ul class="list-unstyled mb-0">
-                {% for key in builtin %}
+                {% for b in builtin %}
                     <li class="mb-1">
-                        {{ key }}
-                        <a href="{{ path('drehzettel_ruleset_new', {from: key}) }}" class="btn btn-xs btn-outline-secondary ms-2">{{ 'drehzettel.ruleset.copy'|trans }}</a>
+                        {{ b.name }}
+                        <a href="{{ path('drehzettel_ruleset_new', {from: b.key}) }}" class="btn btn-xs btn-outline-secondary ms-2">{{ 'drehzettel.ruleset.copy'|trans }}</a>
                     </li>
                 {% endfor %}
             </ul>

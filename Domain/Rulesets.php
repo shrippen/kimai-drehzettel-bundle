@@ -41,11 +41,13 @@ final class Rulesets
         );
     }
 
-    // Settings of the TimeSheet app for a weekly-gage project.
-    public static function timesheetApp(): Ruleset
+    // A quarter-hour-rounded alternative: full break deduction, a third
+    // (100 %) daily tier, and fixed surcharges for the 6th and 7th day
+    // instead of pooling them into weekly overtime.
+    public static function quarterHour(): Ruleset
     {
         return new Ruleset(
-            name: 'Like TimeSheet app',
+            name: 'Quarter-Hour Ruleset',
             defaultBreakMinutes: 45,
             breakRule: BreakRule::DEDUCT_ALL,
             freeBreakMinutes: 0,

@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * Custom ruleset templates: copy a preset, or an existing one, then edit it.
- * Built-in presets (TV FFS 2024, Like TimeSheet app) are read-only.
+ * Built-in presets (TV FFS 2024, Quarter-Hour Ruleset) are read-only.
  */
 #[Route(path: '/drehzettel/ruleset')]
 #[IsGranted('drehzettel_manage')]
@@ -33,9 +33,11 @@ class RulesetController extends AbstractController
     #[Route(path: '/', name: 'drehzettel_ruleset_list', methods: ['GET'])]
     public function list(): Response
     {
+        $builtin = [RulesetCatalog::TV_FFS_2024, RulesetCatalog::QUARTER_HOUR];
+
         return $this->render('@Drehzettel/drehzettel/ruleset_list.html.twig', [
             'page_setup' => new PageSetup('drehzettel.menu'),
-            'builtin' => [RulesetCatalog::TV_FFS_2024, RulesetCatalog::TIMESHEET_APP],
+            'builtin' => array_map(fn (string $key): array => ['key' => $key, 'name' => $this->catalog->get($key)->name], $builtin),
             'custom' => $this->custom->findAllSorted(),
         ]);
     }

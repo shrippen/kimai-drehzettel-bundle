@@ -11,7 +11,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 
 // Ruleset -> form -> ruleset changes nothing, for both presets.
-foreach ([Rulesets::tvFfs2024(), Rulesets::timesheetApp()] as $rules) {
+foreach ([Rulesets::tvFfs2024(), Rulesets::quarterHour()] as $rules) {
     $form = RulesetFormMapper::toForm($rules);
     $back = RulesetFormMapper::fromForm($form);
     check("form round trip {$rules->name}", RulesetCodec::toArray($rules), RulesetCodec::toArray($back));

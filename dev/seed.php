@@ -72,7 +72,7 @@ $engagement = $service->open(
     new PayTerms(PayKind::WEEKLY, 158100, 950),
     new DateTimeImmutable('2025-05-02'),
     null,
-    RulesetCatalog::TIMESHEET_APP,
+    RulesetCatalog::QUARTER_HOUR,
 );
 
 $filmDays = new FilmDayService(new FilmDayRepository($registry));

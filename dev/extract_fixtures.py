@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuilds tests/fixtures/reference_days.json from timesheets exported by the TimeSheet app.
+"""Rebuilds tests/fixtures/reference_days.json from exported reference timesheets.
 
 Reads reference/<project>/*.pdf and reference/map.json ({"<project>": "<neutral key>"}).
 Both stay local (git-ignored): they carry names and film titles.

@@ -8,7 +8,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 
 $tv = Rulesets::tvFfs2024();
-$app = Rulesets::timesheetApp();
+$app = Rulesets::quarterHour();
 
 // 08:00-20:45, break 45: gross 12:45, work 12:00 -> 11th and 12th hour.
 $r = dayCalc()->calc(shift('2025-06-16', '08:00', '20:45', 45), $tv, null);

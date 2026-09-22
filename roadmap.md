@@ -8,7 +8,7 @@ Target: Kimai 2.67, PHP ^8.1.
 ```
 Ruleset (system)           Engagement                  Project
 "TV FFS 2024" (built-in)   User x Project              "Sample Film"
-"Like TimeSheet app"  ───► pay (weekly/daily)     ───► not billable,
+"Quarter-Hour Ruleset" ──► pay (weekly/daily)     ───► not billable,
 custom, copyable           valid from-to                no freelance client
                            role
                            ruleset snapshot (editable)
@@ -37,23 +37,25 @@ Local Kimai 2.67 in Docker. Plugin is bind-mounted read-only.
 ```
 docker compose -f dev/compose.yaml up -d
 # http://localhost:8001   admin@example.test / admin-dev-pass
-docker compose -f dev/compose.yaml exec -T kimai /opt/kimai/bin/console kimai:reload
-docker compose -f dev/compose.yaml exec -T kimai /opt/kimai/bin/console kimai:bundle:drehzettel:install
-docker compose -f dev/compose.yaml exec -T kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/seed.php
-docker compose -f dev/compose.yaml exec -T kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/check.php
-docker compose -f dev/compose.yaml exec -T kimai /opt/kimai/bin/console drehzettel:week admin 1 2025 21
+docker compose -f dev/compose.yaml exec -T --user www-data kimai /opt/kimai/bin/console kimai:reload
+docker compose -f dev/compose.yaml exec -T --user www-data kimai /opt/kimai/bin/console kimai:bundle:drehzettel:install
+docker compose -f dev/compose.yaml exec -T --user www-data kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/seed.php
+docker compose -f dev/compose.yaml exec -T --user www-data kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/check.php
+docker compose -f dev/compose.yaml exec -T --user www-data kimai /opt/kimai/bin/console drehzettel:week admin 1 2025 21
 ```
 
 Run `kimai:reload` after every change to service or config files (prod cache).
-Console commands run as root and write cache files as root; Apache's www-data worker
-then can't overwrite them (500s on the next page load). Fix: `docker compose -f dev/compose.yaml
-exec -T kimai chown -R www-data:www-data /opt/kimai/var/cache /opt/kimai/var/data` (done automatically
-by `dev/reset.sh`).
+**Always pass `--user www-data`** to `docker compose exec`. The default exec user is root; a
+console command run as root writes cache and font files owned by root, and Apache's own
+www-data worker then can't overwrite them — the next page load 500s with "not writable". If
+that happens, fix it once with `docker compose -f dev/compose.yaml exec -T --user root kimai
+chown -R www-data:www-data /opt/kimai/var/cache /opt/kimai/var/data`, then keep using
+`--user www-data` from then on. `dev/reset.sh` already does this correctly.
 Unit tests need no Kimai: `php tests/run.php`.
 
 ## Reference data
 
-Timesheets exported from the TimeSheet app were the reference. The PDFs stay local (`reference/`, git-ignored: they carry a name and a signature). Their numbers live on as anonymized fixtures in `tests/fixtures/`, with dates shifted by 52 weeks. Details in `docs/timesheet-app-analyse.md`.
+Exported reference timesheets were the source. The PDFs stay local (`reference/`, git-ignored: they carry a name and a signature). Their numbers live on as anonymized fixtures in `tests/fixtures/`, with dates shifted by 52 weeks. Analysis notes in `research/timesheet-app-analyse.md` (outside `docs/`, not published).
 
 ## Phases
 
@@ -62,7 +64,7 @@ Timesheets exported from the TimeSheet app were the reference. The PDFs stay loc
 - [x] `agent.md`, `Design.md`, `roadmap.md`
 - [x] Bundle skeleton (composer.json, bundle class, DI extension)
 - [x] Value objects: ruleset, tiers, rounding, day input, day result
-- [x] Presets: TV FFS 2024, "Like TimeSheet app"
+- [x] Presets: TV FFS 2024, "Quarter-Hour Ruleset"
 - [x] Day calculator: work time, daily tiers, night, Saturday/Sunday/holiday, catering, pay
 - [x] Week calculator: weekly tiers (>50 h, >55 h), 6th and 7th day
 - [x] Tests against fixtures from exported timesheets (`php tests/run.php`)
@@ -124,9 +126,9 @@ Timesheets exported from the TimeSheet app were the reference. The PDFs stay loc
   `KimaiMailer` throws. Checked on the dev instance with the `null://` transport (no real send).
 - "Begun hour" surcharge reading (TV FFS 5.4.3.2): default in TV FFS preset is round up.
 - Interplay with Holiday plugin target hours.
-- Under-time (`Unterstunden`): assumed to be the work time missing to 8 h on a shooting day. The app's info text could not be read, and no sample sheet has a day under 8 h with that column.
-- Unverified against real PDFs (no example with these cases): weekly overtime above 50 h, 6th/7th day, Sunday/holiday pay, Saturday pay. The "Like TimeSheet app" preset copies the app's settings, but assumes: 6th/7th day surcharges stack with Saturday/Sunday surcharges; Sunday/holiday use the day rate.
-- Half-cent ties: the app shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
+- Under-time (`Unterstunden`): assumed to be the work time missing to 8 h on a shooting day. The source's info text could not be read, and no sample sheet has a day under 8 h with that column.
+- Unverified against real PDFs (no example with these cases): weekly overtime above 50 h, 6th/7th day, Sunday/holiday pay, Saturday pay. The "Quarter-Hour Ruleset" preset copies the reference source's settings, but assumes: 6th/7th day surcharges stack with Saturday/Sunday surcharges; Sunday/holiday use the day rate.
+- Half-cent ties: the reference source shows 578.125 as 578.12; the plugin rounds half up (578.13). Tests allow 1 cent there.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
 - Holidays are not detected yet; category comes from the weekday or the film day override.

@@ -22,7 +22,7 @@
                 <div class="mb-3">
                     <label class="form-label">{{ 'drehzettel.ruleset'|trans }}</label>
                     <select name="ruleset" class="form-select">
-                        {% for key in rulesets %}<option value="{{ key }}">{{ key }}</option>{% endfor %}
+                        {% for r in rulesets %}<option value="{{ r.key }}">{{ r.name }}</option>{% endfor %}
                     </select>
                 </div>
             {% endif %}

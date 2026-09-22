@@ -14,8 +14,8 @@ use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
 
 /*
- * Rows come from PDFs exported by the TimeSheet app (tests/fixtures).
- * The app's cent amounts may differ by 1 cent on exact half-cent ties
+ * Rows come from exported reference timesheets (tests/fixtures).
+ * The source's cent amounts may differ by 1 cent on exact half-cent ties
  * (e.g. 578.125 shown as 578.12). Everything else must match exactly.
  */
 
@@ -24,7 +24,7 @@ const CENT_TOLERANCE = 1;
 
 function appLike(array $dailyTiers): Ruleset
 {
-    $base = Rulesets::timesheetApp();
+    $base = Rulesets::quarterHour();
 
     return new Ruleset(
         name: 'fixture',
@@ -47,7 +47,7 @@ function appLike(array $dailyTiers): Ruleset
 }
 
 $setups = [
-    'weekly_gage' => [Rulesets::timesheetApp(), new PayTerms(PayKind::WEEKLY, 158100, 950)],
+    'weekly_gage' => [Rulesets::quarterHour(), new PayTerms(PayKind::WEEKLY, 158100, 950)],
     'daily_gage' => [
         appLike([new Tier(8 * HOUR, 0), new Tier(10 * HOUR, 2500), new Tier(13 * HOUR, 10000)]),
         new PayTerms(PayKind::DAILY, 40000),

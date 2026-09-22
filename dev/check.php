@@ -86,7 +86,7 @@ expect('admin tier minutes Tue', [60, 45, 0], array_map(fn ($s) => $s->minutes, 
 expect('crew2 tier minutes Tue (TV FFS, 11:00 h work)', [60, 0], array_map(fn ($s) => $s->minutes, $theirs->days[0]->dailyShares));
 expect('crew2 break default 45 min, excess rule', 45, $theirs->days[0]->breakMinutes);
 expect('crew2 work 11:00 (no break entered -> default 45)', 660, $theirs->days[0]->workMinutes);
-expect('snapshot names differ', ['Like TimeSheet app', 'TV FFS 2024'], [$engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20'))->getRulesetName(), $engagement->getRulesetName()]);
+expect('snapshot names differ', ['Quarter-Hour Ruleset', 'TV FFS 2024'], [$engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20'))->getRulesetName(), $engagement->getRulesetName()]);
 
 // Period over May: entries only in week 21 -> exactly one week result.
 $period = $weeks->period($engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20')), new DateTimeImmutable('2025-05-02', $zone), new DateTimeImmutable('2025-06-02', $zone));

@@ -68,7 +68,7 @@ class EngagementController extends AbstractController
         return $this->render('@Drehzettel/drehzettel/engagement_form.html.twig', [
             'page_setup' => new PageSetup('drehzettel.menu'),
             'engagement' => null,
-            'rulesets' => $this->catalog->keys(),
+            'rulesets' => $this->rulesetOptions(),
             'users' => $this->users->findBy(['enabled' => true], ['username' => 'ASC']),
             'projects' => $this->projects->findBy([], ['name' => 'ASC']),
         ]);
@@ -101,7 +101,7 @@ class EngagementController extends AbstractController
         return $this->render('@Drehzettel/drehzettel/engagement_form.html.twig', [
             'page_setup' => new PageSetup('drehzettel.menu'),
             'engagement' => $engagement,
-            'rulesets' => $this->catalog->keys(),
+            'rulesets' => $this->rulesetOptions(),
         ]);
     }
 
@@ -140,6 +140,14 @@ class EngagementController extends AbstractController
         }
 
         return $this->redirectToRoute('drehzettel_overview');
+    }
+
+    /**
+     * @return list<array{key: string, name: string}>
+     */
+    private function rulesetOptions(): array
+    {
+        return array_map(fn (string $key): array => ['key' => $key, 'name' => $this->catalog->get($key)->name], $this->catalog->keys());
     }
 
     private function find(int $id): Engagement

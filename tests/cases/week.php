@@ -8,7 +8,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 
 $tv = Rulesets::tvFfs2024();
-$app = Rulesets::timesheetApp();
+$app = Rulesets::quarterHour();
 
 // Mon-Fri 10:00 work each = exactly 50 h, no weekly overtime.
 $week = [];
