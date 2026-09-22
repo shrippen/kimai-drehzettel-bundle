@@ -32,7 +32,7 @@ Until the interface exists, engagements are created in code. `bin/console drehze
 
 ```
 php tests/run.php                                   # unit tests, no Kimai needed
-docker compose -f dev/compose.yaml up -d            # local Kimai 2.67 on http://localhost:8001
+docker compose -f dev/compose.yaml up -d            # local Kimai 2.67 on http://localhost:8091
 ```
 
 See [`roadmap.md`](roadmap.md) for the dev workflow, phases and open questions, [`Design.md`](Design.md) for the visual identity.

@@ -1,6 +1,6 @@
 # Local Kimai 2.67 for plugin development. Not for production.
 # Start: docker compose -f dev/compose.yaml up -d
-# Login: http://localhost:8001  admin@example.test / admin-dev-pass
+# Login: http://localhost:8091  admin@example.test / admin-dev-pass
 services:
   db:
     image: mariadb:11
@@ -22,7 +22,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "127.0.0.1:8001:8001"
+      - "127.0.0.1:8091:8001"
     environment:
       ADMINMAIL: admin@example.test
       ADMINPASS: admin-dev-pass

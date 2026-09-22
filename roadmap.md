@@ -36,7 +36,7 @@ Local Kimai 2.67 in Docker. Plugin is bind-mounted read-only.
 
 ```
 docker compose -f dev/compose.yaml up -d
-# http://localhost:8001   admin@example.test / admin-dev-pass
+# http://localhost:8091   admin@example.test / admin-dev-pass
 docker compose -f dev/compose.yaml exec -T --user www-data kimai /opt/kimai/bin/console kimai:reload
 docker compose -f dev/compose.yaml exec -T --user www-data kimai /opt/kimai/bin/console kimai:bundle:drehzettel:install
 docker compose -f dev/compose.yaml exec -T --user www-data kimai php /opt/kimai/var/plugins/DrehzettelBundle/dev/seed.php

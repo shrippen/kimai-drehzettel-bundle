@@ -13,9 +13,9 @@ PLUGIN=/opt/kimai/var/plugins/DrehzettelBundle
 
 $COMPOSE down -v
 $COMPOSE up -d
-until [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8001/en/login)" = 200 ]; do sleep 3; done
+until [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8091/en/login)" = 200 ]; do sleep 3; done
 
 $CONSOLE kimai:bundle:drehzettel:install
 $COMPOSE exec -T --user www-data kimai php "$PLUGIN/dev/seed.php"
 $CONSOLE kimai:user:create crew2 crew2@example.test ROLE_USER crew2-dev-pass
-echo "Ready: http://localhost:8001  admin@example.test / admin-dev-pass"
+echo "Ready: http://localhost:8091  admin@example.test / admin-dev-pass"
