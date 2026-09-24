@@ -39,7 +39,7 @@ class MenuSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $item = new MenuItemModel('drehzettel', 'drehzettel.menu', 'drehzettel_overview', [], 'fas fa-film');
+        $item = new MenuItemModel('drehzettel', 'drehzettel.menu', 'drehzettel_overview', [], 'fas fa-clapperboard');
         $item->setTranslationDomain('messages');
         $event->getMenu()->addChild($item);
     }

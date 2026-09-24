@@ -19,6 +19,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmRulesetRepository;
+use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
@@ -75,7 +76,7 @@ $engagement = $service->open(
     RulesetCatalog::QUARTER_HOUR,
 );
 
-$filmDays = new FilmDayService(new FilmDayRepository($registry));
+$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry));
 $isFirstDay = true;
 foreach ($fixtures['weekly_gage']['weeks'] as $week) {
     foreach ($week['rows'] as $row) {

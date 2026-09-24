@@ -102,17 +102,37 @@ final class RulesetFormMapper
     /**
      * @param array<string, mixed> $data
      * @return list<Tier>
+     *
+     * @throws \DomainException if a later slot starts at or before an earlier one - Ruleset would
+     *         otherwise silently re-sort them, which quietly detaches each percentage from the
+     *         "Stufe N" label the user set it under
      */
     private static function tiers(array $data, string $prefix, int $slots): array
     {
         $tiers = [];
+        $previousSlot = null;
+        $previousAfter = null;
         for ($i = 1; $i <= $slots; ++$i) {
             $after = $data[$prefix . $i . 'After'] ?? null;
             $percent = $data[$prefix . $i . 'Percent'] ?? null;
             if ($after === null || $after === '' || $percent === null || $percent === '') {
                 continue;
             }
-            $tiers[] = new Tier(self::minutes($after), self::basisPoints($percent));
+
+            $afterMinutes = self::minutes($after);
+            if ($previousAfter !== null && $afterMinutes <= $previousAfter) {
+                throw new \DomainException(sprintf(
+                    'Stufe %d (ab %s Std.) muss später beginnen als Stufe %d (ab %s Std.).',
+                    $i,
+                    $after,
+                    $previousSlot,
+                    self::hours($previousAfter),
+                ));
+            }
+
+            $tiers[] = new Tier($afterMinutes, self::basisPoints($percent));
+            $previousSlot = $i;
+            $previousAfter = $afterMinutes;
         }
 
         return $tiers;

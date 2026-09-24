@@ -44,4 +44,10 @@ class FilmDayRepository extends ServiceEntityRepository
         $this->getEntityManager()->persist($day);
         $this->getEntityManager()->flush();
     }
+
+    public function delete(FilmDay $day): void
+    {
+        $this->getEntityManager()->remove($day);
+        $this->getEntityManager()->flush();
+    }
 }

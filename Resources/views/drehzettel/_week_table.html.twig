@@ -1,19 +1,37 @@
 {# Rows, weekly line and sums of one week, as a day-list instead of a wide table.
-   Rendered on load and re-rendered as a preview fragment (Controller/WeekController::preview()). #}
+   Rendered on load and re-rendered as a preview fragment (Controller/WeekController::preview()).
+   Each row's grid-template-columns matches the header in week.html.twig exactly, so values
+   always line up under their column label regardless of content width. Editable fields (break,
+   catering, day type, category, note) show a compact read-only summary by default; the pencil
+   button switches that one row into edit mode (see the JS in week.html.twig). #}
 {% set c = v.columns %}
 <div class="dz-day-list">
     {% for row in v.rows %}
         {% set film = v.film[row.key] ?? null %}
-        <div class="dz-day-row">
-            {% if row.empty %}
+        {% if row.empty %}
+            <div class="dz-day-row dz-day-row-empty">
                 <div class="dz-day-date"><div class="dz-day-weekday">{{ row.date }}</div></div>
                 <div class="dz-day-empty">{{ 'drehzettel.week.no_entry'|trans }}</div>
-            {% else %}
+            </div>
+        {% else %}
+            {% set type_val = film.type ?? 'workday' %}
+            {% set cat_val = film.category ?? '' %}
+            {% set note_val = film.note ?? '' %}
+            <div class="dz-day-row" data-key="{{ row.key }}">
+                <button type="button" class="dz-edit-toggle" aria-label="{{ 'action.edit'|trans }}">
+                    <i class="fas fa-pen dz-edit-icon-pen"></i>
+                    <i class="fas fa-check dz-edit-icon-check"></i>
+                </button>
+
                 <div class="dz-day-date">
                     <div class="dz-day-weekday">{{ row.date }}</div>
                     <div class="dz-day-time">
                         {{ row.begin }}–{{ row.end }} ·
-                        <input type="number" class="dz-break-input dz-field" name="day[{{ row.key }}][break]" min="0" max="720" placeholder="{{ v.default_break }}" value="{{ film.break ?? '' }}">{{ 'drehzettel.pdf.break'|trans }}
+                        <span class="dz-view">{{ 'drehzettel.pdf.break'|trans }} {{ film.break ?? v.default_break }} min{% if film.break is null %} ({{ 'drehzettel.week.break_default'|trans }}){% endif %}</span>
+                        <span class="dz-edit">
+                            <input type="number" class="dz-break-input dz-field" name="day[{{ row.key }}][break]" min="0" max="720" placeholder="{{ v.default_break }}" value="{{ film.break ?? '' }}">
+                            {{ 'drehzettel.pdf.break'|trans }}
+                        </span>
                     </div>
                 </div>
 
@@ -30,31 +48,43 @@
                     {% if not (row.under starts with '00:00') %}<span class="dz-chip dz-chip-under"><i class="fas fa-triangle-exclamation"></i> {{ row.under }}</span>{% endif %}
                 </div>
 
+                {% set has_override = (film.catering ?? false) or type_val != 'workday' or cat_val %}
                 <div class="dz-day-actions">
-                    <label class="dz-catering">
-                        <input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}>
-                        {{ 'drehzettel.catering.title'|trans }}
-                    </label>
-                    <select class="dz-pill dz-field" name="day[{{ row.key }}][type]">
-                        <option value="workday" {% if (film.type ?? 'workday') == 'workday' %}selected{% endif %}>{{ 'drehzettel.day_type.workday'|trans }}</option>
-                        <option value="travel" {% if (film.type ?? '') == 'travel' %}selected{% endif %}>{{ 'drehzettel.day_type.travel'|trans }}</option>
-                    </select>
-                    <select class="dz-pill dz-field" name="day[{{ row.key }}][category]">
-                        <option value="">{{ 'drehzettel.category.auto'|trans }}</option>
-                        <option value="workday" {% if (film.category ?? '') == 'workday' %}selected{% endif %}>{{ 'drehzettel.category.workday'|trans }}</option>
-                        <option value="saturday" {% if (film.category ?? '') == 'saturday' %}selected{% endif %}>{{ 'drehzettel.category.saturday'|trans }}</option>
-                        <option value="sunday" {% if (film.category ?? '') == 'sunday' %}selected{% endif %}>{{ 'drehzettel.category.sunday'|trans }}</option>
-                        <option value="holiday" {% if (film.category ?? '') == 'holiday' %}selected{% endif %}>{{ 'drehzettel.category.holiday'|trans }}</option>
-                    </select>
+                    <div class="dz-view">
+                        {% if film.catering ?? false %}<span class="dz-chip dz-chip-catering"><i class="fas fa-utensils"></i> {{ 'drehzettel.catering.title'|trans }}</span>{% endif %}
+                        {% if type_val != 'workday' %}<span>{{ ('drehzettel.day_type.' ~ type_val)|trans }}</span>{% endif %}
+                        {% if cat_val %}<span>{{ ('drehzettel.category.' ~ cat_val)|trans }}</span>{% endif %}
+                        {% if not has_override %}<span class="dz-day-actions-empty" title="{{ 'drehzettel.category.auto_short'|trans }}">–</span>{% endif %}
+                    </div>
+                    <div class="dz-edit">
+                        <label class="dz-catering">
+                            <input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}>
+                            {{ 'drehzettel.catering.title'|trans }}
+                        </label>
+                        <select class="dz-pill dz-field" name="day[{{ row.key }}][type]">
+                            <option value="workday" {% if type_val == 'workday' %}selected{% endif %}>{{ 'drehzettel.day_type.workday'|trans }}</option>
+                            <option value="travel" {% if type_val == 'travel' %}selected{% endif %}>{{ 'drehzettel.day_type.travel'|trans }}</option>
+                        </select>
+                        <select class="dz-pill dz-field" name="day[{{ row.key }}][category]">
+                            <option value="">{{ 'drehzettel.category.auto'|trans }}</option>
+                            <option value="workday" {% if cat_val == 'workday' %}selected{% endif %}>{{ 'drehzettel.category.workday'|trans }}</option>
+                            <option value="saturday" {% if cat_val == 'saturday' %}selected{% endif %}>{{ 'drehzettel.category.saturday'|trans }}</option>
+                            <option value="sunday" {% if cat_val == 'sunday' %}selected{% endif %}>{{ 'drehzettel.category.sunday'|trans }}</option>
+                            <option value="holiday" {% if cat_val == 'holiday' %}selected{% endif %}>{{ 'drehzettel.category.holiday'|trans }}</option>
+                        </select>
+                    </div>
                 </div>
 
                 {% if c.pay %}<div class="dz-day-pay">{{ row.pay }}</div>{% endif %}
 
                 <div class="dz-day-note">
-                    <input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ film.note ?? '' }}" placeholder="{{ 'drehzettel.note'|trans }}">
+                    <div class="dz-view">{{ note_val != '' ? note_val : '–' }}</div>
+                    <div class="dz-edit">
+                        <input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ note_val }}" placeholder="{{ 'drehzettel.note'|trans }}">
+                    </div>
                 </div>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>
 

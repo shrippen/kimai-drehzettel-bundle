@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use App\Entity\Project;
+use App\Entity\Timesheet;
 use App\Entity\User;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Domain\Ruleset;
@@ -84,6 +85,27 @@ class EngagementService
     public function active(User $user, Project $project, \DateTimeImmutable $date): ?Engagement
     {
         return $this->engagements->findActive($user, $project, $date);
+    }
+
+    // Shared by TimesheetFormExtension and TimesheetCleanupSubscriber: both need the
+    // engagement a given timesheet entry belongs to, keyed off its own project/user/date.
+    public function activeFor(Timesheet $timesheet): ?Engagement
+    {
+        $project = $timesheet->getProject();
+        $user = $timesheet->getUser();
+        if ($project === null || $user === null || $timesheet->getBegin() === null) {
+            return null;
+        }
+
+        return $this->active($user, $project, self::dateOf($timesheet));
+    }
+
+    public static function dateOf(Timesheet $timesheet): \DateTimeImmutable
+    {
+        $begin = $timesheet->getBegin();
+        \assert($begin !== null);
+
+        return \DateTimeImmutable::createFromInterface($begin)->setTime(0, 0);
     }
 
     public function ruleset(Engagement $engagement): Ruleset

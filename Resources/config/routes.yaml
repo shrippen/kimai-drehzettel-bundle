@@ -1,8 +1,17 @@
 controllers:
     resource: '@DrehzettelBundle/Controller/'
     type: attribute
+    exclude: '@DrehzettelBundle/Controller/Api/'
     prefix: /{_locale}
     requirements:
         _locale: '%app_locales%'
     defaults:
         _locale: '%locale%'
+
+# Separate from the web controllers above: no {_locale} prefix, same /api path
+# and auth (#[IsGranted('API')]) as Kimai's own REST API. See
+# research/api-external-clients.md for why this works without extra config.
+api:
+    resource: '@DrehzettelBundle/Controller/Api/'
+    type: attribute
+    prefix: /api

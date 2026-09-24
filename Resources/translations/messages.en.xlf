@@ -482,6 +482,26 @@
         <source>drehzettel.week.compliance_ok</source>
         <target>No warnings for this week</target>
       </trans-unit>
+      <trans-unit id="d120" resname="drehzettel.form.film_day">
+        <source>drehzettel.form.film_day</source>
+        <target>Film day</target>
+      </trans-unit>
+      <trans-unit id="d121" resname="drehzettel.contract.day">
+        <source>drehzettel.contract.day</source>
+        <target>Drehzettel day</target>
+      </trans-unit>
+      <trans-unit id="d122" resname="drehzettel.form.detected">
+        <source>drehzettel.form.detected</source>
+        <target>Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.</target>
+      </trans-unit>
+      <trans-unit id="d123" resname="drehzettel.category.auto_short">
+        <source>drehzettel.category.auto_short</source>
+        <target>Auto</target>
+      </trans-unit>
+      <trans-unit id="d124" resname="drehzettel.week.break_default">
+        <source>drehzettel.week.break_default</source>
+        <target>default, not saved</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

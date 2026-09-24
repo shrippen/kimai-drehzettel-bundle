@@ -67,5 +67,17 @@ class DrehzettelExtension extends Extension implements PrependExtensionInterface
                 ],
             ],
         ]);
+
+        // Registers the icon for EventSubscriber\ContractSubscriber's DayAddon marker
+        // (type: 'drehzettel') with Tabler's icon() Twig filter/function
+        // (see config/packages/tabler.yaml "icons:" in Kimai core). Without this, an
+        // unregistered icon key is returned as-is and used as a CSS class, rendering
+        // nothing - same gap the sibling HolidayBundle currently has for every absence
+        // type except "vacation", which happens to reuse core's own "holiday" key.
+        $container->prependExtensionConfig('tabler', [
+            'icons' => [
+                'drehzettel' => 'fas fa-clapperboard',
+            ],
+        ]);
     }
 }

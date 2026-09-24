@@ -14,7 +14,7 @@
         .dz-segopt{padding:.35rem .8rem;font-size:.8rem;color:var(--tblr-secondary-color,#6b7280);background:var(--tblr-bg-surface,#fff);border:none;border-right:1px solid var(--tblr-border-color);cursor:pointer;}
         .dz-segopt:last-child{border-right:none;}
         .dz-segopt.on{background:var(--tblr-primary);color:#fff;font-weight:600;}
-        .dz-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:1rem;}
+        .dz-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:6rem;}
         .dz-navitem{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;border-radius:7px;font-size:.82rem;color:var(--tblr-secondary-color,#6b7280);text-decoration:none;}
         .dz-navitem:hover{background:var(--tblr-bg-surface-secondary,#f3f4f6);color:var(--tblr-body-color);}
         .dz-navitem i{width:16px;text-align:center;color:var(--tblr-primary);}
@@ -23,32 +23,45 @@
         .dz-cardhead i{color:var(--tblr-primary);font-size:1.05rem;}
         .dz-cardtitle{font-size:.95rem;font-weight:600;}
         .dz-carddesc{font-size:.78rem;color:var(--tblr-secondary-color,#6b7280);margin:0 0 .9rem 1.6rem;}
-        .dz-ladder{margin-bottom:1rem;}
+        .dz-ladder{margin-bottom:1rem;min-height:48px;}
         .dz-ladder-bar{position:relative;height:32px;border-radius:7px;overflow:hidden;display:flex;font-size:.72rem;font-weight:600;color:#fff;}
         .dz-ladder-seg{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;}
-        .dz-ladder-base{background:var(--tblr-bg-surface-tertiary,#d1d5db);color:var(--tblr-body-color,#374151);}
-        .dz-ladder-tier1{background:#f2b53d;}
-        .dz-ladder-tier2{background:#e8770f;}
+        .dz-ladder-base{background:var(--tblr-secondary,#6b7280);color:#fff;}
+        .dz-ladder-tier1{background:#f2b53d;color:#4a3200;}
+        .dz-ladder-tier2{background:#e8770f;color:#3d1f00;}
         .dz-ladder-tier3, .dz-ladder-tier4{background:var(--tblr-danger,#d63939);}
         .dz-ladder-marks{position:relative;height:16px;}
         .dz-ladder-mark{position:absolute;top:0;transform:translateX(-50%);font-size:.68rem;color:var(--tblr-secondary-color,#6b7280);white-space:nowrap;}
-        .dz-cat-card{border-radius:8px;padding:.8rem 1rem;flex:1;min-width:220px;}
-        .dz-cat-saturday{background:#fef3e0;}
-        .dz-cat-sunday{background:#fbeaea;}
-        .dz-cat-holiday{background:#efe9fc;}
+        .dz-tier-row{border-left:3px solid transparent;padding-left:.85rem;}
+        .dz-tier-row-1{border-left-color:#f2b53d;}
+        .dz-tier-row-2{border-left-color:#e8770f;}
+        .dz-tier-row-3, .dz-tier-row-4{border-left-color:var(--tblr-danger,#d63939);}
+        .dz-tier-row .row>.col-md-3{position:relative;}
+        .dz-field-invalid{border-color:var(--tblr-danger,#d63939)!important;box-shadow:0 0 0 .2rem rgba(214,57,57,.15);}
+        .dz-field-tip{position:absolute;bottom:100%;left:0;margin-bottom:.5rem;background:var(--tblr-danger,#d63939);color:#fff;font-size:.72rem;font-weight:500;line-height:1.3;padding:.35rem .6rem;border-radius:6px;width:max-content;max-width:220px;z-index:15;box-shadow:0 2px 6px rgba(0,0,0,.18);}
+        .dz-field-tip::after{content:"";position:absolute;top:100%;left:1rem;border:6px solid transparent;border-top-color:var(--tblr-danger,#d63939);}
+        .dz-cat-card{border-radius:8px;padding:.8rem 1rem;flex:1;min-width:220px;border:1px solid var(--tblr-border-color);}
+        .dz-cat-saturday{background:var(--tblr-warning-lt,#fef3e0);}
+        .dz-cat-sunday{background:var(--tblr-danger-lt,#fbeaea);}
+        .dz-cat-holiday{background:var(--tblr-purple-lt,#efe9fc);}
+        .dz-topbar{position:sticky;top:.75rem;z-index:20;background:var(--tblr-bg-surface,#fff);padding:.75rem 1.5rem;margin-bottom:1rem;border:1px solid var(--tblr-border-color);border-radius:var(--tblr-border-radius-lg,10px);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+        .dz-mode-hint{white-space:nowrap;}
+        @media (max-width:1300px){.dz-mode-hint{display:none!important;}}
     </style>
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap mb-1 gap-2">
-        <h2 class="mb-0">{{ engagement ? 'drehzettel.rules.edit'|trans ~ ' — ' ~ engagement.project.name : (ruleset_name ?? 'drehzettel.ruleset.new'|trans) }}</h2>
-        <div class="d-flex align-items-center gap-3">
-            <div class="dz-seg" id="dz-mode-toggle">
-                <button type="button" class="dz-segopt on" data-mode="simple">{{ 'drehzettel.rules.mode_simple'|trans }}</button>
-                <button type="button" class="dz-segopt" data-mode="advanced">{{ 'drehzettel.rules.mode_advanced'|trans }}</button>
+    <div class="dz-topbar">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h2 class="mb-0">{{ engagement ? 'drehzettel.rules.edit'|trans ~ ' — ' ~ engagement.project.name : (ruleset_name ?? 'drehzettel.ruleset.new'|trans) }}</h2>
+            <div class="d-flex align-items-center gap-3">
+                <span class="dz-mode-hint text-muted small" id="dz-mode-hint" style="display:none;">{{ 'drehzettel.rules.mode_advanced_hint'|trans }}</span>
+                <div class="dz-seg" id="dz-mode-toggle">
+                    <button type="button" class="dz-segopt on" data-mode="simple">{{ 'drehzettel.rules.mode_simple'|trans }}</button>
+                    <button type="button" class="dz-segopt" data-mode="advanced">{{ 'drehzettel.rules.mode_advanced'|trans }}</button>
+                </div>
+                <button type="submit" form="dz-rules-form" class="btn btn-primary">{{ 'action.save'|trans }}</button>
             </div>
-            <button type="submit" form="dz-rules-form" class="btn btn-primary">{{ 'action.save'|trans }}</button>
         </div>
     </div>
-    <div class="text-end text-muted small mb-3" id="dz-mode-hint" style="display:none;">{{ 'drehzettel.rules.mode_advanced_hint'|trans }}</div>
 
     <div class="d-flex gap-4 align-items-start flex-wrap">
         <div class="dz-nav" style="flex:0 0 190px;">
@@ -80,7 +93,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">{{ 'drehzettel.rules.break_rule'|trans }}</label>
-                        <select name="breakRule" class="form-select">
+                        <select name="breakRule" class="form-select form-select-sm">
                             <option value="deduct_all" {% if form.breakRule == 'deduct_all' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.deduct_all'|trans }}</option>
                             <option value="excess_counts_as_work" {% if form.breakRule == 'excess_counts_as_work' %}selected{% endif %}>{{ 'drehzettel.rules.break_rule.excess_counts_as_work'|trans }}</option>
                         </select>
@@ -119,20 +132,22 @@
             <div class="dz-card" id="sec-daily">
                 <div class="dz-cardhead"><i class="fas fa-stairs"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.daily_tiers'|trans }}</span></div>
                 <div class="dz-carddesc">Ab wie vielen Stunden am Tag welcher Zuschlag greift.</div>
-                {{ ladder.bar([
+                {{ ladder.bar('dz-ladder-daily', [
                     {after: form.dailyTier1After, percent: form.dailyTier1Percent},
                     {after: form.dailyTier2After, percent: form.dailyTier2Percent},
                     {after: form.dailyTier3After, percent: form.dailyTier3Percent},
                     {after: form.dailyTier4After, percent: form.dailyTier4Percent},
                 ]) }}
                 {% for i in 1..4 %}
-                    <div class="row align-items-start">
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
-                            <input type="number" step="0.25" name="dailyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['dailyTier' ~ i ~ 'After'] }}">
-                        </div>
-                        <div class="col-md-5">
-                            {{ preset.field('dailyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['dailyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                    <div class="dz-tier-row dz-tier-row-{{ i }}">
+                        <div class="row align-items-start">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
+                                <input type="number" step="0.25" name="dailyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['dailyTier' ~ i ~ 'After'] }}">
+                            </div>
+                            <div class="col-md-5">
+                                {{ preset.field('dailyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['dailyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -141,19 +156,21 @@
             <div class="dz-card" id="sec-weekly">
                 <div class="dz-cardhead"><i class="fas fa-calendar-week"></i><span class="dz-cardtitle">{{ 'drehzettel.rules.weekly_tiers'|trans }}</span></div>
                 <div class="dz-carddesc">Ab wie vielen Stunden in der Woche welcher Zuschlag greift.</div>
-                {{ ladder.bar([
+                {{ ladder.bar('dz-ladder-weekly', [
                     {after: form.weeklyTier1After, percent: form.weeklyTier1Percent},
                     {after: form.weeklyTier2After, percent: form.weeklyTier2Percent},
                     {after: form.weeklyTier3After, percent: form.weeklyTier3Percent},
                 ]) }}
                 {% for i in 1..3 %}
-                    <div class="row align-items-start">
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
-                            <input type="number" step="0.5" name="weeklyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['weeklyTier' ~ i ~ 'After'] }}">
-                        </div>
-                        <div class="col-md-5">
-                            {{ preset.field('weeklyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['weeklyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                    <div class="dz-tier-row dz-tier-row-{{ i }}">
+                        <div class="row align-items-start">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ 'drehzettel.rules.tier'|trans }} {{ i }} — {{ 'drehzettel.rules.after_h'|trans }}</label>
+                                <input type="number" step="0.5" name="weeklyTier{{ i }}After" class="form-control form-control-sm" value="{{ form['weeklyTier' ~ i ~ 'After'] }}">
+                            </div>
+                            <div class="col-md-5">
+                                {{ preset.field('weeklyTier' ~ i ~ 'Percent', 'drehzettel.rules.surcharge'|trans, [25, 50, 75, 100], form['weeklyTier' ~ i ~ 'Percent'], '%', 'drehzettel.rules.unused'|trans) }}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -220,63 +237,202 @@
                     </div>
                 </div>
             </div>
-
-            <a href="{{ engagement ? path('drehzettel_week', {id: engagement.id}) : path('drehzettel_ruleset_list') }}" class="btn btn-link ps-0">{{ 'action.close'|trans }}</a>
         </form>
     </div>
 
     <script>
-    // Preset/Custom toggle for _preset_field.html.twig: exactly one of the
-    // select and the input carries `disabled` at any time, so the form only
-    // ever submits the value the checkbox currently shows.
+    // Interactive tier ladder: rebuilds the bar in _tier_ladder.html.twig live from the current
+    // Stufe N fields (both loops below and the global Einfach/Erweitert switch call rebuildAll()
+    // after anything that could change a value), and rejects Stufen that are not in strictly
+    // ascending order - Ruleset would otherwise silently re-sort them server-side, which quietly
+    // detaches each percentage from the "Stufe N" label the user set it under. The PHP-side
+    // RulesetFormMapper::tiers() enforces the same ordering again on submit, since this is only
+    // ever a convenience check the user could bypass (disabled JS, a crafted request).
     (function () {
-        document.querySelectorAll('.dz-custom-toggle').forEach(function (toggle) {
-            toggle.addEventListener('change', function () {
-                var name = toggle.dataset.target;
-                var select = document.querySelector('.dz-preset-select[data-preset-for="' + name + '"]');
-                var input = document.querySelector('.dz-custom-input[data-custom-for="' + name + '"]');
-                if (!select || !input) { return; }
+        var form = document.getElementById('dz-rules-form');
+        if (!form) { return; }
 
-                if (toggle.checked) {
-                    input.value = select.value;
-                    select.disabled = true;
-                    select.classList.add('d-none');
-                    input.disabled = false;
-                    input.classList.remove('d-none');
-                } else {
-                    var match = Array.from(select.options).some(function (o) { return o.value !== '' && o.value === input.value; });
-                    select.value = match ? input.value : (select.querySelector('option[value=""]') ? '' : select.options[0].value);
-                    input.disabled = true;
-                    input.classList.add('d-none');
-                    select.disabled = false;
-                    select.classList.remove('d-none');
-                }
+        var LADDERS = [
+            {containerId: 'dz-ladder-daily', prefix: 'dailyTier', slots: 4},
+            {containerId: 'dz-ladder-weekly', prefix: 'weeklyTier', slots: 3},
+        ];
+        var invalid = {};
+
+        function activeValue(name) {
+            var els = form.querySelectorAll('[name="' + name + '"]');
+            for (var i = 0; i < els.length; i++) {
+                if (!els[i].disabled) { return els[i].value.trim(); }
+            }
+            return '';
+        }
+
+        function readSlots(cfg) {
+            var slots = [];
+            for (var i = 1; i <= cfg.slots; i++) {
+                var afterEl = form.querySelector('[name="' + cfg.prefix + i + 'After"]');
+                var afterRaw = afterEl ? afterEl.value.trim() : '';
+                var percentRaw = activeValue(cfg.prefix + i + 'Percent');
+                if (afterRaw === '' || percentRaw === '' || isNaN(parseFloat(afterRaw))) { continue; }
+                slots.push({slot: i, afterEl: afterEl, afterRaw: afterRaw, after: parseFloat(afterRaw), percentRaw: percentRaw});
+            }
+            return slots;
+        }
+
+        function clearErrors(cfg) {
+            form.querySelectorAll('[name^="' + cfg.prefix + '"][name$="After"]').forEach(function (el) {
+                el.classList.remove('dz-field-invalid');
             });
+            document.querySelectorAll('.dz-field-tip[data-for="' + cfg.containerId + '"]').forEach(function (el) {
+                el.remove();
+            });
+        }
+
+        // Marks both offending fields, but the message tooltip is only anchored above the later
+        // slot's own field (absolutely positioned, so it overlays rather than pushing layout, and
+        // sits clear of the input's up/down spinner buttons instead of using Bootstrap's
+        // is-invalid, which reflows the field to make room for its own icon).
+        function showError(cfg, container, a, b) {
+            a.afterEl.classList.add('dz-field-invalid');
+            b.afterEl.classList.add('dz-field-invalid');
+            var anchor = a.afterEl.parentElement;
+            if (!anchor) { return; }
+            var tip = document.createElement('div');
+            tip.className = 'dz-field-tip';
+            tip.dataset.for = cfg.containerId;
+            tip.textContent = 'Muss später beginnen als Stufe ' + b.slot + ' (ab ' + b.afterRaw + ' Std.).';
+            anchor.appendChild(tip);
+        }
+
+        function rebuild(cfg) {
+            var container = document.getElementById(cfg.containerId);
+            if (!container) { return; }
+            clearErrors(cfg);
+
+            var slots = readSlots(cfg);
+            for (var i = 1; i < slots.length; i++) {
+                if (slots[i].after <= slots[i - 1].after) {
+                    showError(cfg, container, slots[i], slots[i - 1]);
+                    container.innerHTML = '';
+                    invalid[cfg.containerId] = true;
+                    updateSaveState();
+                    return;
+                }
+            }
+            delete invalid[cfg.containerId];
+            updateSaveState();
+
+            if (slots.length === 0) { container.innerHTML = ''; return; }
+
+            var maxAfter = slots[slots.length - 1].after;
+            var scale = maxAfter + (maxAfter > 20 ? 4 : 2);
+            var bar = document.createElement('div');
+            bar.className = 'dz-ladder-bar';
+            var base = document.createElement('div');
+            base.className = 'dz-ladder-seg dz-ladder-base';
+            base.style.width = (slots[0].after / scale * 100) + '%';
+            base.textContent = '0–' + slots[0].afterRaw;
+            bar.appendChild(base);
+            slots.forEach(function (t, idx) {
+                var next = idx + 1 < slots.length ? slots[idx + 1].after : scale;
+                var seg = document.createElement('div');
+                seg.className = 'dz-ladder-seg dz-ladder-tier' + Math.min(idx + 1, 4);
+                seg.style.width = ((next - t.after) / scale * 100) + '%';
+                seg.textContent = '+' + t.percentRaw + '%';
+                bar.appendChild(seg);
+            });
+            var marks = document.createElement('div');
+            marks.className = 'dz-ladder-marks';
+            slots.forEach(function (t) {
+                var mark = document.createElement('div');
+                mark.className = 'dz-ladder-mark';
+                mark.style.left = (t.after / scale * 100) + '%';
+                mark.textContent = t.afterRaw;
+                marks.appendChild(mark);
+            });
+            container.innerHTML = '';
+            container.appendChild(bar);
+            container.appendChild(marks);
+        }
+
+        function rebuildAll() { LADDERS.forEach(rebuild); }
+
+        function updateSaveState() {
+            var invalidNow = Object.keys(invalid).length > 0;
+            document.querySelectorAll('button[form="dz-rules-form"][type="submit"]').forEach(function (btn) {
+                btn.disabled = invalidNow;
+                btn.title = invalidNow ? 'Stufen sind nicht aufsteigend sortiert - siehe Hinweis oben in der Karte.' : '';
+            });
+        }
+
+        form.addEventListener('input', function (event) {
+            if (/^(dailyTier|weeklyTier)\d(After|Percent)$/.test(event.target.name || '')) { rebuildAll(); }
         });
+        form.addEventListener('change', function (event) {
+            if (/^(dailyTier|weeklyTier)\d(After|Percent)$/.test(event.target.name || '')) { rebuildAll(); }
+        });
+        form.addEventListener('submit', function (event) {
+            rebuildAll();
+            if (Object.keys(invalid).length > 0) {
+                event.preventDefault();
+                var firstError = document.querySelector('.dz-field-tip');
+                if (firstError) { firstError.scrollIntoView({behavior: 'smooth', block: 'center'}); }
+            }
+        });
+
+        window.dzRebuildLadders = rebuildAll;
+        rebuildAll();
     })();
 
-    // Global Einfach/Erweitert switch: flips every field's own custom-toggle checkbox at once.
-    // It is not itself submitted - each field still sends whichever of its own two inputs is enabled.
+    // Page-wide Einfach/Erweitert switch: drives every _preset_field.html.twig pair at once.
+    // Einfach shows the preset dropdown, Erweitert shows the free number field - there is no
+    // per-field control, since in Erweitert every field is a free field by definition. Exactly
+    // one of the select/input carries `disabled` at any time, so the form only ever submits the
+    // value the currently-visible control holds.
     (function () {
         var group = document.getElementById('dz-mode-toggle');
         var hint = document.getElementById('dz-mode-hint');
-        if (!group) { return; }
+        var form = document.getElementById('dz-rules-form');
+        if (!group || !form) { return; }
+
+        function applyFieldMode(select, advanced) {
+            var input = form.querySelector('.dz-custom-input[data-custom-for="' + select.dataset.presetFor + '"]');
+            if (!input) { return; }
+            var currentlyCustom = !input.classList.contains('d-none');
+            if (currentlyCustom === advanced) { return; }
+
+            if (advanced) {
+                input.value = select.value;
+                select.disabled = true;
+                select.classList.add('d-none');
+                input.disabled = false;
+                input.classList.remove('d-none');
+            } else {
+                var match = Array.from(select.options).some(function (o) { return o.value !== '' && o.value === input.value; });
+                select.value = match ? input.value : (select.querySelector('option[value=""]') ? '' : select.options[0].value);
+                input.disabled = true;
+                input.classList.add('d-none');
+                select.disabled = false;
+                select.classList.remove('d-none');
+            }
+        }
+
+        function setMode(advanced) {
+            group.querySelectorAll('.dz-segopt').forEach(function (b) { b.classList.toggle('on', (b.dataset.mode === 'advanced') === advanced); });
+            hint.style.display = advanced ? '' : 'none';
+            form.querySelectorAll('.dz-preset-select').forEach(function (select) { applyFieldMode(select, advanced); });
+            if (window.dzRebuildLadders) { window.dzRebuildLadders(); }
+        }
 
         group.addEventListener('click', function (event) {
             var btn = event.target.closest('.dz-segopt');
             if (!btn) { return; }
-            var advanced = btn.dataset.mode === 'advanced';
-
-            group.querySelectorAll('.dz-segopt').forEach(function (b) { b.classList.toggle('on', b === btn); });
-            hint.style.display = advanced ? '' : 'none';
-
-            document.querySelectorAll('.dz-custom-toggle').forEach(function (toggle) {
-                if (toggle.checked !== advanced) {
-                    toggle.checked = advanced;
-                    toggle.dispatchEvent(new Event('change'));
-                }
-            });
+            setMode(btn.dataset.mode === 'advanced');
         });
+
+        // A ruleset saved with a value outside the presets starts as "custom" for that field
+        // even though the page defaults to Einfach - open in Erweitert instead so it is visible.
+        var hasCustom = !!form.querySelector('.dz-custom-input:not(.d-none)');
+        setMode(hasCustom);
     })();
     </script>
 {% endblock %}

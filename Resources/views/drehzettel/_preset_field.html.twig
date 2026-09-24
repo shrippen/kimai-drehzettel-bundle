@@ -1,7 +1,7 @@
-{# A dropdown of common values, with a "Custom" checkbox that swaps it for a
-   free number field. Select and input share one `name`; a disabled control
-   is excluded from form submission, so exactly one of the two is ever sent,
-   whichever the "Custom" checkbox currently shows.
+{# A dropdown of common values that becomes a free number field in Erweitert mode (see the
+   page-wide Einfach/Erweitert switch in ruleset_form.html.twig, which drives every field on the
+   page at once - there is no per-field control here). Select and input share one `name`; a
+   disabled control is excluded from form submission, so exactly one of the two is ever sent.
 
    presets: list of numbers. empty_label: set to allow "not set" (null) as
    its own option, e.g. for a surcharge that otherwise pools into weekly
@@ -18,10 +18,6 @@
                 {% for p in presets %}<option value="{{ p }}" {% if is_preset and value == p %}selected{% endif %}>{{ p }}{{ unit }}</option>{% endfor %}
             </select>
             <input type="number" step="0.01" name="{{ name }}" class="form-control form-control-sm dz-custom-input{{ is_custom ? '' : ' d-none' }}" data-custom-for="{{ name }}" value="{{ is_custom ? value : '' }}" {% if not is_custom %}disabled{% endif %}>
-            <div class="form-check form-check-inline mb-0 text-nowrap">
-                <input type="checkbox" class="form-check-input dz-custom-toggle" data-target="{{ name }}" id="custom-{{ name }}" {% if is_custom %}checked{% endif %}>
-                <label class="form-check-label small" for="custom-{{ name }}">{{ 'drehzettel.rules.custom'|trans }}</label>
-            </div>
         </div>
     </div>
 {% endmacro %}

@@ -482,6 +482,26 @@
         <source>drehzettel.week.compliance_ok</source>
         <target>Keine Hinweise für diese Woche</target>
       </trans-unit>
+      <trans-unit id="d120" resname="drehzettel.form.film_day">
+        <source>drehzettel.form.film_day</source>
+        <target>Drehtag</target>
+      </trans-unit>
+      <trans-unit id="d121" resname="drehzettel.contract.day">
+        <source>drehzettel.contract.day</source>
+        <target>Drehzetteltag</target>
+      </trans-unit>
+      <trans-unit id="d122" resname="drehzettel.form.detected">
+        <source>drehzettel.form.detected</source>
+        <target>Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder erscheinen nach dem Speichern beim Bearbeiten dieses Eintrags.</target>
+      </trans-unit>
+      <trans-unit id="d123" resname="drehzettel.category.auto_short">
+        <source>drehzettel.category.auto_short</source>
+        <target>Automatisch</target>
+      </trans-unit>
+      <trans-unit id="d124" resname="drehzettel.week.break_default">
+        <source>drehzettel.week.break_default</source>
+        <target>Standard, nicht gespeichert</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

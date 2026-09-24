@@ -1,17 +1,19 @@
 {# Visual summary of a tier list (daily or weekly overtime): a proportional bar showing
-   where each surcharge starts, plus small threshold marks. Purely decorative - the actual
-   after/percent fields below it are still what gets submitted. #}
-{% macro bar(tiers) %}
+   where each surcharge starts, plus small threshold marks. Server-rendered for the initial
+   (no-JS) paint; from then on the script at the bottom of ruleset_form.html.twig owns this
+   `id` element and rebuilds it live from the current field values - see rebuildLadder() there.
+   The wrapper div always renders, even with zero tiers, so JS always has an anchor. #}
+{% macro bar(id, tiers) %}
     {% set defined = [] %}
     {% for t in tiers %}
         {% if t.after is not null and t.after != '' %}
             {% set defined = defined|merge([t]) %}
         {% endif %}
     {% endfor %}
-    {% if defined|length > 0 %}
-        {% set maxAfter = defined|last.after %}
-        {% set scale = maxAfter + (maxAfter > 20 ? 4 : 2) %}
-        <div class="dz-ladder">
+    <div class="dz-ladder" id="{{ id }}">
+        {% if defined|length > 0 %}
+            {% set maxAfter = defined|last.after %}
+            {% set scale = maxAfter + (maxAfter > 20 ? 4 : 2) %}
             <div class="dz-ladder-bar">
                 <div class="dz-ladder-seg dz-ladder-base" style="width:{{ (defined|first.after / scale * 100) }}%">0–{{ defined|first.after }}</div>
                 {% for t in defined %}
@@ -24,6 +26,6 @@
                     <div class="dz-ladder-mark" style="left:{{ (t.after / scale * 100) }}%">{{ t.after }}</div>
                 {% endfor %}
             </div>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 {% endmacro %}
