@@ -78,7 +78,9 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 - [x] Engagement service: open with snapshot, overlap check, active lookup
 - [x] Week and period service (period split by ISO week)
 - [x] Dev environment and integration checks (`dev/`)
-- [ ] Edit rules of an existing engagement (override) — moves to Phase 4 with the UI
+- [x] Edit rules of an existing engagement (override) — moved to Phase 4 with the UI and done there
+      (`EngagementController::rules()` / `ruleset_form.html.twig`); this line was left unchecked by
+      mistake when Phase 4 shipped it.
 
 ### Phase 3 — PDF
 
