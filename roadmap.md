@@ -135,10 +135,8 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       `break` field is removed from the form builder in that case — verified in the rendered HTML
       that `timesheet_edit_form[break]` is absent while the four `drehzettel*` fields are present;
       no sync between the two break concepts, per the 2026-09-23 revision.
-      Known limitation: the engagement lookup happens once, at form-build time, from the entry's
-      existing project/user/begin — a brand-new entry without a project preset yet will not show
-      the toggle even if the user picks a matching project afterwards. A live re-check via the new
-      API is a follow-up, not part of this pass.
+      ~~Known limitation: the engagement lookup happens once, at form-build time~~ — resolved
+      2026-09-24, see Phase 6 follow-up 9 below.
 - [x] `Controller/Api/DrehzettelApiController.php`: versioned REST API for external clients (e.g.
       the Plasmai KDE Plasma widget) under `/api/drehzettel/...`, plan in
       `research/api-external-clients.md`. `GET /ping` (discovery), `GET /v1/engagement-status`,
@@ -227,10 +225,9 @@ session, and `php tests/run.php` (261 checks, unaffected) — not just `php -l`.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
 - **UX question raised while reworking the week/rules pages (see `research/ux-flows-film-day-data.md`,
-  2026-09-22) — decided and partly built (Phase 6, 2026-09-23):** film day data now also lives in Kimai's
-  own timesheet entry form (one save for `Timesheet` + `FilmDay`, form concept A), not only in the week
-  view's inline dropdowns. Still open: the new-entry limitation where the toggle needs a project already
-  picked to appear.
+  2026-09-22) — decided and built (Phase 6, 2026-09-23; new-entry live re-check added Phase 6 follow-up
+  9, 2026-09-24):** film day data now also lives in Kimai's own timesheet entry form (one save for
+  `Timesheet` + `FilmDay`, form concept A), not only in the week view's inline dropdowns.
 
 ## Phase 6 follow-up 2 — week view alignment + per-row edit mode, rules page contrast fix (2026-09-23)
 
@@ -502,3 +499,42 @@ can't be billed to the production company.
 - **Plasmai-side** (separate project): `contents/code/drehzettelApi.js` now sends the chosen
   activity id along on `engagementStatus`/`filmDayGet`/`filmDayPut`, so the toggle only appears
   for activities the engagement actually counts.
+
+## Phase 6 follow-up 9 — live engagement re-check on Kimai's own timesheet form (2026-09-24)
+
+The remaining Phase 6 limitation: `TimesheetFormExtension` decided once, at form-build time, whether
+to show the film day fields - a brand-new entry (no project chosen yet when the form was built) never
+showed them, even after picking a project with an active engagement, until the entry was saved and
+reopened. `EventSubscriber\ThemeSubscriber` already had a live-check banner (Phase 6 follow-up) but it
+was only a hint - the actual fields still needed a save+reopen round trip.
+
+- **`TimesheetFormExtension`**: now always adds the five fields, not only when an engagement is known
+  at build time. A brand-new entry's fields start with the `dz-hidden` CSS class (see below);
+  an *existing* entry with no active engagement at build time still gets nothing added - its
+  project/user/date/activity are already fixed at that point, so nothing can change live for it
+  either, and adding hidden fields there would be dead weight. `onSubmit()` now re-resolves the
+  engagement fresh from the actually submitted `Timesheet` (`EngagementService::activeFor()`)
+  instead of trusting the build-time snapshot closed over in the listener - by `POST_SUBMIT` the
+  submitted project/activity/begin are already mapped onto the entity, so this is strictly more
+  correct, not just a UI nicety: a brand-new entry's project chosen only in the browser now saves
+  its film day fields correctly even with JavaScript disabled (previously it couldn't, since the
+  fields were never added to the form at all in that case).
+- **`EventSubscriber\ThemeSubscriber`**: the existing project-change JS is now project *and*
+  activity-aware (an engagement can restrict itself to specific activities since Phase 6 follow-up
+  8) and, on an active match, removes the `dz-hidden` class from all five `.dz-form-row*` elements
+  in the same `<form>` instead of only showing the banner; on no match (or the project cleared) it
+  re-hides them. New `.dz-hidden{display:none!important}` rule in the same stylesheet block. The
+  banner's wording changed from "appear after saving" to "shown below", since they now do appear
+  immediately. Delegated listener now matches `id` ending in `_project` or `_activity`, still scoped
+  to `<select>` elements so it stays inert everywhere else.
+- **Deliberately not attempted**: auto-checking the "Drehtag" toggle itself when the fields are
+  revealed live (it defaults on when the server already knew about the engagement at build time, as
+  before). `App\Form\Type\YesNoType`'s exact rendered markup wasn't available to verify blind DOM
+  manipulation against without risking silently doing nothing or, worse, toggling the wrong control.
+  A newly revealed block currently shows the toggle in its default off state; checking it is one
+  click, not a page reload - the actual regression being fixed.
+- Not covered by `php tests/run.php` (`TimesheetFormExtension`/`ThemeSubscriber` both need real Kimai
+  `App\Entity\Timesheet`/routing, same as the rest of `Form/`, `Controller/`, `EventSubscriber/`);
+  `php -l` clean on both files, `php tests/run.php` unaffected (261 checks). Needs a manual check
+  against the dev instance (pick a project with an active engagement on `/timesheet/create` and
+  confirm the fields appear without saving) once that's convenient to set up - not yet done live.
