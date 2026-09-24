@@ -91,6 +91,38 @@ expect('crew2 break default 45 min, excess rule', 45, $theirs->days[0]->breakMin
 expect('crew2 work 11:00 (no break entered -> default 45)', 660, $theirs->days[0]->workMinutes);
 expect('snapshot names differ', ['Quarter-Hour Ruleset', 'TV FFS 2024'], [$engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20'))->getRulesetName(), $engagement->getRulesetName()]);
 
+// Activity restriction: crew2's engagement counts only $activity. A same-project
+// "Anfahrt" (commute) entry on a different activity must not be detected as film time.
+$commuteActivity = $em->getRepository(Activity::class)->findOneBy(['name' => 'Anfahrt (dev)']);
+if ($commuteActivity === null) {
+    $commuteActivity = new Activity();
+    $commuteActivity->setName('Anfahrt (dev)');
+    $commuteActivity->setProject($project);
+    $em->persist($commuteActivity);
+    $em->flush();
+}
+$commuteSheet = $em->getRepository(Timesheet::class)->findOneBy(['user' => $crew, 'activity' => $commuteActivity]);
+if ($commuteSheet === null) {
+    $commuteSheet = new Timesheet();
+    $commuteSheet->setUser($crew);
+    $commuteSheet->setActivity($commuteActivity);
+    $commuteSheet->setProject($project);
+    $commuteSheet->setBegin(new DateTime('2025-05-20 07:00', $zone));
+    $commuteSheet->setEnd(new DateTime('2025-05-20 08:15', $zone));
+    $em->persist($commuteSheet);
+    $em->flush();
+}
+expect('unrestricted engagement: commute activity still counts', true, $engagement->appliesToActivity($commuteActivity));
+expect('unrestricted engagement: commute entry has an active engagement', true, $service->activeFor($commuteSheet) !== null);
+
+$engagement->setActivityIds([$activity->getId()]);
+$service->save($engagement);
+expect('restricted engagement: primary activity still counts', true, $engagement->appliesToActivity($activity));
+expect('restricted engagement: commute activity excluded', false, $engagement->appliesToActivity($commuteActivity));
+expect('restricted engagement: commute entry has no active engagement', true, $service->activeFor($commuteSheet) === null);
+$engagement->setActivityIds([]);
+$service->save($engagement);
+
 // Period over one week: query range narrowed to week 21 only -> exactly one week result.
 // (The seed data spans many weeks of the reference fixtures, not just week 21, so a wider
 // range here would legitimately split into several WeekResults - that's not a bug.)

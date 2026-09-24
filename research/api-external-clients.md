@@ -100,9 +100,17 @@ nicht die Antwortform selbst.
 Endpunkte damit final:
 
 - `GET /api/drehzettel/ping` — `{installed: true, pluginVersion: "x.y.z", apiVersions: ["v1"]}`
-- `GET /api/drehzettel/v1/engagement-status?project=&user=&date=`
-- `GET /api/drehzettel/v1/film-days/{date}?project=&user=`
-- `PUT /api/drehzettel/v1/film-days/{date}?project=&user=`
+- `GET /api/drehzettel/v1/engagement-status?project=&user=&date=&activity=`
+- `GET /api/drehzettel/v1/film-days/{date}?project=&user=&activity=`
+- `PUT /api/drehzettel/v1/film-days/{date}?project=&user=&activity=`
+
+**2026-09-24 ergänzt**: `activity` (Kimai Activity-Id) ist optional. Eine Engagement kann sich seit
+Phase 6 follow-up 8 (`roadmap.md`) auf bestimmte Tätigkeiten beschränken (`Engagement::activityIds`)
+— z. B. damit eine private „Anfahrt"-Tätigkeit auf demselben Projekt nicht als Drehtag erkannt wird.
+Wird `activity` mitgeschickt, prüft der Controller zusätzlich `Engagement::appliesToActivity()`.
+Fehlt der Parameter, bleibt das alte, rein projektbasierte Verhalten erhalten (kein Bruch für
+Clients, die ihn noch nicht senden) — sie bekommen die Tätigkeits-Einschränkung dann schlicht noch
+nicht angewendet.
 
 ## Offene technische Fragen (vor Implementierung zu klären)
 

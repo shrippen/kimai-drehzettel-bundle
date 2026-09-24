@@ -2,6 +2,7 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Entity;
 
+use App\Entity\Activity;
 use App\Entity\Project;
 use App\Entity\User;
 use Doctrine\DBAL\Types\Types;
@@ -60,6 +61,19 @@ class Engagement
     /** @var list<string>|null null means the defaults */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $pdfOptions = null;
+
+    /**
+     * Kimai Activity ids this engagement counts as film time for. Null or empty means
+     * "every activity on the project" (the pre-2026-09-24 default) - set this to
+     * restrict detection to specific activities, e.g. a "Set" activity while a
+     * separate "Anfahrt" (commute) activity on the same project stays private,
+     * unbillable tracking: not a film day, not summed into the shooting day span,
+     * not paid.
+     *
+     * @var list<int>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $activityIds = null;
 
     public function getId(): ?int
     {
@@ -180,5 +194,37 @@ class Engagement
     public function setRules(array $rules): void
     {
         $this->rules = $rules;
+    }
+
+    /**
+     * @return list<int> empty means unrestricted (every activity on the project counts)
+     */
+    public function getActivityIds(): array
+    {
+        return $this->activityIds ?? [];
+    }
+
+    /**
+     * @param list<int> $activityIds empty/[] clears the restriction
+     */
+    public function setActivityIds(array $activityIds): void
+    {
+        $this->activityIds = $activityIds === [] ? null : array_values(array_unique($activityIds));
+    }
+
+    /**
+     * Whether an entry on this activity counts towards this engagement's film time -
+     * true when unrestricted, or the activity's id is in the configured list.
+     */
+    public function appliesToActivity(?Activity $activity): bool
+    {
+        if ($this->activityIds === null || $this->activityIds === []) {
+            return true;
+        }
+        if ($activity === null || $activity->getId() === null) {
+            return false;
+        }
+
+        return \in_array($activity->getId(), $this->activityIds, true);
     }
 }

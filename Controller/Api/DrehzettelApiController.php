@@ -2,6 +2,8 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Controller\Api;
 
+use App\Entity\Activity;
+use App\Repository\ActivityRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
@@ -51,6 +53,7 @@ final class DrehzettelApiController extends AbstractController
         private readonly FilmDayService $filmDayService,
         private readonly ProjectRepository $projects,
         private readonly UserRepository $users,
+        private readonly ActivityRepository $activities,
         private readonly Security $security,
     ) {
     }
@@ -67,16 +70,24 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/engagement-status', name: 'drehzettel_api_engagement_status')]
-    #[OA\Response(response: 200, description: 'Whether project+user+date fall inside an active engagement, and its toggle default for a client-side "film day" UI switch.')]
+    #[OA\Response(response: 200, description: 'Whether project(+activity)+user+date fall inside an active engagement, and its toggle default for a client-side "film day" UI switch.')]
     public function engagementStatus(Request $request): JsonResponse
     {
         $project = $this->requireProject($request);
         $user = $this->requireUser($request);
         $date = $this->dateFromQuery($request);
+        $activity = $this->optionalActivity($request);
 
         $this->assertCanQuery($user);
 
         $engagement = $this->engagements->active($user, $project, $date);
+        // An engagement may restrict itself to specific activities (e.g. a billable "Set"
+        // activity, while a private "Anfahrt"/commute activity on the same project stays
+        // out) - an omitted activity param keeps the pre-restriction, project-only check
+        // for clients that don't send one yet.
+        if ($engagement !== null && $activity !== null && !$engagement->appliesToActivity($activity)) {
+            $engagement = null;
+        }
 
         return new JsonResponse([
             'active' => $engagement !== null,
@@ -162,10 +173,14 @@ final class DrehzettelApiController extends AbstractController
     {
         $project = $this->requireProject($request);
         $user = $this->requireUser($request);
+        $activity = $this->optionalActivity($request);
 
         $engagement = $this->engagements->active($user, $project, $this->parseDate($date));
+        if ($engagement !== null && $activity !== null && !$engagement->appliesToActivity($activity)) {
+            $engagement = null;
+        }
         if ($engagement === null) {
-            throw $this->createNotFoundException('No active engagement for this project, user and date.');
+            throw $this->createNotFoundException('No active engagement for this project, user, activity and date.');
         }
         $this->access->assertView($engagement);
 
@@ -181,6 +196,21 @@ final class DrehzettelApiController extends AbstractController
         }
 
         return $project;
+    }
+
+    /** Optional - clients that don't send it keep the pre-restriction, project-only check. */
+    private function optionalActivity(Request $request): ?Activity
+    {
+        $id = $request->query->get('activity');
+        if ($id === null || $id === '') {
+            return null;
+        }
+        $activity = $this->activities->find((int) $id);
+        if ($activity === null) {
+            throw $this->createNotFoundException('Unknown activity.');
+        }
+
+        return $activity;
     }
 
     private function requireUser(Request $request): \App\Entity\User

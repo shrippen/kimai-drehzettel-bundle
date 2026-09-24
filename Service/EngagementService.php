@@ -88,7 +88,11 @@ class EngagementService
     }
 
     // Shared by TimesheetFormExtension and TimesheetCleanupSubscriber: both need the
-    // engagement a given timesheet entry belongs to, keyed off its own project/user/date.
+    // engagement a given timesheet entry belongs to, keyed off its own project/user/date
+    // - and, if the engagement restricts itself to specific activities, its activity too.
+    // An entry on an activity outside that list (e.g. a private "Anfahrt"/commute
+    // activity on an otherwise billable production project) is treated exactly like
+    // having no engagement at all: not a film day, not cleaned up, not counted.
     public function activeFor(Timesheet $timesheet): ?Engagement
     {
         $project = $timesheet->getProject();
@@ -97,7 +101,12 @@ class EngagementService
             return null;
         }
 
-        return $this->active($user, $project, self::dateOf($timesheet));
+        $engagement = $this->active($user, $project, self::dateOf($timesheet));
+        if ($engagement === null || !$engagement->appliesToActivity($timesheet->getActivity())) {
+            return null;
+        }
+
+        return $engagement;
     }
 
     public static function dateOf(Timesheet $timesheet): \DateTimeImmutable

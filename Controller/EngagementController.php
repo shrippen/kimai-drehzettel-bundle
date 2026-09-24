@@ -3,8 +3,10 @@
 namespace KimaiPlugin\DrehzettelBundle\Controller;
 
 use App\Controller\AbstractController;
+use App\Entity\Activity;
 use App\Entity\Project;
 use App\Entity\User;
+use App\Repository\ActivityRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use App\Utils\PageSetup;
@@ -32,6 +34,7 @@ class EngagementController extends AbstractController
         private readonly RulesetCatalog $catalog,
         private readonly UserRepository $users,
         private readonly ProjectRepository $projects,
+        private readonly ActivityRepository $activities,
     ) {
     }
 
@@ -57,6 +60,8 @@ class EngagementController extends AbstractController
                     $this->optionalDate($request->request->get('valid_to')),
                     (string) $request->request->get('ruleset'),
                 );
+                $engagement->setActivityIds($this->activityIdsFromRequest($request));
+                $this->service->save($engagement);
                 $this->flashSuccess('action.update.success');
 
                 return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
@@ -71,6 +76,10 @@ class EngagementController extends AbstractController
             'rulesets' => $this->rulesetOptions(),
             'users' => $this->users->findBy(['enabled' => true], ['username' => 'ASC']),
             'projects' => $this->projects->findBy([], ['name' => 'ASC']),
+            // Project isn't chosen yet at render time, so list every visible activity;
+            // each option's label carries its project so the right one is still findable.
+            'activities' => $this->activities->findBy(['visible' => true], ['name' => 'ASC']),
+            'selectedActivityIds' => [],
         ]);
     }
 
@@ -87,6 +96,7 @@ class EngagementController extends AbstractController
             $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
             $engagement->setValidFrom(new \DateTimeImmutable((string) $request->request->get('valid_from')));
             $engagement->setValidTo($this->optionalDate($request->request->get('valid_to')));
+            $engagement->setActivityIds($this->activityIdsFromRequest($request));
 
             try {
                 $this->service->save($engagement);
@@ -102,6 +112,10 @@ class EngagementController extends AbstractController
             'page_setup' => new PageSetup('drehzettel.menu'),
             'engagement' => $engagement,
             'rulesets' => $this->rulesetOptions(),
+            // The project is fixed once an engagement exists - scope the picker to its
+            // activities (plus global, project-less ones) instead of every activity in Kimai.
+            'activities' => $this->activitiesForProject($engagement->getProject()),
+            'selectedActivityIds' => $engagement->getActivityIds(),
         ]);
     }
 
@@ -148,6 +162,33 @@ class EngagementController extends AbstractController
     private function rulesetOptions(): array
     {
         return array_map(fn (string $key): array => ['key' => $key, 'name' => $this->catalog->get($key)->name], $this->catalog->keys());
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function activityIdsFromRequest(Request $request): array
+    {
+        $ids = $request->request->all('activities');
+        if (!\is_array($ids)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('intval', array_filter($ids, fn ($id) => (string) $id !== ''))));
+    }
+
+    /**
+     * Activities available to restrict an engagement to: this project's own activities
+     * plus every global (project-less) one - not every activity in the Kimai instance.
+     *
+     * @return list<Activity>
+     */
+    private function activitiesForProject(?Project $project): array
+    {
+        $ownActivities = $project !== null ? $this->activities->findBy(['project' => $project], ['name' => 'ASC']) : [];
+        $globalActivities = $this->activities->findBy(['project' => null], ['name' => 'ASC']);
+
+        return [...$ownActivities, ...$globalActivities];
     }
 
     private function find(int $id): Engagement

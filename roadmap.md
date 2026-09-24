@@ -465,3 +465,38 @@ Resolved, previously listed here:
   for a hand-set film day override. Kimai's own "expected work hours" accounting is out of this plugin's
   scope either way.
 - ~~Holidays are not detected yet~~ — see Phase 5, holiday plugin integration.
+
+## Phase 6 follow-up 8 — restrict an engagement to specific activities (2026-09-24)
+
+Requested: detection ran on project alone, so every entry on the project counted as film time -
+including a crew member's own commute ("Anfahrt zum Set") tracked privately on the same project,
+which then both got flagged a film day and inflated the paid shooting-day span, even though it
+can't be billed to the production company.
+
+- **`Entity/Engagement::activityIds`** (nullable JSON list of Kimai Activity ids) + `appliesToActivity(?Activity)`:
+  null/empty means unrestricted (every activity counts, the pre-existing behavior - fully
+  backward compatible for engagements that never set this). `getActivityIds()`/`setActivityIds()`
+  normalize `[]` back to `null`. Migration `Version20260924120000` adds the column.
+- **`EngagementService::activeFor(Timesheet)`** now also checks `appliesToActivity()` against the
+  timesheet's own activity - an entry outside the list is treated exactly like having no
+  engagement at all. This alone fixes both existing callers: `TimesheetFormExtension` (the "film
+  day" toggle no longer appears on an excluded activity) and `TimesheetCleanupSubscriber` (deleting
+  such an entry doesn't touch any `FilmDay` row, since it was never contributing to one).
+- **`DayInputBuilder::spans()`** filters entries the same way before folding them into a day's
+  begin/end span - a commute entry no longer stretches the shooting day or adds to its pay, not
+  just its film-day flag.
+- **`Controller/Api/DrehzettelApiController`**: new optional `activity` query param on
+  `engagement-status` and `film-days/{date}` (get/put). Given, it's applied via
+  `appliesToActivity()` on top of the existing project/user/date match. Omitted, behavior is
+  unchanged (project-only) - existing clients that don't send it yet see no regression, they just
+  don't get the new restriction honored until updated. `dev/check.php` gained a scenario: a second
+  "Anfahrt (dev)" activity on the sample project, restricted out via `setActivityIds()`, and
+  asserts `activeFor()` returns null for it while the primary activity still matches.
+- **Admin UI** (`engagement_form.html.twig` + `EngagementController`): new checkbox list, "which
+  Kimai activities on this project count as film time" - unchecked (default) means unrestricted.
+  On `new`, listed from every visible activity (the project isn't chosen yet at render time,
+  labels carry their project name); on `edit`, scoped to the engagement's own project's activities
+  plus every global one.
+- **Plasmai-side** (separate project): `contents/code/drehzettelApi.js` now sends the chosen
+  activity id along on `engagementStatus`/`filmDayGet`/`filmDayPut`, so the toggle only appears
+  for activities the engagement actually counts.

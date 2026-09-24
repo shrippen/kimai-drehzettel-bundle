@@ -82,6 +82,11 @@ class DayInputBuilder
 
         $spans = [];
         foreach ($entries as $entry) {
+            if (!$engagement->appliesToActivity($entry->getActivity())) {
+                // e.g. a private "Anfahrt"/commute activity on the same project - not
+                // film time, must not inflate the paid shooting-day span either.
+                continue;
+            }
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
             $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
             $key = $begin->format(self::DATE_FORMAT);

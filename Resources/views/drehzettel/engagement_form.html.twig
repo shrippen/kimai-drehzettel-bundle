@@ -31,6 +31,25 @@
                 <label class="form-label">{{ 'drehzettel.role'|trans }}</label>
                 <input type="text" name="role" class="form-control" value="{{ engagement ? engagement.role : '' }}" required>
             </div>
+
+            <div class="mb-3">
+                <label class="form-label">{{ 'drehzettel.activities'|trans }}</label>
+                <div class="form-text mb-1">{{ 'drehzettel.activities_help'|trans }}</div>
+                {% if activities is defined and activities|length > 0 %}
+                    <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
+                        {% for a in activities %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="activities[]" value="{{ a.id }}"
+                                       id="dz-activity-{{ a.id }}"
+                                       {% if a.id in selectedActivityIds %}checked{% endif %}>
+                                <label class="form-check-label" for="dz-activity-{{ a.id }}">
+                                    {{ a.name }}{% if a.project is not null %} <span class="text-muted">({{ a.project.name }})</span>{% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">{{ 'drehzettel.pay_kind'|trans }}</label>
