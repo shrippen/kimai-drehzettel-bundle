@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drehzettel — UX-Flow: Wo leben Drehtag-Daten?</title>
+<link rel="icon" href="../docs/icon-mono.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#282828; --bg1:#32302f; --bg2:#3c3836; --line:#504945;
+  --fg0:#fbf1c7; --fg1:#ebdbb2; --fg2:#d5c4a1; --dim:#a89984;
+  --cream:#e8dcc4; --blue:#83a598; --green:#b8bb26; --yellow:#fabd2f;
+  --orange:#fe8019; --red:#fb4934; --purple:#d3869b; --aqua:#8ec07c;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --head:"Rajdhani",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg0);color:var(--fg1);font:400 16px/1.6 var(--body);padding:0 20px 80px}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;color:var(--cream);line-height:1.2;margin:0 0 .5rem}
+h1{font-size:2.1rem;letter-spacing:.01em}
+h2{font-size:1.55rem;margin-top:2.6rem;padding-top:1.1rem;border-top:1px solid var(--line)}
+h3{font-size:1.2rem;margin-top:1.6rem}
+h4{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:1.4rem}
+p{margin:.6rem 0}
+a{color:var(--blue)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:.08em .38em;color:var(--fg0)}
+.lede{font-size:1.06rem;color:var(--fg2);max-width:74ch}
+header.top{padding:2.6rem 0 .2rem}
+.badges{display:flex;flex-wrap:wrap;gap:.4rem;margin:.9rem 0 0}
+.badge{font:600 .72rem/1 var(--mono);letter-spacing:.03em;padding:.34rem .55rem;border-radius:5px;background:var(--bg2);border:1px solid var(--line);color:var(--fg2)}
+.badge.is-open{border-color:var(--orange);color:var(--orange)}
+.badge.is-done{border-color:var(--green);color:var(--green)}
+.badge.is-fact{border-color:var(--aqua);color:var(--aqua)}
+.card{background:var(--bg1);border:1px solid var(--line);border-radius:12px;padding:1.15rem 1.3rem;margin:1.1rem 0}
+.note{border-left:3px solid var(--blue);background:var(--bg1);border-radius:0 10px 10px 0;padding:.85rem 1.1rem;margin:1.1rem 0}
+.note.warn{border-left-color:var(--orange)}
+.note.key{border-left-color:var(--yellow)}
+.note h4{margin-top:0}
+ul.tight{margin:.5rem 0;padding-left:1.15rem}
+ul.tight li{margin:.3rem 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.src{font:400 .78rem/1.5 var(--mono);color:var(--dim);margin-top:.7rem}
+.src b{color:var(--fg2);font-weight:600}
+/* flow diagrams */
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:.45rem;margin:.9rem 0 .3rem}
+.node{flex:1 1 150px;min-width:132px;background:var(--bg2);border:1px solid var(--line);border-radius:9px;padding:.6rem .7rem;font-size:.82rem;line-height:1.45;position:relative}
+.node b{display:block;font-family:var(--head);font-size:.95rem;color:var(--cream);letter-spacing:.02em;margin-bottom:.15rem}
+.node .meta{display:block;font:400 .7rem/1.4 var(--mono);color:var(--dim);margin-top:.3rem;word-break:break-word}
+.node.n-start{border-color:var(--blue)}
+.node.n-save{border-color:var(--green)}
+.node.n-view{border-color:var(--aqua)}
+.node.n-edit{border-color:var(--yellow);background:#332f1f}
+.node.n-risk{border-color:var(--orange)}
+.arrow{flex:0 0 auto;display:flex;align-items:center;color:var(--cream);font-size:1.15rem;padding:0 .1rem;opacity:.85}
+.arrow.back{color:var(--purple)}
+.flow-branch{flex:1 1 100%;display:flex;flex-direction:column;gap:.45rem;margin-top:.2rem}
+.flow-branch .split{display:flex;gap:.45rem;flex-wrap:wrap}
+.tag{display:inline-block;font:600 .64rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:.2rem .38rem;border-radius:4px;background:var(--bg0);border:1px solid var(--line);color:var(--dim);margin-bottom:.3rem}
+.tag.t-edit{border-color:var(--yellow);color:var(--yellow)}
+.tag.t-save{border-color:var(--green);color:var(--green)}
+.tag.t-risk{border-color:var(--orange);color:var(--orange)}
+/* mockups */
+.mock{background:var(--bg0);border:1px solid var(--line);border-radius:10px;padding:.7rem;font-size:.78rem;overflow:hidden}
+.mock .mock-bar{display:flex;justify-content:space-between;align-items:center;font:600 .68rem/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:.45rem;margin-bottom:.55rem}
+.mrow{display:flex;align-items:center;gap:.5rem;padding:.42rem .5rem;border:1px solid transparent;border-radius:7px;background:var(--bg1);margin-bottom:.34rem;flex-wrap:wrap}
+.mrow.is-active{border-color:var(--yellow);box-shadow:0 0 0 1px rgba(250,189,47,.25)}
+.mrow.is-empty{color:var(--dim);font-style:italic;background:transparent;border-color:var(--line)}
+.mdate{flex:0 0 84px;font-weight:600;color:var(--fg0)}
+.mdate span{display:block;font-weight:400;font-size:.7rem;color:var(--dim)}
+.mwork{flex:0 0 auto;font:700 .95rem/1 var(--mono);color:var(--cream)}
+.mchip{font:600 .66rem/1 var(--mono);padding:.2rem .35rem;border-radius:5px;background:var(--bg2);border:1px solid var(--line);color:var(--dim)}
+.mchip.on{border-color:var(--orange);color:var(--orange)}
+.mchip.night{border-color:var(--blue);color:var(--blue)}
+.ef{border:1px dashed var(--yellow);background:#2f2b1d;border-radius:5px;padding:.12rem .35rem;color:var(--fg0);font:400 .72rem/1.35 var(--mono)}
+.ef.note{flex:1 1 120px;min-width:90px;color:var(--dim)}
+.ef.wide{flex:1 1 100%}
+.mfoot{display:flex;justify-content:space-between;font:600 .7rem/1 var(--mono);color:var(--fg2);border-top:1px solid var(--line);margin-top:.5rem;padding-top:.45rem}
+.mbtn{display:inline-block;font:600 .74rem/1 var(--body);background:var(--blue);color:#1c1c20;border-radius:6px;padding:.42rem .8rem;margin-top:.55rem}
+.mbtn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg2)}
+/* drawer mock */
+.drawer-wrap{position:relative;background:var(--bg0);border:1px solid var(--line);border-radius:10px;padding:.7rem;min-height:230px;overflow:hidden}
+.drawer{position:absolute;top:.6rem;right:.6rem;width:58%;background:var(--bg1);border:1px solid var(--yellow);border-radius:9px;padding:.65rem .7rem;box-shadow:-14px 0 34px rgba(0,0,0,.55);font-size:.76rem}
+.drawer h5{font-family:var(--head);font-size:.95rem;color:var(--cream);margin:0 0 .45rem}
+.f{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.28rem 0;border-bottom:1px solid var(--bg2)}
+.f:last-of-type{border-bottom:none}
+.f label{color:var(--fg2);font-size:.74rem}
+.fval{border:1px dashed var(--yellow);background:#2f2b1d;border-radius:5px;padding:.1rem .4rem;font:400 .7rem/1.4 var(--mono);color:var(--fg0);min-width:86px;text-align:right}
+.fval.txt{text-align:left;flex:1}
+/* kimai form mock */
+.kform{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:.8rem;font-size:.78rem}
+.kfield{display:flex;gap:.55rem;margin-bottom:.5rem;align-items:center}
+.kfield .kl{flex:0 0 92px;color:var(--fg2);font-size:.73rem}
+.kinput{flex:1;border:1px solid var(--line);background:var(--bg0);border-radius:6px;padding:.3rem .5rem;font:400 .74rem/1.3 var(--mono);color:var(--fg0)}
+.kgroup{border:1px dashed var(--aqua);border-radius:8px;padding:.6rem .65rem .3rem;margin-top:.6rem;background:rgba(142,192,124,.05)}
+.kgroup .kgt{font:600 .66rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--aqua);margin:-.1rem 0 .5rem}
+/* tables */
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.87rem}
+th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{background:var(--bg2);font-family:var(--head);font-weight:700;color:var(--cream);font-size:.92rem;letter-spacing:.02em}
+tbody tr:nth-child(even){background:var(--bg1)}
+td.hl{color:var(--yellow);font-weight:600}
+td.ok{color:var(--green)}
+td.no{color:var(--red)}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);font-size:.8rem;color:var(--dim)}
+/* variant header */
+.variant{margin-top:2.4rem;padding-top:.2rem}
+.variant .vhead{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+.variant .letter{font-family:var(--head);font-weight:700;font-size:2rem;line-height:1;width:2.1rem;height:2.1rem;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--bg2);border:1px solid var(--line);color:var(--cream)}
+.variant.va .letter{border-color:var(--yellow);color:var(--yellow)}
+.variant.vb .letter{border-color:var(--aqua);color:var(--aqua)}
+.variant.vc .letter{border-color:var(--purple);color:var(--purple)}
+.pill{font:600 .68rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:100px;padding:.26rem .55rem;color:var(--dim)}
+.pill.now{border-color:var(--green);color:var(--green)}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.9rem}
+@media(max-width:860px){.pc{grid-template-columns:1fr}}
+.pc .box{background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:.8rem .95rem}
+.pc .box h4{margin-top:0}
+.pc .box.pro{border-color:rgba(184,187,38,.45)}
+.pc .box.con{border-color:rgba(251,73,52,.45)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Wo leben die Drehtag-Daten — und wo bearbeitet man sie?</h1>
+  <p class="lede">UX-Durchgang zur Recherche <code>research/ux-flows-film-day-data.md</code> (22.09.2026). Keine Entscheidung, Diskussionsgrundlage — der zugehörige Offenpunkt steht in <code>roadmap.md</code> → <em>Open</em>.</p>
+  <div class="badges">
+    <span class="badge is-fact">Stand: Code geprüft 23.09.2026</span>
+    <span class="badge is-open">Status: offen, keine Entscheidung</span>
+    <span class="badge">3 Kandidatenvarianten</span>
+    <span class="badge">betrifft: Phase 4 → UI</span>
+  </div>
+</header>
+
+<h2>1 · Aktueller Stand</h2>
+<p class="lede">Was der Code tatsächlich tut — geprüft gegen die Recherche-Note. Vier Punkte weichen von der Note ab und sind hier nachgezogen.</p>
+
+<h3>Wo die Daten leben</h3>
+<div class="card">
+  <div class="flow">
+    <div class="node n-start"><span class="tag">Kimai core</span><b>Timesheet</b>begin, end, activity, project, user, description — <em>keine</em> film-spezifischen Felder<span class="meta">TimesheetRangeRepository</span></div>
+    <div class="arrow">+</div>
+    <div class="node n-edit"><span class="tag t-edit">Plugin</span><b>FilmDay</b>break · catering · category · day_type · production_day · note<span class="meta">kimai2_ext_drehzettel_day<br>uniq (engagement_id, day_date)</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>DayInputBuilder</b>ein Span je Datum: frühester Beginn → spätestes Ende; Rest aus FilmDay, sonst Defaults<span class="meta">Draft &gt; FilmDay &gt; Defaults</span></div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>Day / WeekCalculator</b>Tagesstufen, Nacht, 6./7. Tag, Catering, Gage<span class="meta">Service/DayCalculator.php</span></div>
+    <div class="arrow">→</div>
+    <div class="node n-save"><b>Wochensumme · Hinweise · PDF</b><span class="meta">WeekPageBuilder · ComplianceChecker · PdfExporter</span></div>
+  </div>
+  <div class="src"><b>Kein Fremdschlüssel</b> zwischen FilmDay und Timesheet — die beiden hängen nur am gemeinsamen Kalenderdatum. Engagement ist der einzige echte Bezug.</div>
+</div>
+
+<div class="grid2">
+  <div class="note">
+    <h4>Fallback-Kette pro Feld</h4>
+    <ul class="tight">
+      <li><b>Kategorie:</b> FilmDay-Override → Holiday-Lookup → Wochentag (Sa/So, sonst Werktag)</li>
+      <li><b>Pause:</b> FilmDay → Ruleset-Default (<code>defaultBreakMinutes</code>)</li>
+      <li><b>Tagestyp:</b> FilmDay → <code>workday</code></li>
+      <li><b>Catering:</b> FilmDay → <code>NO</code></li>
+      <li><b>Notiz / production day:</b> FilmDay → null</li>
+    </ul>
+    <div class="src">Service/DayInputBuilder.php · Zeile 46–56, 122–138</div>
+  </div>
+  <div class="note key">
+    <h4>Editierfläche: genau eine</h4>
+    <p><code>FilmDayService</code> und <code>FilmDayRepository</code> werden nur aus <code>WeekController</code> und <code>WeekPageBuilder</code> aufgerufen. <code>Resources/views/drehzettel/_week_table.html.twig</code> ist die einzige Stelle mit Eingabefeldern.</p>
+    <p>Die Note hat also recht: das ist <em>kein</em> Duplicate eines Kimai-nativen Editors — Kimai hat diese Felder schlicht nicht.</p>
+  </div>
+</div>
+
+<h3>Speichern und Live-Preview</h3>
+<div class="card">
+  <div class="flow">
+    <div class="node n-edit"><b>Day-List</b>ein <code>&lt;form&gt;</code> um alle sieben Zeilen, ein Speichern-Button darunter<span class="meta">week.html.twig · Zeile 103–111</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Eingabe ändern</b><code>input</code> / <code>change</code> auf <code>.dz-field</code>, 400 ms Debounce</div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>POST …/preview</b>rechnet mit Drafts, gibt das Fragment zurück, ersetzt <code>innerHTML</code><span class="meta">WeekController::preview()</span></div>
+    <div class="arrow">·</div>
+    <div class="node n-save"><b>POST …/save</b>Schleife über <code>day[Y-m-d][field]</code>, nur Daten dieser Woche → <code>FilmDayService::save()</code><span class="meta">WeekController::save() Zeile 64–73</span></div>
+  </div>
+  <div class="src">Live-Preview speichert nichts — sie ist reine Berechnung. Erst der Button unten persistiert die ganze Woche auf einmal.</div>
+</div>
+
+<h3>Vier Befunde, die in der Note noch nicht stehen</h3>
+
+<div class="grid2">
+  <div class="note warn">
+    <h4>1 · Keine breite Tabelle mehr</h4>
+    <p><code>_week_table.html.twig</code> ist seit dem Rebuild eine <b>Day-List</b> aus Flex-Zeilen. Kommentar in der Datei: <em>„as a day-list instead of a wide table"</em>.</p>
+    <p>Die Note spricht noch von „one wide-ish row". Die Spannung <em>Glance vs. Edit</em> besteht weiter — nur vertikal statt horizontal.</p>
+  </div>
+  <div class="note warn">
+    <h4>2 · <code>productionDay</code> hat kein Eingabefeld</h4>
+    <p>Das Feld ist vollständig durchgezogen: <code>Entity/FilmDay</code> → <code>FilmDayDraft</code> → <code>FilmDayDraftReader</code> → <code>DayInput</code> → PDF-Spalte. In der Wochenansicht fehlt es komplett.</p>
+    <p>Der Druck „mehr Felder pro Tag" ist also <b>real, nicht hypothetisch</b> — die Zeile kann die Daten schon jetzt nicht vollständig tragen.</p>
+  </div>
+  <div class="note warn">
+    <h4>3 · Preview ersetzt <code>innerHTML</code></h4>
+    <p>Wer in der Notiz tippt und 400 ms innehält, verliert Fokus und Cursorposition, weil das Fragment ausgetauscht wird.</p>
+    <p>Ein direktes Symptom von Variante A — kein hypothetischer Nachteil für später.</p>
+  </div>
+  <div class="note warn">
+    <h4>4 · Feiererkennung läuft</h4>
+    <p>Seit Phase 5 fragt <code>DayInputBuilder</code> die <code>HolidayLookupInterface</code>; ein installierter Holiday-Bundle liefert die Feiertage automatisch.</p>
+    <p>Damit ist der Kategorie-Override in den meisten Wochen nur noch eine seltene Korrektur — genau der Punkt, den die Note als „offen" markiert hatte.</p>
+  </div>
+</div>
+
+<h2>2 · Die offene Frage</h2>
+<div class="note key">
+  <p><b>Ist „eine Zeile pro Tag, inline editierbar, auf einer Seite, die zugleich alle Wochensummen zeigt" noch die richtige Form,</b> wenn diese Seite voller wird — mehr Spalten, Compliance-Warnungen, PDF-Optionen, künftig production day, später AZV?</p>
+  <p>Oder weicht die Tagesbearbeitung auf eine eigene Fläche aus und die Wochenansicht wird zur Übersicht?</p>
+  <p>Eine verwandte Frage: Gehören die Felder überhaupt in Kimais eigenen Zeiteintrag-Flow — einmal erfassen, dort wo die Crew ohnehin ist — auch wenn Kimai core dafür keine Felder mitbringt?</p>
+  <div class="src">research/ux-flows-film-day-data.md · „The open question" · verlinkt aus roadmap.md → Open</div>
+</div>
+
+<h2>3 · Die drei Kandidatenvarianten</h2>
+<p class="lede">Keine davon ist entschieden — alle drei sind Eingabe für die Diskussion, kein Beschluss.</p>
+
+<section class="variant va">
+  <div class="vhead">
+    <span class="letter">A</span>
+    <h3 style="margin:0">Alles inline in der Wochenansicht</h3>
+    <span class="pill now">läuft bereits</span>
+  </div>
+
+  <div class="flow">
+    <div class="node n-start"><b>Kimai</b>Zeiteintrag für den Drehtag anlegen<span class="meta">Timesheet: begin / end</span></div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>Drehzettel</b>Wochenansicht öffnen<span class="meta">/drehzettel/{id}/week/{y}/{w}</span></div>
+    <div class="arrow">→</div>
+    <div class="node n-edit"><span class="tag t-edit">hier wird editiert</span><b>Zeile des Tages</b>Pause · Catering · Tagestyp · Kategorie · Notiz — alles inline in derselben Zeile</div>
+    <div class="arrow">→</div>
+    <div class="node n-save"><span class="tag t-save">speichern</span><b>Ein Formular für die Woche</b>ein Klick, sieben Zeilen → ein FilmDay-Datensatz pro Tag</div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>Wochensumme + Hinweise</b>aktualisieren sich live über die Preview</div>
+  </div>
+  <div class="flow">
+    <div class="node n-save" style="flex:0 1 46%"><b>PDF-Export</b>liest Timesheet und FilmDay zusammen<span class="meta">PdfExporter · Timesheet + FilmDay</span></div>
+    <div class="arrow">·</div>
+    <div class="node n-risk" style="flex:0 1 46%"><span class="tag t-risk">Reibung heute</span><b>Preview tauscht <code>innerHTML</code></b>400 ms Tipppause in der Notiz → Fokus weg</div>
+  </div>
+
+  <h4>Fläche — so sieht sie heute aus</h4>
+  <div class="mock">
+    <div class="mock-bar"><span>Wochenansicht · KW 21</span><span>alles editierbar</span></div>
+    <div class="mrow is-active">
+      <div class="mdate">Mo 19.05.<span>08:30–17:30</span></div>
+      <div class="mwork">08:15</div>
+      <span class="mchip on">S1 1:15</span>
+      <span class="mchip night">☾ 0:30</span>
+      <span class="ef">Pause 45</span>
+      <span class="ef">Catering ☐</span>
+      <span class="ef">Arbeitstag ▾</span>
+      <span class="ef">Auto ▾</span>
+      <span class="ef note">Notiz…</span>
+    </div>
+    <div class="mrow">
+      <div class="mdate">Di 20.05.<span>09:00–19:15</span></div>
+      <div class="mwork">09:45</div>
+      <span class="mchip">–</span>
+      <span class="ef">Pause 45</span>
+      <span class="ef">Catering ☑</span>
+      <span class="ef">Arbeitstag ▾</span>
+      <span class="ef">Auto ▾</span>
+      <span class="ef note">Nachtdreh ab 22</span>
+    </div>
+    <div class="mrow is-empty">Sa 24.05. — kein Eintrag</div>
+    <div class="mfoot"><span>Gesamt 47:30 h</span><span>☾ 1:10</span><span>284,58 €</span></div>
+    <span class="mbtn">Speichern</span>
+  </div>
+  <div class="src">gelb gestrichelt = Eingabefelder der aktuellen Umsetzung · Quelle: <code>_week_table.html.twig</code></div>
+
+  <div class="pc">
+    <div class="box pro">
+      <h4>Pro</h4>
+      <ul class="tight">
+        <li>Eine Seite, ein Speichern, kein Kontextwechsel.</li>
+        <li>Schnell für das Nachtragen einer <b>ganzen Woche</b> — Felder stehen nebeneinander, man tabbt durch.</li>
+        <li>Live-Feedback auf Summen und Warnungen direkt am Eingabefeld.</li>
+        <li>Kein neuer Architektur-Entscheid, läuft seit Phase 4.</li>
+      </ul>
+    </div>
+    <div class="box con">
+      <h4>Contra</h4>
+      <ul class="tight">
+        <li>Die Zeile muss „auf einen Blick" (Arbeitszeit, Gage) und „gelegentlich editieren" (Notiz, Kategorie) gleichzeitig tragen — genau die Spannung, die das Redesign mit Chips und Pills abzufedern versucht.</li>
+        <li><code>productionDay</code> passt schon heute nicht dazu, als 6. Eingabe wird es enger.</li>
+        <li>Preview-Austausch frisst den Fokus beim Tippen.</li>
+        <li>Mehr Spalten + Warnungen + PDF-Optionen → Zeile wird zur Zeilenlawine.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="variant vb">
+  <div class="vhead">
+    <span class="letter">B</span>
+    <h3 style="margin:0">Tag-Detail-Drawer, Wochenansicht wird Übersicht</h3>
+    <span class="pill">Diskussionskandidat</span>
+  </div>
+
+  <div class="flow">
+    <div class="node n-start"><b>Kimai</b>Zeiteintrag für den Drehtag anlegen</div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>Wochenansicht</b>nur verdichtete Zeilen: Datum, Zeit, Arbeitszeit, Chips, Gage</div>
+    <div class="arrow">→</div>
+    <div class="node"><b>Klick auf einen Tag</b>eine Zeile, ein Klick</div>
+    <div class="arrow">→</div>
+    <div class="node n-edit"><span class="tag t-edit">hier wird editiert</span><b>Drawer / Modal</b>Pause · Catering · Tagestyp · Kategorie · Notiz (+ production day, spätere Felder)</div>
+    <div class="arrow">→</div>
+    <div class="node n-save"><span class="tag t-save">speichern</span><b>FilmDay dieses Tages</b>→ zurück in die Liste</div>
+  </div>
+  <div class="flow">
+    <div class="node n-view" style="flex:1 1 100%"><b>Wochensumme + Hinweise, PDF-Export wie heute</b>Die Rechenlogik ändert sich nicht — nur die Fläche, von der die Felder kommen. Derselbe <code>DayInputBuilder</code>, dasselbe <code>FilmDay</code>.</div>
+  </div>
+
+  <h4>Fläche — Wochenübersicht mit offenem Drawer</h4>
+  <div class="drawer-wrap">
+    <div class="mock-bar"><span>Wochenansicht · KW 21</span><span>reine Übersicht</span></div>
+    <div style="width:57%">
+      <div class="mrow is-active">
+        <div class="mdate">Mo 19.05.<span>08:30–17:30</span></div>
+        <div class="mwork">08:15</div>
+        <span class="mchip on">S1 1:15</span>
+        <span class="mchip night">☾ 0:30</span>
+        <span class="mchip">›</span>
+      </div>
+      <div class="mrow">
+        <div class="mdate">Di 20.05.<span>09:00–19:15</span></div>
+        <div class="mwork">09:45</div>
+        <span class="mchip">–</span>
+        <span class="mchip">›</span>
+      </div>
+      <div class="mrow is-empty">Mi 21.05. — kein Eintrag</div>
+      <div class="mfoot"><span>Gesamt 47:30 h</span><span>284,58 €</span></div>
+    </div>
+    <div class="drawer">
+      <h5>Mo 19.05.2025</h5>
+      <div class="f"><label>Zeit</label><span class="fval">08:30–17:30</span></div>
+      <div class="f"><label>Pause (min)</label><span class="fval">45</span></div>
+      <div class="f"><label>Catering</label><span class="fval">☐</span></div>
+      <div class="f"><label>Tagestyp</label><span class="fval">Arbeitstag ▾</span></div>
+      <div class="f"><label>Kategorie</label><span class="fval">Auto ▾</span></div>
+      <div class="f"><label>Prod.-Tag</label><span class="fval">3</span></div>
+      <div class="f"><label>Notiz</label><span class="fval txt">Nachtdreh ab 22 Uhr</span></div>
+      <span class="mbtn">Speichern</span> <span class="mbtn ghost">Abbrechen</span>
+    </div>
+  </div>
+  <div class="src">Der Drawer kann wachsen, ohne die Liste zu berühren — der Platz für <code>productionDay</code> und spätere Felder (Signatur/Tag, AZV-Buchung) ist hier schon angelegt.</div>
+
+  <div class="pc">
+    <div class="box pro">
+      <h4>Pro</h4>
+      <ul class="tight">
+        <li>Die Woche bleibt eine saubere, scanbare Liste — auch wenn pro Tag deutlich mehr Detail kommt.</li>
+        <li>Entspricht dem Muster von Kimai selbst: Liste → Zeile klicken → Bearbeiten.</li>
+        <li>Platz für künftige Felder ohne die Zeile weiter aufzublähen (production day, Signatur je Tag, zweite Notiz, AZV).</li>
+        <li>Speicherweg und Rechenlogik bleiben unverändert additiv — nur ein zusätzliches Rendering-Ziel.</li>
+        <li>Preview-Problem verschwindet: im Drawer formt man ein einzelnes Datensatz-Formular.</li>
+      </ul>
+    </div>
+    <div class="box con">
+      <h4>Contra</h4>
+      <ul class="tight">
+        <li>Ein Klick mehr pro Tag.</li>
+        <li><b>Woche nachtragen wird langsamer</b> — Drawer öffnen, ändern, schließen, nächste Zeile, statt durch die Zeile zu tabben. Genau der Hauptanwendungsfall von A.</li>
+        <li>zwei Rendering-Ziele (Liste + Fragment) statt eines.</li>
+        <li>Warnungen und Summen live am Eingabefeld zu zeigen, ist im Drawer nur mit zusätzlichem Hinweis möglich.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="variant vc">
+  <div class="vhead">
+    <span class="letter">C</span>
+    <h3 style="margin:0">Felder in Kimais eigenes Zeiteintrag-Formular schieben</h3>
+    <span class="pill">Architektur-Entscheidung</span>
+  </div>
+
+  <div class="flow">
+    <div class="node n-start"><span class="tag">Kimai</span><b>Zeiteintrag-Formular</b>+ Drehzettel-Felder per Form-Extension<span class="meta">FormExtensionInterface auf TimesheetEditType</span></div>
+    <div class="arrow">→</div>
+    <div class="node n-save"><span class="tag t-save">ein Speichern</span><b>Timesheet + FilmDay zugleich</b>Engagement-Lookup beim Anlegen des Eintrags</div>
+    <div class="arrow">→</div>
+    <div class="node n-view"><b>Drehzettel: Wochenansicht</b>reine Leseansicht + Warnungen + PDF<span class="meta">keine Eingabefelder mehr</span></div>
+  </div>
+  <div class="flow-branch">
+    <div class="split">
+      <div class="node n-risk" style="flex:1 1 240px"><span class="tag t-risk">Randfall</span><b>Kein Engagement zur Erfassung</b>Eintrag angelegt, bevor die Engagement existiert — oder backdated außerhalb ihrer Gültigkeit. Der Lookup braucht Projekt, User und aktive Engagement.</div>
+      <div class="node n-risk" style="flex:1 1 240px"><span class="tag t-risk">Randfall</span><b>Ein Eintrag, zwei Speicherorte</b>Timesheet-Abbruch oder Doppelspeichern — eine Transaktion über zwei Entities, die sich normalerweise nichts angehen.</div>
+      <div class="node n-risk" style="flex:1 1 240px"><span class="tag t-risk">Verlust</span><b>Woche nachtragen wird umständlich</b>Für jede Pause-Korrektur öffnet man den Zeiteintrag selbst, nicht mehr die Wochenliste.</div>
+    </div>
+  </div>
+
+  <h4>Fläche — Kimai-Formular mit Drehzettel-Feldsatz</h4>
+  <div class="kform">
+    <div class="mock-bar" style="border:none;padding:0;margin-bottom:.6rem"><span>Zeiteintrag bearbeiten</span><span>Kimai core</span></div>
+    <div class="kfield"><span class="kl">Beginn</span><span class="kinput">19.05.2025 08:30</span></div>
+    <div class="kfield"><span class="kl">Ende</span><span class="kinput">19.05.2025 17:30</span></div>
+    <div class="kfield"><span class="kl">Projekt</span><span class="kinput">Sample Film</span></div>
+    <div class="kfield"><span class="kl">Beschreibung</span><span class="kinput">Tag 3 — Nachtdreh</span></div>
+    <div class="kgroup">
+      <div class="kgt">Drehzettel</div>
+      <div class="kfield"><span class="kl">Pause (min)</span><span class="kinput">45</span></div>
+      <div class="kfield"><span class="kl">Tagestyp</span><span class="kinput">Arbeitstag</span></div>
+      <div class="kfield"><span class="kl">Kategorie</span><span class="kinput">Auto (Feiertag-Lookup)</span></div>
+      <div class="kfield"><span class="kl">Catering</span><span class="kinput">☐</span></div>
+      <div class="kfield"><span class="kl">Prod.-Tag</span><span class="kinput">3</span></div>
+      <div class="kfield"><span class="kl">Notiz</span><span class="kinput">Nachtdreh ab 22 Uhr</span></div>
+    </div>
+    <span class="mbtn">Speichern</span> <span class="mbtn ghost">Abbrechen</span>
+  </div>
+  <div class="src">Ein Klick, zwei Datensätze. Der Feldsatz ist eine reine Formular-Erweiterung — danach bräuchte die Wochenansicht keine Eingabefelder mehr.</div>
+
+  <div class="pc">
+    <div class="box pro">
+      <h4>Pro</h4>
+      <ul class="tight">
+        <li><b>Kein zweiter Ort</b>, an den man denken muss — die Crew erfasst Pause und Kategorie genau dort, wo sie ohnehin tippt.</li>
+        <li>Trifft die Roadmap-Hauptaussage: <em>One continuous shooting day = one Kimai timesheet entry</em>.</li>
+        <li>Die Wochenansicht wird stabil zur Leseansicht — damit entfallen Zeilen-Problematik und Preview-Fokusverlust beide.</li>
+        <li><code>productionDay</code> bekommt ohne Konflikt einen Platz.</li>
+      </ul>
+    </div>
+    <div class="box con">
+      <h4>Contra</h4>
+      <ul class="tight">
+        <li><b>Reale Architektur-Entscheidung:</b> <code>FormExtensionInterface</code> auf Kimais <code>TimesheetEditType</code> zu verdrahten ändert Kimais eigenes Formular — das Plugin ist nicht länger additiv.</li>
+        <li>Engagement- und Ruleset-Lookup muss beim Anlegen des Eintrags gelingen (Randfälle oben).</li>
+        <li>Abhängigkeit von Kimai-internen Formularstrukturen — bricht bei Kimai-Updates zuerst.</li>
+        <li>Korrekturen einer ganzen Woche werden zum Klick-Marathon über sieben Einträge.</li>
+        <li>Nicht mehr ohne laufendes Kimai testbar (die bisherigen Tests brauchen keins).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<h2>4 · Vergleich</h2>
+<table>
+  <thead>
+    <tr><th style="width:20%">Kriterium</th><th>A · inline</th><th>B · Drawer</th><th>C · Kimai-Formular</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><b>Status heute</b></td><td class="ok">läuft (Phase 4)</td><td>neues Rendering, Speicherweg gleich</td><td class="no">Form-Extension nötig</td></tr>
+    <tr><td><b>Zusatzklicks pro Tag</b></td><td class="ok">0</td><td class="hl">1 (+ Schließen)</td><td class="ok">0</td></tr>
+    <tr><td><b>Woche auf einen Blick</b></td><td class="no">nein — wird unruhig</td><td class="ok">ja</td><td class="ok">ja</td></tr>
+    <tr><td><b>Wächst mit mehr Feldern?</b></td><td class="no">nein (production day passt schon nicht)</td><td class="ok">ja, Drawer wächst frei</td><td class="ok">ja, Feldsatz wächst frei</td></tr>
+    <tr><td><b>Woche auf einmal nachtragen</b></td><td class="ok">bestmöglich — durchtabben</td><td class="hl">öffnen und schließen je Tag</td><td class="no">je Eintrag einzeln</td></tr>
+    <tr><td><b>Preview-Fokusverlust</b></td><td class="no">tritt heute auf</td><td class="ok">entfällt im Drawer</td><td class="ok">entfällt (normales Formular)</td></tr>
+    <tr><td><b>Kopplung an Kimai</b></td><td class="ok">keine, nur eigene Routes</td><td class="ok">keine, nur eigene Routes</td><td class="no">hoch, bricht zuerst bei Updates</td></tr>
+    <tr><td><b>Inert ohne Engagement</b></td><td class="ok">bleibt garantiert</td><td class="ok">bleibt garantiert</td><td class="no">wird aufgegeben</td></tr>
+    <tr><td><b>Rechenlogik und PDF</b></td><td colspan="3" class="ok">identisch in allen drei — <code>DayInputBuilder</code>, <code>FilmDay</code> und <code>PdfExporter</code> bleiben unverändert. Der Unterschied betrifft ausschließlich, von welcher Fläche die Felder kommen.</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  <h4>D · naheliegende Mischform — nicht Teil der drei Originalvarianten</h4>
+  <p>Nur harte, tägliche Felder inline lassen (<b>Pause, Catering</b>) und seltene Felder (<b>Kategorie, Notiz, production day</b>) in den Drawer legen.</p>
+  <p>Das beantwortet Befund 2 und 4 gleichzeitig: die Zeile bleibt dünn, weil die Kategorie ohnehin nur noch eine seltene Korrektur ist — und trotzdem bleibt das Nachtragen einer Woche für die Felder schnell, die man wirklich jeden Tag anfasst.</p>
+  <div class="src">Offene Frage dabei: fällt die Zeile dann in zwei Klick-Zonen auseinander, und wie merkt man das im UI?</div>
+</div>
+
+<h2>5 · Noch nicht bedacht</h2>
+<div class="grid2">
+  <div class="card">
+    <h4 style="margin-top:0">Bulk-Bearbeitung</h4>
+    <p>Ist „gleiche Pause für die ganze Woche" überhaupt Teil dieser Frage — oder unabhängig davon zu entscheiden? Betrifft A und B gleichermaßen, C ohnehin.</p>
+  </div>
+  <div class="card">
+    <h4 style="margin-top:0">Feiererkennung</h4>
+    <p>Wenn ein Feiertag automatisch erkannt wird: braucht die Kategorie dann noch ein Eingabefeld — oder nur eine Korrektur-Kontrolle? Das würde Variante A spürbar entlasten.</p>
+  </div>
+  <div class="card">
+    <h4 style="margin-top:0">Mobil am Set</h4>
+    <p>Wird realistisch am Telefon während des Drehs eingetragen — oder immer nachträglich am Schreibtisch? Das entscheidet, wie stark Drawer gegenüber Inlinezeile überhaupt zählt.</p>
+  </div>
+  <div class="card">
+    <h4 style="margin-top:0">Wer erfasst überhaupt?</h4>
+    <p><code>EngagementAccess</code> kennt <code>drehzettel</code> (eigen) und <code>drehzettel_manage</code> (alle). Ob die Crew selbst erfasst oder die Produktionsleitung, ist in der Note nicht thematisiert — es ändert aber, ob C der richtige Ort ist.</p>
+  </div>
+</div>
+
+<h2>6 · Fragen für diese Session</h2>
+<ol class="tight">
+  <li>Reicht A mit einem <b>separaten Notiz- und Kategorie-Bereich</b> unter der Zeile, oder braucht es von Anfang an den Drawer (B)?</li>
+  <li>Wird <code>productionDay</code> bald ein Eingabefeld — und wenn ja, in welcher Variante bekommt es Platz?</li>
+  <li>Ist der <b>Fokusverlust in der Notiz</b> ein Bug, den wir sofort am heutigen Stand beheben (Fragment-Update um die Fokusposition ergänzen), oder fällt er mit der Entscheidung ohnehin weg?</li>
+  <li>Bleibt <b>C als Prinzip</b> auf dem Tisch — „erfassen, wo man ohnehin ist" — auch wenn der konkrete Kimai-Anschluss später kommt?</li>
+  <li>Brauchen wir eine <b>echte Durchgabe</b> (eine Woche real nachtragen) für A und B, bevor entschieden wird?</li>
+</ol>
+
+<footer>
+  <p>Quellen: <code>research/ux-flows-film-day-data.md</code> vom 22.09.2026 · <code>roadmap.md</code> → Open. Geprüfter Code: <code>Entity/FilmDay.php</code>, <code>Service/DayInputBuilder.php</code>, <code>Service/WeekPageBuilder.php</code>, <code>Service/FilmDayService.php</code>, <code>Controller/WeekController.php</code>, <code>Resources/views/drehzettel/_week_table.html.twig</code>.</p>
+  <p>Kein Beschluss — Diskussionsgrundlage für die nächste Session, die dieses UI anfasst. Design nach shrippen DesignDefault (Design.md), dunkel zuerst, wie alle outward-facing Assets.</p>
+</footer>
+
+</div>
+</body>
+</html>
