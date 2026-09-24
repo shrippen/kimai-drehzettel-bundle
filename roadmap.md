@@ -527,12 +527,18 @@ was only a hint - the actual fields still needed a save+reopen round trip.
   banner's wording changed from "appear after saving" to "shown below", since they now do appear
   immediately. Delegated listener now matches `id` ending in `_project` or `_activity`, still scoped
   to `<select>` elements so it stays inert everywhere else.
-- **Deliberately not attempted**: auto-checking the "Drehtag" toggle itself when the fields are
-  revealed live (it defaults on when the server already knew about the engagement at build time, as
-  before). `App\Form\Type\YesNoType`'s exact rendered markup wasn't available to verify blind DOM
-  manipulation against without risking silently doing nothing or, worse, toggling the wrong control.
-  A newly revealed block currently shows the toggle in its default off state; checking it is one
-  click, not a page reload - the actual regression being fixed.
+- **Review fixes (same day)**: the toggle now defaults on even while hidden - it first defaulted off,
+  so a live-revealed block silently saved nothing unless the user noticed and flipped it. A hidden
+  "on" is harmless: `onSubmit()` only saves when the submitted data resolves to an engagement.
+  Kimai's native `break` field is only removed server-side when the fields are shown at build time
+  (it was briefly removed from *every* new entry form); on live reveal the JS hides its `.mb-3` row
+  instead. Orphan cleanup in `onSubmit()` now runs before every early return and also when an edit
+  moves the entry out of its engagement on the same date (excluded activity, other project, past
+  `validTo`), not only on a date change; `FilmDayService::deleteIfOrphaned()` ignores entries on
+  excluded activities when deciding whether a day still has entries. The JS debounces per form (a
+  project change also fires an activity change) and drops stale responses via a per-form sequence
+  number. The banner keeps the old "appear after saving" wording on an existing entry that had no
+  engagement at build time, since that form has no fields to reveal.
 - Not covered by `php tests/run.php` (`TimesheetFormExtension`/`ThemeSubscriber` both need real Kimai
   `App\Entity\Timesheet`/routing, same as the rest of `Form/`, `Controller/`, `EventSubscriber/`);
   `php -l` clean on both files, `php tests/run.php` unaffected (261 checks). Needs a manual check

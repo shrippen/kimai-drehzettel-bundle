@@ -63,9 +63,18 @@ class ThemeSubscriber implements EventSubscriberInterface
         $event->addContent(<<<'HTML'
             <script>
             (function () {
+                // "shown" when TimesheetFormExtension rendered the fields (new entries, or
+                // entries already in an engagement); "afterSave" for an existing entry that
+                // had no engagement when its form was built - it has no fields to reveal.
                 var texts = {
-                    de: {active: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder sind unten sichtbar.'},
-                    en: {active: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields are shown below.'}
+                    de: {
+                        shown: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder sind unten sichtbar.',
+                        afterSave: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder erscheinen nach dem Speichern beim Bearbeiten dieses Eintrags.'
+                    },
+                    en: {
+                        shown: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields are shown below.',
+                        afterSave: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.'
+                    }
                 };
                 var lang = (document.documentElement.lang || 'en').slice(0, 2);
                 var t = texts[lang] || texts.en;
@@ -87,15 +96,39 @@ class ThemeSubscriber implements EventSubscriberInterface
                     for (var i = 0; i < rows.length; i++) {
                         rows[i].classList.toggle('dz-hidden', !visible);
                     }
+                    // Kimai's native break field stays in the form for new entries (it's only
+                    // removed server-side when the fields are shown at build time), so swap it
+                    // out visually - two "Pause" inputs at once is what concept A avoids. Only
+                    // its own form-row wrapper (.mb-3), never a wider .row that could hold
+                    // begin/end too. Data stays independent either way (no sync).
+                    if (rows.length === 0) { return; }
+                    var nativeBreak = form.querySelector('[id$="_break"]');
+                    var breakRow = nativeBreak ? nativeBreak.closest('.mb-3') : null;
+                    if (breakRow && !breakRow.classList.contains('dz-form-row')) {
+                        breakRow.classList.toggle('dz-hidden', visible);
+                    }
                 }
 
                 // Reacts to the project *or* activity select changing: an engagement may
                 // restrict itself to specific activities (Entity\Engagement::activityIds),
                 // e.g. excluding a private "Anfahrt"/commute activity from the same
                 // project, so a match depends on both, not just the project.
-                function checkEngagement(select) {
+                // Changing the project makes Kimai reload the activity select and fire a
+                // second change event, so two checks would race. Coalesce bursts per form,
+                // and tag each request so only the latest answer for that form is applied.
+                function scheduleCheck(select) {
                     var form = select.closest('form');
                     if (!form) { return; }
+                    if (form._dzTimer) { clearTimeout(form._dzTimer); }
+                    form._dzTimer = setTimeout(function () {
+                        form._dzTimer = null;
+                        checkEngagement(form);
+                    }, 150);
+                }
+
+                function checkEngagement(form) {
+                    var seq = (form._dzSeq || 0) + 1;
+                    form._dzSeq = seq;
                     var projectSelect = form.querySelector('select[id$="_project"]');
                     if (!projectSelect) { return; }
                     var activitySelect = form.querySelector('select[id$="_activity"]');
@@ -120,6 +153,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                     })
                         .then(function (response) { return response.ok ? response.json() : null; })
                         .then(function (data) {
+                            if (form._dzSeq !== seq) { return; }
                             var el = existingBanner(row);
                             if (!data || !data.active) {
                                 if (el) { el.remove(); }
@@ -132,7 +166,8 @@ class ThemeSubscriber implements EventSubscriberInterface
                                 el.innerHTML = '<i class="fas fa-clapperboard"></i><span></span>';
                                 row.insertAdjacentElement('afterend', el);
                             }
-                            el.querySelector('span').textContent = t.active.replace('%ruleset%', data.rulesetName || '');
+                            var text = fieldRows(form).length > 0 ? t.shown : t.afterSave;
+                            el.querySelector('span').textContent = text.replace('%ruleset%', data.rulesetName || '');
                             setFieldsVisible(form, true);
                         })
                         .catch(function () { /* feedback is a convenience, ignore network errors - leave fields/banner as-is */ });
@@ -147,7 +182,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                 document.addEventListener('change', function (event) {
                     var target = event.target;
                     if (target && target.id && /_(project|activity)$/.test(target.id) && target.tagName === 'SELECT') {
-                        checkEngagement(target);
+                        scheduleCheck(target);
                     }
                 });
             })();

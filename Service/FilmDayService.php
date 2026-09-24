@@ -61,6 +61,11 @@ class FilmDayService
 
         $entriesOfDay = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $date, $date->modify('+1 day'));
         foreach ($entriesOfDay as $entry) {
+            // An entry on an activity the engagement excludes (e.g. a private commute)
+            // never contributed to this film day, so it doesn't keep the row alive either.
+            if (!$engagement->appliesToActivity($entry->getActivity())) {
+                continue;
+            }
             if (!\in_array($entry->getId(), $excludedTimesheetIds, true)) {
                 return;
             }

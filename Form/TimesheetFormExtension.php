@@ -27,7 +27,9 @@ use Symfony\Component\Form\FormEvents;
  * inside an active Drehzettel engagement
  * (research/ux-flows-film-day-data.md, decision 2026-09-23, form concept A).
  *
- * Kimai's native "break" field is removed from the form in that case.
+ * Kimai's native "break" field is removed from the form when the fields are
+ * shown at build time, and hidden by ThemeSubscriber's JS when they're
+ * revealed live.
  * The two break concepts stay fully independent data - FilmDay.breakMinutes
  * is never read from or written to Timesheet::break, this only avoids
  * showing two conflicting "Pause" inputs on the same form at once.
@@ -92,13 +94,17 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             return;
         }
 
-        if ($builder->has('break')) {
+        $hidden = $originalEngagement === null;
+
+        // Only drop Kimai's native break field when the Drehzettel fields are actually shown.
+        // On a brand-new entry they start hidden, and most such entries never become film
+        // days - ThemeSubscriber's JS hides the native field instead once they're revealed.
+        if (!$hidden && $builder->has('break')) {
             $builder->remove('break');
         }
 
         $originalDate = $this->dateOf($timesheet);
         $existing = $originalEngagement !== null ? $this->filmDays->findOne($originalEngagement, $originalDate) : null;
-        $hidden = $originalEngagement === null;
 
         // row_attr classes group these five rows visually (amber box, see the sitewide CSS
         // added by EventSubscriber\ThemeSubscriber) - matches form concept A from the workflow
@@ -111,7 +117,10 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'mapped' => false,
             'required' => false,
             'label' => 'drehzettel.form.film_day',
-            'data' => $originalEngagement !== null,
+            // On by default even while hidden: onSubmit() only saves when the submitted
+            // project/activity/date actually resolve to an engagement, so a hidden "on"
+            // is harmless for non-film entries and needs no JS to take effect for film ones.
+            'data' => true,
             'row_attr' => ['class' => $rowClass('dz-form-row-first')],
         ]);
 
@@ -171,12 +180,6 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             return;
         }
 
-        if (!(bool) $form->get(self::FIELD_TOGGLE)->getData()) {
-            // Manually turned off: leave any previously saved FilmDay row untouched,
-            // rather than deleting data the user might just be hiding for this edit.
-            return;
-        }
-
         /** @var Timesheet $timesheet */
         $timesheet = $event->getData();
 
@@ -185,21 +188,32 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         // built (see this class's own doc comment) - by POST_SUBMIT the submitted data
         // is already mapped onto $timesheet, so this reflects the actual choice.
         $engagement = $this->engagements->activeFor($timesheet);
-        if ($engagement === null) {
+        $date = $this->dateOf($timesheet);
+
+        $movedOffOriginalDay = $isEdit && $originalEngagement !== null && (
+            $date->format('Y-m-d') !== $originalDate->format('Y-m-d')
+            || $engagement?->getId() !== $originalEngagement->getId()
+        );
+        if ($movedOffOriginalDay) {
+            // Editing moved this entry off its original (engagement, date) - to another
+            // date, out of the engagement's validity, or onto an excluded activity/project.
+            // That day's FilmDay row is orphaned once no other counting entry still lands
+            // on it, and must not silently pre-fill whatever entry gets created there next
+            // (see FilmDayService::deleteIfOrphaned()). Runs before every early return below
+            // - a toggle turned off or a target with no engagement doesn't un-orphan it.
+            // The controller flushes this entity only after this listener runs, so a
+            // re-query still finds its old row - its own id must be excluded by hand.
+            $this->filmDayService->deleteIfOrphaned($originalEngagement, $originalDate, [$timesheet->getId()]);
+        }
+
+        if (!(bool) $form->get(self::FIELD_TOGGLE)->getData()) {
+            // Manually turned off: leave any previously saved FilmDay row untouched,
+            // rather than deleting data the user might just be hiding for this edit.
             return;
         }
 
-        $date = $this->dateOf($timesheet);
-
-        if ($isEdit && $originalEngagement !== null && $date->format('Y-m-d') !== $originalDate->format('Y-m-d')) {
-            // Editing moved this entry off its original date - that date's FilmDay row
-            // (break/catering/category/note) is orphaned once no other entry of this
-            // engagement still lands on it, and must not silently pre-fill whatever
-            // entry gets created there next (see FilmDayService::deleteIfOrphaned()).
-            // The controller flushes this entity's new begin/project only after this
-            // listener runs, so a re-query still finds the not-yet-persisted old row -
-            // this timesheet's own id must be excluded by hand, same as a real delete.
-            $this->filmDayService->deleteIfOrphaned($originalEngagement, $originalDate, [$timesheet->getId()]);
+        if ($engagement === null) {
+            return;
         }
 
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
