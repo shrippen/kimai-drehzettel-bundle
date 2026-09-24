@@ -149,7 +149,15 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       authenticated `PUT .../film-days/{date}` followed by `GET` round-trips break/catering/
       category/note through the real `FilmDay` table.
       Not yet built: permission nuance beyond "own data or `drehzettel_manage`" (no dedicated tests
-      for the cross-user case), and the Plasmai-side consumption itself (separate project).
+      for the cross-user case).
+      Plasmai-side consumption (separate project, `~/Hacking/eigene/Plasmai`): done. New
+      `contents/code/drehzettelApi.js` client (ping cached 30 min per URL, engagement-status,
+      film-day get/put), gated to Kimai profiles. `ManualEntryView`/new `FilmDayFields.qml` show a
+      "Film day" toggle (Konzept A, inline expand) with break/catering/category/note when the
+      chosen project+date fall inside an active engagement; refetched on project or begin-date
+      change. Saved via `PUT film-days/{date}` right after the timesheet entry itself saves
+      (best-effort — a Drehzettel write failure is logged, not surfaced, since the entry is already
+      saved by then).
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".

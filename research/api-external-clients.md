@@ -129,7 +129,10 @@ eher ein Drawer/Sheet (Konzept B) als ein Tab-Wechsel, da der Dialog dort schon 
 
 ## Nächste Schritte
 
-- Kimai-API-Unterbau am Code verifizieren (nicht nur aus der Dokumentation), bevor Controller gebaut
-  werden.
-- Die zwei Endpunkte (`engagement-status`, `film-days`) im Plugin implementieren, inkl. `ping`.
-- Danach: Plasmai-seitige Erweiterung (separates Projekt, eigener Implementierungsschritt).
+- [x] Kimai-API-Unterbau am Code verifizieren (nicht nur aus der Dokumentation), bevor Controller
+  gebaut werden.
+- [x] Die zwei Endpunkte (`engagement-status`, `film-days`) im Plugin implementieren, inkl. `ping`.
+- [x] Plasmai-seitige Erweiterung (separates Projekt) — 2026-09-24: `contents/code/drehzettelApi.js`
+  (Client mit `ping`-Cache pro URL, `engagementStatus`, `filmDayGet`/`filmDayPut`) plus
+  `contents/ui/FilmDayFields.qml`, eingehängt in `ManualEntryView.qml`. Details siehe
+  `roadmap.md` Phase 6 in diesem Repo.
