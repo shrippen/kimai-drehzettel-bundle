@@ -41,13 +41,13 @@
 </div>
 
 <div data-dz-live="kpi">
-    {% set surcharge_hint = [] %}
+    {% set surcharge_details = [] %}
     {% for seconds in v.sums.tiers %}
-        {% set surcharge_hint = surcharge_hint|merge([_self.percent(v.tiers[loop.index0]) ~ ': ' ~ seconds|duration]) %}
+        {% set surcharge_details = surcharge_details|merge([{label: _self.percent(v.tiers[loop.index0]), value: seconds|duration}]) %}
     {% endfor %}
     {% set tiles = [
         {label: 'drehzettel.pdf.work'|trans, value: v.sums.work|duration, highlight: not v.has_pay},
-        {label: 'drehzettel.rules.surcharge_rounding'|trans, value: v.sums.surcharges|duration, hint: surcharge_hint|join(' · ')},
+        {label: 'drehzettel.rules.surcharge_rounding'|trans, value: v.sums.surcharges|duration, details: surcharge_details},
         {label: 'drehzettel.pdf.night'|trans, value: v.sums.night|duration, hint: _self.percent(v.night_percent)},
     ] %}
     {% if v.has_pay %}
@@ -117,7 +117,7 @@
                         {% endfor %}
                         <td class="text-end text-nowrap" data-dz-live="night-{{ row.key }}">{{ _self.value(row.night) }}</td>
                         <td class="text-end text-nowrap" data-dz-live="under-{{ row.key }}">
-                            {%- if row.under > 0 %}<span class="badge bg-warning-lt">{{ row.under|duration }}</span>{% else %}{{ _self.value(0) }}{% endif -%}
+                            {{- _self.value(row.under) -}}
                         </td>
                         <td>
                             <div class="dz-view"><div class="d-flex flex-wrap gap-1 align-items-center">
@@ -125,9 +125,11 @@
                                 {% if type_val != 'workday' %}<span class="badge bg-secondary-lt">{{ ('drehzettel.day_type.' ~ type_val)|trans }}</span>{% endif %}
                                 {% if cat_val %}<span class="badge bg-secondary-lt">{{ ('drehzettel.category.' ~ cat_val)|trans }}</span>{% endif %}
                                 <span data-dz-live="warn-{{ row.key }}">
-                                    {%- for w in warned %}<span class="badge bg-warning-lt" data-toggle="tooltip" title="{{ ('drehzettel.compliance.' ~ w.issue.value)|trans({'%date%': w.date|date_short, '%measured%': (w.minutes * 60)|duration, '%limit%': (w.limitMinutes * 60)|duration}) }}">{{ icon('warning', true) }} {{ ('drehzettel.compliance.short.' ~ w.issue.value)|trans }}</span>{% endfor -%}
+                                    {#- Warning badge (kit 0.2) with the full reason as tooltip, short reason as text next to it (touch has no tooltip). -#}
+                                    {%- for w in warned %}<span class="text-nowrap">{{ kit.status_badge('warning', ('drehzettel.compliance.' ~ w.issue.value)|trans({'%date%': w.date|date_short, '%measured%': (w.minutes * 60)|duration, '%limit%': (w.limitMinutes * 60)|duration})) }} {{ ('drehzettel.compliance.short.' ~ w.issue.value)|trans }}</span> {% endfor -%}
+                                    {%- if row.under > 0 %}<span class="text-nowrap">{{ kit.status_badge('warning', 'drehzettel.week.under_warning'|trans({'%measured%': row.under|duration})) }} {{ 'drehzettel.pdf.under'|trans }}</span>{% endif -%}
                                 </span>
-                                {% if not (film.catering ?? false) and type_val == 'workday' and not cat_val and warned is empty %}<span class="text-secondary" title="{{ 'drehzettel.category.auto_short'|trans }}">–</span>{% endif %}
+                                {% if not (film.catering ?? false) and type_val == 'workday' and not cat_val and warned is empty and row.under <= 0 %}<span class="text-secondary" title="{{ 'drehzettel.category.auto_short'|trans }}">–</span>{% endif %}
                             </div></div>
                             <div class="dz-edit dz-edit-fields">
                                 <label class="form-check form-check-inline mb-0">

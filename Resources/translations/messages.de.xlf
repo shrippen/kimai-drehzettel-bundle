@@ -488,7 +488,7 @@
       </trans-unit>
       <trans-unit id="dz.mail.sent" resname="drehzettel.mail.sent">
         <source>drehzettel.mail.sent</source>
-        <target>Wochen-PDF gesendet.</target>
+        <target>Wochen-PDF an %address% gesendet.</target>
       </trans-unit>
       <trans-unit id="dz.mail.failed" resname="drehzettel.mail.failed">
         <source>drehzettel.mail.failed</source>
@@ -521,6 +521,10 @@
       <trans-unit id="dz.compliance.short.rest_time" resname="drehzettel.compliance.short.rest_time">
         <source>drehzettel.compliance.short.rest_time</source>
         <target>Ruhezeit</target>
+      </trans-unit>
+      <trans-unit id="dz.week.under_warning" resname="drehzettel.week.under_warning">
+        <source>drehzettel.week.under_warning</source>
+        <target>%measured% fehlen zur Mindestarbeitszeit des Tages.</target>
       </trans-unit>
       <trans-unit id="dz.ruleset.copy_name" resname="drehzettel.ruleset.copy_name">
         <source>drehzettel.ruleset.copy_name</source>
