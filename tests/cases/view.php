@@ -81,6 +81,23 @@ $month = $builder->build($meta, Period::month(2026, 3, $zone), [$week, $w2], $ru
 check('view: month total', ['51:45 h', 2], [$month['total']['work'], count($month['weeks'])]);
 check('view: month label spans weeks', 'Montag, 2. März 2026 - Dienstag, 10. März 2026 / KW 10-11', $month['period']);
 
+// A week across a month boundary: its weekly overtime is paid in one month only,
+// the one holding the week's last worked day (Mon 30.3. - Sat 4.4.2026 -> April).
+$split = [];
+foreach (['2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03'] as $d) {
+    $split[] = shift($d, '08:00', '18:45', 45);
+}
+$split[] = shift('2026-04-04', '08:00', '16:45', 45, category: KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY);
+$splitWeek = weekCalc()->calc($split, $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100));
+$payMeta = new TimesheetMeta('X', 'Y', 'Z', 'de', true);
+$payOptions = new PdfOptions([PdfOption::PAY, PdfOption::WEEKLY_OVERTIME]);
+$march = $builder->build($payMeta, Period::month(2026, 3, $zone), [$splitWeek], $rules, $payOptions);
+$april = $builder->build($payMeta, Period::month(2026, 4, $zone), [$splitWeek], $rules, $payOptions);
+$dayCents = array_map(static fn ($d): int => $d->amountCents, $splitWeek->days);
+check('view: split week has weekly pay', true, $splitWeek->weeklyCents > 0);
+check('view: split week march without weekly', [null, Format::money($dayCents[0] + $dayCents[1], 'de')], [$march['weeks'][0]['weekly'], $march['weeks'][0]['sums']['pay']]);
+check('view: split week april with weekly', [true, Format::money(array_sum(array_slice($dayCents, 2)) + $splitWeek->weeklyCents, 'de')], [$april['weeks'][0]['weekly'] !== null, $april['weeks'][0]['sums']['pay']]);
+
 // Helpers.
 check('options round trip', ['break', 'pay'], PdfOptions::fromKeys(['break', 'pay', 'bogus'])->toKeys());
 check('options default has signature', true, PdfOptions::defaults()->has(PdfOption::SIGNATURE_LINES));

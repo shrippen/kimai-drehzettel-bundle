@@ -10,7 +10,7 @@
 ## P1
 - [x] 📖 Timesheet-Form: existierenden Drehtag immer vorbefüllen, auch bei Duplicate/Neuanlage (TimesheetFormExtension.php:87)
 - [x] 📖 Kein flush() im POST_SUBMIT; persist bzw. Timesheet*PostEvent-Subscriber (TimesheetFormExtension.php:186)
-- [ ] 📖 Wochen-Überstunden nur einem Monat zuordnen (TimesheetViewBuilder::sums) + Test
+- [x] 📖 Wochen-Überstunden nur einem Monat zuordnen (TimesheetViewBuilder::sums) + Test
 - [x] 📖 Admin-Edit mit geändertem User/Projekt/Datum: Engagement neu ermitteln
 
 ## P2

@@ -23,7 +23,9 @@ use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
  *   total (only when the period spans more than one week)
  *
  * Only days inside the period are listed, but weekly overtime always
- * comes from the whole calendar week.
+ * comes from the whole calendar week. It is listed and paid only in the
+ * period holding the week's last worked day, so a week across a month
+ * boundary is never paid twice (Mon 30.3. - Sat 4.4. -> April).
  */
 class TimesheetViewBuilder
 {
@@ -101,8 +103,9 @@ class TimesheetViewBuilder
             $rows[] = $day === null ? ['empty' => true, 'key' => $date->format(self::DATE_KEY), 'date' => $this->dateLabel($date, $locale)] : $this->row($day, $rules, $locale, $showPay);
         }
 
-        $sums = $this->sums($week, $days, $rules);
-        $weekly = $options->has(PdfOption::WEEKLY_OVERTIME) ? $this->weeklyLine($week, $rules, $locale) : null;
+        $ownsWeekly = $period->contains($week->days[array_key_last($week->days)]->begin);
+        $sums = $this->sums($week, $days, $rules, $ownsWeekly);
+        $weekly = $ownsWeekly && $options->has(PdfOption::WEEKLY_OVERTIME) ? $this->weeklyLine($week, $rules, $locale) : null;
 
         return [
             'view' => ['rows' => $rows, 'weekly' => $weekly, 'sums' => $this->formatSums($sums, $locale, $showPay)],
@@ -159,7 +162,7 @@ class TimesheetViewBuilder
      * @param list<DayResult> $days
      * @return array<string, mixed>
      */
-    private function sums(WeekResult $week, array $days, Ruleset $rules): array
+    private function sums(WeekResult $week, array $days, Ruleset $rules, bool $ownsWeekly): array
     {
         $tiers = array_fill(0, count($rules->dailyTiers), 0);
         $work = $night = $under = $catering = $pay = 0;
@@ -176,7 +179,7 @@ class TimesheetViewBuilder
 
         return [
             'work' => $work, 'tiers' => $tiers, 'night' => $night, 'under' => $under,
-            'catering' => $catering, 'pay' => $pay + ($week->weeklyCents ?? 0),
+            'catering' => $catering, 'pay' => $pay + ($ownsWeekly ? $week->weeklyCents ?? 0 : 0),
         ];
     }
 
