@@ -78,7 +78,9 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 - [x] Engagement service: open with snapshot, overlap check, active lookup
 - [x] Week and period service (period split by ISO week)
 - [x] Dev environment and integration checks (`dev/`)
-- [ ] Edit rules of an existing engagement (override) — moves to Phase 4 with the UI
+- [x] Edit rules of an existing engagement (override) — moved to Phase 4 with the UI and done there
+      (`EngagementController::rules()` / `ruleset_form.html.twig`); this line was left unchecked by
+      mistake when Phase 4 shipped it.
 
 ### Phase 3 — PDF
 
@@ -133,10 +135,8 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       `break` field is removed from the form builder in that case — verified in the rendered HTML
       that `timesheet_edit_form[break]` is absent while the four `drehzettel*` fields are present;
       no sync between the two break concepts, per the 2026-09-23 revision.
-      Known limitation: the engagement lookup happens once, at form-build time, from the entry's
-      existing project/user/begin — a brand-new entry without a project preset yet will not show
-      the toggle even if the user picks a matching project afterwards. A live re-check via the new
-      API is a follow-up, not part of this pass.
+      ~~Known limitation: the engagement lookup happens once, at form-build time~~ — resolved
+      2026-09-24, see Phase 6 follow-up 9 below.
 - [x] `Controller/Api/DrehzettelApiController.php`: versioned REST API for external clients (e.g.
       the Plasmai KDE Plasma widget) under `/api/drehzettel/...`, plan in
       `research/api-external-clients.md`. `GET /ping` (discovery), `GET /v1/engagement-status`,
@@ -149,7 +149,15 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       authenticated `PUT .../film-days/{date}` followed by `GET` round-trips break/catering/
       category/note through the real `FilmDay` table.
       Not yet built: permission nuance beyond "own data or `drehzettel_manage`" (no dedicated tests
-      for the cross-user case), and the Plasmai-side consumption itself (separate project).
+      for the cross-user case).
+      Plasmai-side consumption (separate project, `~/Hacking/eigene/Plasmai`): done. New
+      `contents/code/drehzettelApi.js` client (ping cached 30 min per URL, engagement-status,
+      film-day get/put), gated to Kimai profiles. `ManualEntryView`/new `FilmDayFields.qml` show a
+      "Film day" toggle (Konzept A, inline expand) with break/catering/category/note when the
+      chosen project+date fall inside an active engagement; refetched on project or begin-date
+      change. Saved via `PUT film-days/{date}` right after the timesheet entry itself saves
+      (best-effort — a Drehzettel write failure is logged, not surfaced, since the entry is already
+      saved by then).
       **Field gap found 2026-09-24** while scoping that Plasmai-side work: `FilmDay` has `dayType`
       and `productionDay` columns (Entity, Phase 2), but `filmDayGet`/`filmDayPut` neither read nor
       write them — `GET` omits both from the response, and `PUT` hardcodes `DayType::WORKDAY` and
@@ -224,10 +232,9 @@ session, and `php tests/run.php` (261 checks, unaffected) — not just `php -l`.
 - Daily gage pays at least a full day (7:15 h -> 400.00 EUR in the daily-gage example). Weekly gage pays worked time.
 - Timesheet entries of one date are merged into one span (earliest begin to latest end). Gaps between entries are not treated as break.
 - **UX question raised while reworking the week/rules pages (see `research/ux-flows-film-day-data.md`,
-  2026-09-22) — decided and partly built (Phase 6, 2026-09-23):** film day data now also lives in Kimai's
-  own timesheet entry form (one save for `Timesheet` + `FilmDay`, form concept A), not only in the week
-  view's inline dropdowns. Still open: the new-entry limitation where the toggle needs a project already
-  picked to appear.
+  2026-09-22) — decided and built (Phase 6, 2026-09-23; new-entry live re-check added Phase 6 follow-up
+  9, 2026-09-24):** film day data now also lives in Kimai's own timesheet entry form (one save for
+  `Timesheet` + `FilmDay`, form concept A), not only in the week view's inline dropdowns.
 - New-engagement view: the User, Project and Ruleset fields should be searchable (select with
   filter-as-you-type) instead of plain dropdowns — noted while testing in production, where the user
   and project lists are long enough that scrolling a plain `<select>` is impractical.
@@ -469,3 +476,83 @@ Resolved, previously listed here:
   for a hand-set film day override. Kimai's own "expected work hours" accounting is out of this plugin's
   scope either way.
 - ~~Holidays are not detected yet~~ — see Phase 5, holiday plugin integration.
+
+## Phase 6 follow-up 8 — restrict an engagement to specific activities (2026-09-24)
+
+Requested: detection ran on project alone, so every entry on the project counted as film time -
+including a crew member's own commute ("Anfahrt zum Set") tracked privately on the same project,
+which then both got flagged a film day and inflated the paid shooting-day span, even though it
+can't be billed to the production company.
+
+- **`Entity/Engagement::activityIds`** (nullable JSON list of Kimai Activity ids) + `appliesToActivity(?Activity)`:
+  null/empty means unrestricted (every activity counts, the pre-existing behavior - fully
+  backward compatible for engagements that never set this). `getActivityIds()`/`setActivityIds()`
+  normalize `[]` back to `null`. Migration `Version20260924120000` adds the column.
+- **`EngagementService::activeFor(Timesheet)`** now also checks `appliesToActivity()` against the
+  timesheet's own activity - an entry outside the list is treated exactly like having no
+  engagement at all. This alone fixes both existing callers: `TimesheetFormExtension` (the "film
+  day" toggle no longer appears on an excluded activity) and `TimesheetCleanupSubscriber` (deleting
+  such an entry doesn't touch any `FilmDay` row, since it was never contributing to one).
+- **`DayInputBuilder::spans()`** filters entries the same way before folding them into a day's
+  begin/end span - a commute entry no longer stretches the shooting day or adds to its pay, not
+  just its film-day flag.
+- **`Controller/Api/DrehzettelApiController`**: new optional `activity` query param on
+  `engagement-status` and `film-days/{date}` (get/put). Given, it's applied via
+  `appliesToActivity()` on top of the existing project/user/date match. Omitted, behavior is
+  unchanged (project-only) - existing clients that don't send it yet see no regression, they just
+  don't get the new restriction honored until updated. `dev/check.php` gained a scenario: a second
+  "Anfahrt (dev)" activity on the sample project, restricted out via `setActivityIds()`, and
+  asserts `activeFor()` returns null for it while the primary activity still matches.
+- **Admin UI** (`engagement_form.html.twig` + `EngagementController`): new checkbox list, "which
+  Kimai activities on this project count as film time" - unchecked (default) means unrestricted.
+  On `new`, listed from every visible activity (the project isn't chosen yet at render time,
+  labels carry their project name); on `edit`, scoped to the engagement's own project's activities
+  plus every global one.
+- **Plasmai-side** (separate project): `contents/code/drehzettelApi.js` now sends the chosen
+  activity id along on `engagementStatus`/`filmDayGet`/`filmDayPut`, so the toggle only appears
+  for activities the engagement actually counts.
+
+## Phase 6 follow-up 9 — live engagement re-check on Kimai's own timesheet form (2026-09-24)
+
+The remaining Phase 6 limitation: `TimesheetFormExtension` decided once, at form-build time, whether
+to show the film day fields - a brand-new entry (no project chosen yet when the form was built) never
+showed them, even after picking a project with an active engagement, until the entry was saved and
+reopened. `EventSubscriber\ThemeSubscriber` already had a live-check banner (Phase 6 follow-up) but it
+was only a hint - the actual fields still needed a save+reopen round trip.
+
+- **`TimesheetFormExtension`**: now always adds the five fields, not only when an engagement is known
+  at build time. A brand-new entry's fields start with the `dz-hidden` CSS class (see below);
+  an *existing* entry with no active engagement at build time still gets nothing added - its
+  project/user/date/activity are already fixed at that point, so nothing can change live for it
+  either, and adding hidden fields there would be dead weight. `onSubmit()` now re-resolves the
+  engagement fresh from the actually submitted `Timesheet` (`EngagementService::activeFor()`)
+  instead of trusting the build-time snapshot closed over in the listener - by `POST_SUBMIT` the
+  submitted project/activity/begin are already mapped onto the entity, so this is strictly more
+  correct, not just a UI nicety: a brand-new entry's project chosen only in the browser now saves
+  its film day fields correctly even with JavaScript disabled (previously it couldn't, since the
+  fields were never added to the form at all in that case).
+- **`EventSubscriber\ThemeSubscriber`**: the existing project-change JS is now project *and*
+  activity-aware (an engagement can restrict itself to specific activities since Phase 6 follow-up
+  8) and, on an active match, removes the `dz-hidden` class from all five `.dz-form-row*` elements
+  in the same `<form>` instead of only showing the banner; on no match (or the project cleared) it
+  re-hides them. New `.dz-hidden{display:none!important}` rule in the same stylesheet block. The
+  banner's wording changed from "appear after saving" to "shown below", since they now do appear
+  immediately. Delegated listener now matches `id` ending in `_project` or `_activity`, still scoped
+  to `<select>` elements so it stays inert everywhere else.
+- **Review fixes (same day)**: the toggle now defaults on even while hidden - it first defaulted off,
+  so a live-revealed block silently saved nothing unless the user noticed and flipped it. A hidden
+  "on" is harmless: `onSubmit()` only saves when the submitted data resolves to an engagement.
+  Kimai's native `break` field is only removed server-side when the fields are shown at build time
+  (it was briefly removed from *every* new entry form); on live reveal the JS hides its `.mb-3` row
+  instead. Orphan cleanup in `onSubmit()` now runs before every early return and also when an edit
+  moves the entry out of its engagement on the same date (excluded activity, other project, past
+  `validTo`), not only on a date change; `FilmDayService::deleteIfOrphaned()` ignores entries on
+  excluded activities when deciding whether a day still has entries. The JS debounces per form (a
+  project change also fires an activity change) and drops stale responses via a per-form sequence
+  number. The banner keeps the old "appear after saving" wording on an existing entry that had no
+  engagement at build time, since that form has no fields to reveal.
+- Not covered by `php tests/run.php` (`TimesheetFormExtension`/`ThemeSubscriber` both need real Kimai
+  `App\Entity\Timesheet`/routing, same as the rest of `Form/`, `Controller/`, `EventSubscriber/`);
+  `php -l` clean on both files, `php tests/run.php` unaffected (261 checks). Needs a manual check
+  against the dev instance (pick a project with an active engagement on `/timesheet/create` and
+  confirm the fields appear without saving) once that's convenient to set up - not yet done live.

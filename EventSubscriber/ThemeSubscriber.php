@@ -14,12 +14,20 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *    to Kimai's timesheet form into one amber-tinted block with a clear
  *    toggle (form concept A, https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS),
  *    plus the "bg-drehzettel" cell color for the /contract page markers
- *    added by ContractSubscriber.
+ *    added by ContractSubscriber, plus (2026-09-24) ".dz-hidden" for the
+ *    fields TimesheetFormExtension now renders but starts collapsed on a
+ *    brand-new entry.
  * 2. JS that calls the plugin's own API (research/api-external-clients.md)
- *    when the project field changes on a timesheet form, so picking a
- *    project with an active engagement gives immediate visual feedback -
- *    previously there was none, since TimesheetFormExtension only decides
- *    at the form's initial build time (see that class's own doc comment).
+ *    when the project *or activity* field changes on a timesheet form, so
+ *    picking a project(+activity) with an active engagement gives immediate
+ *    visual feedback (the amber banner) and, since 2026-09-24, actually
+ *    reveals TimesheetFormExtension's five fields live - they used to only
+ *    appear after saving and reopening the entry, since that class only
+ *    decided once, at the form's initial build time (see that class's own
+ *    doc comment). An engagement may also restrict itself to specific
+ *    activities (Entity\Engagement::activityIds) - e.g. excluding a private
+ *    "Anfahrt"/commute activity from the same project - so both fields are
+ *    read and sent, not just the project.
  *
  * Both are inert on every other page: the CSS only styles classes/selectors
  * that no other page uses, and the JS no-ops unless a "*_project" select is
@@ -45,6 +53,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                 .bg-drehzettel{background-color:var(--tblr-yellow-lt);--tblr-table-bg:var(--tblr-yellow-lt);}
                 .dz-detect-banner{display:flex;align-items:center;gap:.5rem;background:var(--tblr-yellow-lt);border-left:3px solid var(--tblr-yellow);border-radius:var(--tblr-border-radius,6px);padding:.5rem .75rem;margin-bottom:1rem;font-size:.85rem;}
                 .dz-detect-banner i{color:var(--tblr-yellow);}
+                .dz-hidden{display:none!important;}
             </style>
             HTML);
     }
@@ -54,9 +63,18 @@ class ThemeSubscriber implements EventSubscriberInterface
         $event->addContent(<<<'HTML'
             <script>
             (function () {
+                // "shown" when TimesheetFormExtension rendered the fields (new entries, or
+                // entries already in an engagement); "afterSave" for an existing entry that
+                // had no engagement when its form was built - it has no fields to reveal.
                 var texts = {
-                    de: {active: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder erscheinen nach dem Speichern beim Bearbeiten dieses Eintrags.'},
-                    en: {active: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.'}
+                    de: {
+                        shown: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder sind unten sichtbar.',
+                        afterSave: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder erscheinen nach dem Speichern beim Bearbeiten dieses Eintrags.'
+                    },
+                    en: {
+                        shown: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields are shown below.',
+                        afterSave: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.'
+                    }
                 };
                 var lang = (document.documentElement.lang || 'en').slice(0, 2);
                 var t = texts[lang] || texts.en;
@@ -66,24 +84,80 @@ class ThemeSubscriber implements EventSubscriberInterface
                     return (next && next.classList.contains('dz-detect-banner')) ? next : null;
                 }
 
-                function checkProject(select) {
-                    var row = select.closest('.row, .mb-3');
+                function fieldRows(form) {
+                    return form.querySelectorAll('.dz-form-row, .dz-form-row-first, .dz-form-row-last');
+                }
+
+                // TimesheetFormExtension always renders these five fields now (hidden via
+                // dz-hidden when no engagement was known at form-build time), so a live
+                // match here only needs to reveal them - no fields to create or remove.
+                function setFieldsVisible(form, visible) {
+                    var rows = fieldRows(form);
+                    for (var i = 0; i < rows.length; i++) {
+                        rows[i].classList.toggle('dz-hidden', !visible);
+                    }
+                    // Kimai's native break field stays in the form for new entries (it's only
+                    // removed server-side when the fields are shown at build time), so swap it
+                    // out visually - two "Pause" inputs at once is what concept A avoids. Only
+                    // its own form-row wrapper (.mb-3), never a wider .row that could hold
+                    // begin/end too. Data stays independent either way (no sync).
+                    if (rows.length === 0) { return; }
+                    var nativeBreak = form.querySelector('[id$="_break"]');
+                    var breakRow = nativeBreak ? nativeBreak.closest('.mb-3') : null;
+                    if (breakRow && !breakRow.classList.contains('dz-form-row')) {
+                        breakRow.classList.toggle('dz-hidden', visible);
+                    }
+                }
+
+                // Reacts to the project *or* activity select changing: an engagement may
+                // restrict itself to specific activities (Entity\Engagement::activityIds),
+                // e.g. excluding a private "Anfahrt"/commute activity from the same
+                // project, so a match depends on both, not just the project.
+                // Changing the project makes Kimai reload the activity select and fire a
+                // second change event, so two checks would race. Coalesce bursts per form,
+                // and tag each request so only the latest answer for that form is applied.
+                function scheduleCheck(select) {
+                    var form = select.closest('form');
+                    if (!form) { return; }
+                    if (form._dzTimer) { clearTimeout(form._dzTimer); }
+                    form._dzTimer = setTimeout(function () {
+                        form._dzTimer = null;
+                        checkEngagement(form);
+                    }, 150);
+                }
+
+                function checkEngagement(form) {
+                    var seq = (form._dzSeq || 0) + 1;
+                    form._dzSeq = seq;
+                    var projectSelect = form.querySelector('select[id$="_project"]');
+                    if (!projectSelect) { return; }
+                    var activitySelect = form.querySelector('select[id$="_activity"]');
+                    var row = projectSelect.closest('.row, .mb-3');
                     if (!row) { return; }
-                    var projectId = select.value;
+
+                    var projectId = projectSelect.value;
                     if (!projectId) {
                         var toRemove = existingBanner(row);
                         if (toRemove) { toRemove.remove(); }
+                        setFieldsVisible(form, false);
                         return;
                     }
-                    fetch('/api/drehzettel/v1/engagement-status?project=' + encodeURIComponent(projectId), {
+                    var activityId = activitySelect ? activitySelect.value : '';
+                    var endpoint = '/api/drehzettel/v1/engagement-status?project=' + encodeURIComponent(projectId);
+                    if (activityId) {
+                        endpoint += '&activity=' + encodeURIComponent(activityId);
+                    }
+                    fetch(endpoint, {
                         headers: {'Accept': 'application/json'},
                         credentials: 'same-origin'
                     })
                         .then(function (response) { return response.ok ? response.json() : null; })
                         .then(function (data) {
+                            if (form._dzSeq !== seq) { return; }
                             var el = existingBanner(row);
                             if (!data || !data.active) {
                                 if (el) { el.remove(); }
+                                setFieldsVisible(form, false);
                                 return;
                             }
                             if (!el) {
@@ -92,21 +166,23 @@ class ThemeSubscriber implements EventSubscriberInterface
                                 el.innerHTML = '<i class="fas fa-clapperboard"></i><span></span>';
                                 row.insertAdjacentElement('afterend', el);
                             }
-                            el.querySelector('span').textContent = t.active.replace('%ruleset%', data.rulesetName || '');
+                            var text = fieldRows(form).length > 0 ? t.shown : t.afterSave;
+                            el.querySelector('span').textContent = text.replace('%ruleset%', data.rulesetName || '');
+                            setFieldsVisible(form, true);
                         })
-                        .catch(function () { /* feedback is a convenience, ignore network errors */ });
+                        .catch(function () { /* feedback is a convenience, ignore network errors - leave fields/banner as-is */ });
                 }
 
                 // Delegated on document: survives the timesheet edit form being
                 // re-inserted by Kimai's AJAX modal loader (KimaiAjaxModalForm).
-                // Only reacts to a project field's own change event, never fires
-                // on unrelated pages. Date is intentionally not read here - this
+                // Only reacts to the project/activity fields' own change event, never
+                // fires on unrelated pages. Date is intentionally not read here - this
                 // is a same-day hint, the actual save-time check in
                 // TimesheetFormExtension uses the entry's real date.
                 document.addEventListener('change', function (event) {
                     var target = event.target;
-                    if (target && target.id && /_project$/.test(target.id) && target.tagName === 'SELECT') {
-                        checkProject(target);
+                    if (target && target.id && /_(project|activity)$/.test(target.id) && target.tagName === 'SELECT') {
+                        scheduleCheck(target);
                     }
                 });
             })();

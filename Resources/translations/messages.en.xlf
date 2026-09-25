@@ -502,6 +502,14 @@
         <source>drehzettel.week.break_default</source>
         <target>default, not saved</target>
       </trans-unit>
+      <trans-unit id="d125" resname="drehzettel.activities">
+        <source>drehzettel.activities</source>
+        <target>Activities</target>
+      </trans-unit>
+      <trans-unit id="d126" resname="drehzettel.activities_help">
+        <source>drehzettel.activities_help</source>
+        <target>Which Kimai activities on this project count as film time. Leave all unchecked to count every activity (the previous behavior). Check a subset - e.g. "Set" - to keep others, such as a private "Anfahrt"/commute activity, out of the film day, the shooting-day total, and pay.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

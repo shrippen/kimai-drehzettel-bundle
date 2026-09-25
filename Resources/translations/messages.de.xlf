@@ -502,6 +502,14 @@
         <source>drehzettel.week.break_default</source>
         <target>Standard, nicht gespeichert</target>
       </trans-unit>
+      <trans-unit id="d125" resname="drehzettel.activities">
+        <source>drehzettel.activities</source>
+        <target>Tätigkeiten (Kimai)</target>
+      </trans-unit>
+      <trans-unit id="d126" resname="drehzettel.activities_help">
+        <source>drehzettel.activities_help</source>
+        <target>Welche Kimai-Tätigkeiten auf diesem Projekt als Drehzeit zählen. Nichts ankreuzen zählt jede Tätigkeit (bisheriges Verhalten). Eine Auswahl – z. B. „Set“ – hält andere Tätigkeiten, etwa eine private „Anfahrt“, aus Drehtag-Erkennung, Tagessumme und Bezahlung heraus.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
