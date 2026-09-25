@@ -227,10 +227,13 @@ class EngagementController extends AbstractController
      */
     private function activitiesForProject(?Project $project): array
     {
-        $ownActivities = $project !== null ? $this->activities->findBy(['project' => $project], ['name' => 'ASC']) : [];
-        $globalActivities = $this->activities->findBy(['project' => null], ['name' => 'ASC']);
+        $ownActivities = $project !== null ? $this->activities->findBy(['project' => $project]) : [];
+        $globalActivities = $this->activities->findBy(['project' => null]);
 
-        return [...$ownActivities, ...$globalActivities];
+        $activities = [...$ownActivities, ...$globalActivities];
+        usort($activities, fn (Activity $a, Activity $b) => strnatcasecmp((string) $a->getName(), (string) $b->getName()));
+
+        return $activities;
     }
 
     private function find(int $id): Engagement
