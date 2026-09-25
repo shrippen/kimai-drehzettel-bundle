@@ -121,8 +121,33 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       Not covered by `php tests/run.php` (needs Kimai entities); checked manually with `kimai:reload` +
       `dev/check.php` + `drehzettel:pdf` on the dev instance without the holiday plugin installed. Still
       needs a manual check with the holiday plugin actually installed once that's convenient to set up.
-- [ ] Time account (AZV day) — deferred. A real accrual ledger (2.5 h + 30 min per consecutive shooting day,
-      TV FFS §6), not a one-line addition; out of scope for this pass.
+- [ ] Time account / AZV day — deferred. Two separate ledgers, source `research/tv-ffs-zeitkonto-und-folgetage.md`:
+      (a) overtime time account, TV FFS Anlage Zeitkonto A.1.1 (hours > 50/week plus overtime surcharges as
+      time; dissolved after production in 8 h days at 1/50 weekly fee, A.1.3);
+      (b) AZV credit, TV FFS TZ 6.1-6.4 (was "§6" here, claim confirmed): crew behind the camera, shoots
+      starting from 2025-05-01; 2.5 h after 5 consecutive full shooting days, then 0.5 h per further day,
+      per block of 20 shooting days (= 10 h = one AZV day). Weekends and days off do NOT reset this
+      counter, so it must not reuse the `consecutive` streak of the 6th/7th day.
+- [ ] Ausgleichstage (TV FFS TZ 5.6.2) — not modelled (PO decision D-6, 2026-09-25); users note them in the
+      day note for now. One paid rest day per worked Sunday (> 4 h on the Sunday for a shift over midnight)
+      and per worked Christmas, Easter, Whit holiday, 3 Oct, 1 May; not for other holidays. ArbZG § 11:
+      within 2 weeks (Sunday) / 8 weeks (weekday holiday). Weitere Recherche nötig (Anspruch, Einheit,
+      Frist, Abgeltung), see the research file.
+- [x] 6th/7th day by consecutive days (PO decisions D-1..D-5, 2026-09-25), built as ruleset option
+      `streakMode` (`Enum/StreakMode`): `calendarWeek` (n-th entry of the ISO week, the former behaviour)
+      or `consecutive` (days in a row across weeks, reset by a calendar day without entry, travel days
+      count, day 8+ like day 7; `Service/ConsecutiveDayCounter` looks back in 14-day windows).
+      `productionDay` is the override ("Zuschlagstag"): 1-7 / 1-999, in `consecutive` the following
+      days continue from it. Badge next to the date, PDF label, day summary `consecutiveDay`,
+      `consecutiveDayOverridden`, `streakMode`, ping feature `consecutiveDays`.
+      **PO decision pending:** TV FFS TZ 5.4.3.1/5.4.3.4 count the 6th/7th day *of the calendar week*
+      (`research/tv-ffs-zeitkonto-und-folgetage.md`), and `consecutive` can underpay: Mon, Tue, (Wed off),
+      Thu-Sun makes Sunday day 6 by tariff but day 4 in a row. Until the PO confirms, `calendarWeek`
+      stays the default for presets and stored rulesets; switching is the one line
+      `StreakMode::DEFAULT`. Engagement snapshots and custom rulesets saved after this change carry
+      their mode explicitly and do not follow a changed default.
+      Rest time < 11 h stays a warning (D-7); the 11.5 h trigger stays measured on presence incl. break
+      (D-8), although the employers' FAQ reads it as net work time.
 
 ### Phase 6 — Kimai form integration and external API
 

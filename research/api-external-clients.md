@@ -25,6 +25,14 @@ den Zuschlag für den 6./7. Tag; `shootingDayNumber` (1–999 oder null, „Dreh
 „Drehtag 37“) ist ein reiner Zähler über die ganze Produktion ohne Einfluss auf Berechnungen.
 Plasmais „Drehtag Nr.“ gehört auf `shootingDayNumber`, nicht auf `productionDay`.
 
+Nachtrag 2026-09-25 (Folgetage): `productionDay` heißt jetzt „Zuschlagstag“ und überschreibt die
+Tagesnummer N für den 6./7.-Tag-Zuschlag. Wie N gezählt wird, sagt `streakMode` des Regelwerks
+(Film-Day-`GET`/`PUT` und Day-Summary liefern es mit): `calendarWeek` (Standard, n-ter Tag mit
+Eintrag der ISO-Woche, `productionDay` 1–7, wirkt nur auf den Tag) oder `consecutive` (Tage in
+Folge über Wochengrenzen, `productionDay` 1–999, Folgetage zählen davon weiter). Day-Summary
+ergänzt `consecutiveDay` (= `dayNumber`) und `consecutiveDayOverridden`; Ping-Feature
+`consecutiveDays`. Clients prüfen den Wertebereich über `streakMode` (400 `invalid_value` sonst).
+
 Alle unter `/api/drehzettel/...`, authentifiziert wie Kimais eigene API (derselbe Firewall-Bereich,
 kein Zusatzaufwand für den Client).
 
