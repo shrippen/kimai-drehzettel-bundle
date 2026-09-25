@@ -8,6 +8,9 @@
     <style>
         /* Day grid edit mode: one row at a time shows its inputs instead of the summary. */
         .dz-week-table .dz-edit { display: none; }
+        /* Tabler's .btn min-width calc() is invalid here (unitless line-height + rem), so the
+           icon-only toggle collapsed to its border and its hover background showed as a thin line. */
+        .dz-week-table .dz-edit-toggle { min-width: 2rem; justify-content: center; }
         .dz-week-table tr.dz-editing .dz-view { display: none; }
         .dz-week-table tr.dz-editing .dz-edit { display: inline-block; }
         .dz-week-table tr.dz-editing .dz-edit-fields { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
