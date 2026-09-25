@@ -158,6 +158,13 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       change. Saved via `PUT film-days/{date}` right after the timesheet entry itself saves
       (best-effort — a Drehzettel write failure is logged, not surfaced, since the entry is already
       saved by then).
+      **Field gap found 2026-09-24** while scoping that Plasmai-side work: `FilmDay` has `dayType`
+      and `productionDay` columns (Entity, Phase 2), but `filmDayGet`/`filmDayPut` neither read nor
+      write them — `GET` omits both from the response, and `PUT` hardcodes `DayType::WORKDAY` and
+      `null` regardless of what the client sends. `extraPayCents` has no server-side field at all
+      (Plasmai-local only, no equivalent in `FilmDay`). Until these are added, an external client
+      can sync `breakMinutes`/`catering`/`category`/`note` through the API but must keep day
+      type, production-day count and extra pay local-only.
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".
@@ -228,6 +235,11 @@ session, and `php tests/run.php` (261 checks, unaffected) — not just `php -l`.
   2026-09-22) — decided and built (Phase 6, 2026-09-23; new-entry live re-check added Phase 6 follow-up
   9, 2026-09-24):** film day data now also lives in Kimai's own timesheet entry form (one save for
   `Timesheet` + `FilmDay`, form concept A), not only in the week view's inline dropdowns.
+- New-engagement view: the User, Project and Ruleset fields should be searchable (select with
+  filter-as-you-type) instead of plain dropdowns — noted while testing in production, where the user
+  and project lists are long enough that scrolling a plain `<select>` is impractical.
+- Generate activity presets from TV FFS (Tätigkeitsbezeichnung plus Wochengage) — noted while testing
+  in production.
 
 ## Phase 6 follow-up 2 — week view alignment + per-row edit mode, rules page contrast fix (2026-09-23)
 
