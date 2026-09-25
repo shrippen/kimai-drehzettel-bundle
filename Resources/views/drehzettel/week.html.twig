@@ -8,9 +8,11 @@
     <style>
         /* Day grid edit mode: one row at a time shows its inputs instead of the summary. */
         .dz-week-table .dz-edit { display: none; }
-        /* Tabler's .btn min-width calc() is invalid here (unitless line-height + rem), so the
-           icon-only toggle collapsed to its border and its hover background showed as a thin line. */
-        .dz-week-table .dz-edit-toggle { min-width: 2rem; justify-content: center; }
+        /* Tabler's .btn-icon sizing assumes a bare icon child: its min-width calc() is invalid here
+           and .btn-icon .icon gets negative margins. The icons sit in view/edit spans, so the toggle
+           collapsed (hover showed a thin line) and the icon drifted off-center. */
+        .dz-week-table .dz-edit-toggle { width: 2rem; height: 2rem; padding: 0; justify-content: center; align-items: center; }
+        .dz-week-table .dz-edit-toggle .icon { margin: 0; }
         .dz-week-table tr.dz-editing .dz-view { display: none; }
         .dz-week-table tr.dz-editing .dz-edit { display: inline-block; }
         .dz-week-table tr.dz-editing .dz-edit-fields { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
