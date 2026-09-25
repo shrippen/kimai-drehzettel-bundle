@@ -137,7 +137,8 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       Drehtag", whatever its length (TZ 5.2.4 counts a begun working day as 8 h); prep and post days cannot
       be told apart from shooting days yet (PA FAQ: they do not count). Days before 2025-05-01 never count,
       also when the flag is set by hand for a running production (TZ 6.7). The 2.5 h for days 21-25 are
-      credited with day 25 (PA FAQ: "ab 25 Drehtagen"), TZ 6.4 says "ab dem 26. Drehtag".
+      credited with day 26 per TZ 6.4 "ab dem 26. Drehtag" (D-14, 2026-09-25); the PA FAQ says "ab 25
+      Drehtagen" (one day earlier, same total from day 26).
 - [ ] Taking AZV days — not modelled. TZ 6.3: a "freien und bezahlten Tag (in der Zeit von Montag bis
       Freitag) zwischen dem 2. und 16. Drehtag", announced at least 5 days ahead by the employer; TZ 6.6:
       travel productions may give it at the end; TZ 10.4/10.5: AZV days can be appended after the contract

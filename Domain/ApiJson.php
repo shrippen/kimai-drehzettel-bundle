@@ -39,8 +39,8 @@ final class ApiJson
     /**
      * GET /v1/engagements/{id}/azv: AZV credit earned up to a date (TV FFS TZ 6), not taken.
      *
-     *   {"eligible": true, "countsFrom": "2026-01-05", "date": "2026-02-08", "shootingDays": 25,
-     *    "minutes": 750, "days": 1, "openMinutes": 150, "dayMinutes": 600, "blockDays": 20}
+     *   {"eligible": true, "countsFrom": "2026-01-05", "date": "2026-02-09", "shootingDays": 26,
+     *    "minutes": 780, "days": 1, "openMinutes": 180, "dayMinutes": 600, "blockDays": 20}
      *
      * @return array<string, mixed>
      */

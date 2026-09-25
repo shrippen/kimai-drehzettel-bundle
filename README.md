@@ -46,7 +46,7 @@ Arbeitszeitverkürzung per TV FFS TZ 6, credit only (taking AZV days is not mode
 | 1-4 | 0 |
 | 5 | 2.5 h (TZ 6.1) |
 | each further one up to 20 | + 0.5 h, 10 h after 20 days = one AZV day (TZ 6.2/6.3) |
-| 21-24, 25, 26-40, ... | the same per block of 20 (TZ 6.4): 24 days = 10 h, 25 = 12.5 h, 26 = 13 h |
+| 21-25, 26, 27-40, ... | the same per block of 20, but the 2.5 h for days 21-25 come "ab dem 26. Drehtag" (TZ 6.4): 25 days = 10 h, 26 = 13 h. The Produktionsallianz FAQ credits them with day 25 ("Erst ab 25 Drehtagen"); the plugin follows the tariff text |
 
 - A shooting day is a working-day entry of the engagement, any length. Travel days and days off do not count and do not break the row (TZ 6.1 footnote 2: "an mindestens 5 aufeinanderfolgenden Drehtagen"). The row ends with the engagement.
 - Applies to crew behind the camera, not to high-frequency series (TZ 6.1, 6.5), for shoots from 2025-05-01 (TZ 6.7). Default: on for engagements with the TV FFS 2024 ruleset starting on or after 2025-05-01; the engagement form changes it (e.g. a production running before May 2025 with fewer than 5 shooting days). Days before 2025-05-01 never count.

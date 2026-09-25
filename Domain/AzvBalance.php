@@ -5,7 +5,7 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
 /**
  * AZV credit of one engagement up to a date (Azv): earned, not taken.
  *
- *   25 shooting days -> minutes 750, days 1, openMinutes 150
+ *   26 shooting days -> minutes 780, days 1, openMinutes 180
  */
 final class AzvBalance
 {

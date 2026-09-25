@@ -203,7 +203,8 @@ Neu geprüft (Q1, Q3 erneut gelesen):
   nicht definiert.
 - **[Fakt]** TZ 6.4 „ab dem 26. Drehtag … weitere 2,5 Stunden für die Drehtage 21 bis 25“ vs. Q3 S. 8 „Erst ab
   25 Drehtagen entsteht wieder ein Anspruch auf 2,5 Stunden“ – Stichtag der Gutschrift um einen Tag
-  verschieden, Summe gleich. Plugin folgt TZ 6.1/Q3 (Gutschrift mit dem 5./25. Drehtag).
+  verschieden, Summe gleich. Plugin folgt seit D-14 dem Tariftext (Gutschrift mit dem 5./26./46. Drehtag);
+  vorher Q3 (mit dem 25. Drehtag).
 - **[Fakt]** TZ 6.3: AZV-Tag „frei und bezahlt“, Mo–Fr, zwischen 2. und 16. Drehtag, 5 Tage Vorlauf;
   TZ 6.6: bei Reiseproduktionen am Ende; TZ 10.4/10.5: AZV-Tage können angehängt werden.
   **[PA-Auslegung]** Q3 S. 8: AZV-Tag ist „Ruhezeit“, auf einem Feiertag kein Zuschlag. Nehmen/Abziehen ist
