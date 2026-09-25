@@ -49,6 +49,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public const FIELD_NOTE = 'drehzettelNote';
     public const FIELD_EXTRA_PAY = 'drehzettelExtraPay';
     public const FIELD_SHOOTING_DAY = 'drehzettelShootingDay';
+    public const FIELD_PRODUCTION_DAY = 'drehzettelProductionDay';
 
     private const MAX_BREAK_MINUTES = 720;
     private const MAX_NOTE_LENGTH = 500;
@@ -138,6 +139,17 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
+        // Day of the shooting week behind the 6th/7th-day surcharge; empty counts the week's entries.
+        $builder->add(self::FIELD_PRODUCTION_DAY, IntegerType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.production_day.title',
+            'data' => $existing?->getProductionDay(),
+            'attr' => ['min' => 1, 'max' => FilmDayPatch::MAX_PRODUCTION_DAY, 'placeholder' => 'drehzettel.category.auto_short'],
+            'constraints' => [new Range(min: 1, max: FilmDayPatch::MAX_PRODUCTION_DAY)],
+            'row_attr' => ['class' => 'dz-form-row'],
+        ]);
+
         // Running shooting day of the production ("Drehtag 37"), optional, no effect on pay.
         $builder->add(self::FIELD_SHOOTING_DAY, IntegerType::class, [
             'mapped' => false,
@@ -195,10 +207,11 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
         $extraPay = $form->get(self::FIELD_EXTRA_PAY)->getData();
         $shootingDay = $form->get(self::FIELD_SHOOTING_DAY)->getData();
+        $productionDay = $form->get(self::FIELD_PRODUCTION_DAY)->getData();
         $note = $form->get(self::FIELD_NOTE)->getData();
         $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
-        // Day type and production day are not on this form: they keep their stored value.
+        // Day type is not on this form: it keeps its stored value.
         try {
             $patch = FilmDayPatch::fromArray([
                 'breakMinutes' => $breakMinutes !== null ? (int) $breakMinutes : null,
@@ -207,6 +220,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
                 'note' => $note,
                 'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
                 'shootingDayNumber' => $shootingDay !== null ? (int) $shootingDay : null,
+                'productionDay' => $productionDay !== null ? (int) $productionDay : null,
             ]);
         } catch (\InvalidArgumentException) {
             return; // out of range: the break field's own constraint reports it

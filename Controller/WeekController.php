@@ -3,7 +3,6 @@
 namespace KimaiPlugin\DrehzettelBundle\Controller;
 
 use App\Controller\AbstractController;
-use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraftReader;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
@@ -76,7 +75,7 @@ class WeekController extends AbstractController
             if ($date === null) {
                 continue; // only accept dates of this week
             }
-            $draft = FilmDayDraftReader::read((array) $fields);
+            $draft = $this->filmDays->draft($engagement, $date, (array) $fields);
             $this->filmDays->save($engagement, $date, $draft->breakMinutes, $draft->catering, $draft->category, $draft->type, $draft->productionDay, $draft->note, $draft->extraPayCents, $draft->shootingDayNumber);
         }
 
@@ -91,9 +90,14 @@ class WeekController extends AbstractController
     {
         $engagement = $this->findEngagement($id);
 
+        $period = Period::week($year, $week, $engagement->getUser()->getDateTimezone());
         $drafts = [];
         foreach ((array) $request->request->all('day') as $dateKey => $fields) {
-            $drafts[(string) $dateKey] = FilmDayDraftReader::read((array) $fields);
+            $date = $period->day((string) $dateKey);
+            if ($date === null) {
+                continue; // only accept dates of this week
+            }
+            $drafts[(string) $dateKey] = $this->filmDays->draft($engagement, $date, (array) $fields);
         }
 
         $view = $this->pageBuilder->build($engagement, $year, $week, $drafts);

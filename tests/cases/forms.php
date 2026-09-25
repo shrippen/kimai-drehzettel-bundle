@@ -58,3 +58,20 @@ check('draft extra pay clamp', [0, 10000000], [FilmDayDraftReader::read(['extra_
 check('draft shooting day', 37, FilmDayDraftReader::read(['shooting_day' => '37'])->shootingDayNumber);
 check('draft shooting day blank', [null, null], [FilmDayDraftReader::read(['shooting_day' => ''])->shootingDayNumber, FilmDayDraftReader::read(['shooting_day' => 'x'])->shootingDayNumber]);
 check('draft shooting day clamp', [1, 999], [FilmDayDraftReader::read(['shooting_day' => '0'])->shootingDayNumber, FilmDayDraftReader::read(['shooting_day' => '5000'])->shootingDayNumber]);
+
+// Regression: saving the week grid reset productionDay (no input). Missing keys keep the stored value,
+// a sent empty value clears it.
+$stored = new KimaiPlugin\DrehzettelBundle\Entity\FilmDay();
+$stored->setBreakMinutes(30);
+$stored->setCatering(Catering::YES);
+$stored->setCategory(DayCategory::HOLIDAY);
+$stored->setDayType(DayType::TRAVEL);
+$stored->setProductionDay(6);
+$stored->setNote('Reise');
+$stored->setExtraPayCents(5000);
+$stored->setShootingDayNumber(37);
+$kept = FilmDayDraftReader::read(['break' => '15'], $stored);
+check('draft keeps unsent fields', [15, Catering::YES, DayCategory::HOLIDAY, DayType::TRAVEL, 6, 'Reise', 5000, 37], [$kept->breakMinutes, $kept->catering, $kept->category, $kept->type, $kept->productionDay, $kept->note, $kept->extraPayCents, $kept->shootingDayNumber]);
+$cleared = FilmDayDraftReader::read(['break' => '', 'catering' => '0', 'category' => '', 'type' => '', 'production_day' => '', 'note' => '', 'extra_pay' => '', 'shooting_day' => ''], $stored);
+check('draft sent empty clears', [null, Catering::NO, null, DayType::WORKDAY, null, null, 0, null], [$cleared->breakMinutes, $cleared->catering, $cleared->category, $cleared->type, $cleared->productionDay, $cleared->note, $cleared->extraPayCents, $cleared->shootingDayNumber]);
+check('draft production day sent', 7, FilmDayDraftReader::read(['production_day' => '7'], $stored)->productionDay);

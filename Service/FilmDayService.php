@@ -2,6 +2,8 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraftReader;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
@@ -47,6 +49,16 @@ class FilmDayService
         $this->days->save($day);
 
         return $day;
+    }
+
+    /**
+     * Week view fields of one day over the stored day: fields the form did not send keep their value.
+     *
+     * @param array<string, mixed> $fields see FilmDayDraftReader::read()
+     */
+    public function draft(Engagement $engagement, \DateTimeImmutable $date, array $fields): FilmDayDraft
+    {
+        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date));
     }
 
     // Changes only the patched fields; a new day starts from the entity defaults.

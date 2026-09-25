@@ -626,6 +626,10 @@
         <source>drehzettel.pdf.extra_pay</source>
         <target>inkl. %amount% Zusatz</target>
       </trans-unit>
+      <trans-unit id="dz.production_day.title" resname="drehzettel.production_day.title">
+        <source>drehzettel.production_day.title</source>
+        <target>Drehtag der Woche (1–7)</target>
+      </trans-unit>
       <trans-unit id="dz.shooting_day.title" resname="drehzettel.shooting_day.title">
         <source>drehzettel.shooting_day.title</source>
         <target>Drehtag der Produktion</target>

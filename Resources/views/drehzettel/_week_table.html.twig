@@ -6,7 +6,7 @@
 
     The day grid is the one table the UI kit leaves to the plugin (kimai-plugin-ui GUIDELINES 3.2):
     Tabler table in .kpu-table-wrap, so at 390 px only the table scrolls, never the page.
-    Editable fields (break, catering, day type, category, shooting day, extra pay, note) show a short summary; the pencil
+    Editable fields (break, catering, day type, category, day of week, shooting day, extra pay, note) show a short summary; the pencil
     switches one row into edit mode (.dz-editing, see week.html.twig).
 #}
 {% import '@Drehzettel/_kit/macros.html.twig' as kit %}
@@ -136,6 +136,8 @@
                             </div></div>
                             <div class="dz-edit dz-edit-fields">
                                 <label class="form-check form-check-inline mb-0">
+                                    {#- Unchecked boxes are not posted: the hidden 0 says "off", a missing key means "keep". -#}
+                                    <input type="hidden" name="day[{{ row.key }}][catering]" value="0">
                                     <input type="checkbox" class="form-check-input dz-field" name="day[{{ row.key }}][catering]" {% if film.catering ?? false %}checked{% endif %}>
                                     <span class="form-check-label">{{ 'drehzettel.catering.title'|trans }}</span>
                                 </label>
@@ -150,6 +152,10 @@
                                         <option value="{{ c }}" {% if cat_val == c %}selected{% endif %}>{{ ('drehzettel.category.' ~ c)|trans }}</option>
                                     {% endfor %}
                                 </select>
+                                <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
+                                    <span class="small text-secondary">{{ 'drehzettel.production_day.title'|trans }}</span>
+                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][production_day]" min="1" max="7" step="1" inputmode="numeric" placeholder="–" title="{{ 'drehzettel.category.auto_short'|trans }}" value="{{ film.production_day ?? '' }}">
+                                </label>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.shooting_day.title'|trans }}</span>
                                     <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][shooting_day]" min="1" max="999" step="1" inputmode="numeric" value="{{ shoot_val ?? '' }}">
