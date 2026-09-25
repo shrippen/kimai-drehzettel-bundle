@@ -15,7 +15,10 @@ Token, den der Nutzer für den Kimai-Login/API-Zugriff anlegt). Verbindungstest 
 `GET /api/version`. Das ist das Muster, an das sich neue Plugin-Endpunkte anschließen sollten — kein
 separates Auth-System, keine eigene Basis-URL, einfach `/api/drehzettel/...` auf demselben Host.
 
-## Geplante Endpunkte (Entwurf, nicht implementiert)
+## Geplante Endpunkte (Entwurf von 2026-09-23)
+
+Umgesetzt und erweitert; aktueller Stand mit Beispielen in `README.md#api` (u. a. `engagements`,
+`days/{date}/summary`, `extraPayCents`, Fehlercodes).
 
 Alle unter `/api/drehzettel/...`, authentifiziert wie Kimais eigene API (derselbe Firewall-Bereich,
 kein Zusatzaufwand für den Client).

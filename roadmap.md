@@ -71,7 +71,7 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 
 ### Phase 2 — Persistence
 
-- [x] Entities: ruleset template, engagement, film day (break, catering, category, day type, production day, note)
+- [x] Entities: ruleset template, engagement, film day (break, catering, category, day type, production day, extra pay, note)
 - [x] Migration and install command (`kimai:bundle:drehzettel:install`)
 - [x] Ruleset codec (array/JSON), used for the engagement snapshot
 - [x] Timesheet entry to day input mapping (`DayInputBuilder`)
@@ -158,7 +158,22 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       can sync `breakMinutes`/`catering`/`category`/`note` through the API but must keep day
       type, production-day count and extra pay local-only.
       **Closed 2026-09-25** for `dayType`/`productionDay`: both are in `GET`/`PUT` now, and `PUT` is a
-      partial update (only sent keys change) with 400 on invalid values. `extraPayCents` stays open.
+      partial update (only sent keys change) with 400 on invalid values. **Closed 2026-09-25** for
+      `extraPayCents` too, see "Plasmai API additions" below. No field gap left.
+- [x] Plasmai API additions (2026-09-25), documented in `README.md#api`; clients discover them via
+      ping's `features`:
+      - `GET /v1/engagements?date=&user=`: active engagements of a user on a date.
+      - Film day `GET`/`PUT` also return `defaultBreakMinutes` (ruleset snapshot) and
+        `effectiveCategory` (`DayInputBuilder::categoryFor()`, now public: weekday or public holiday).
+      - Ping adds `permissions {view, manage}` and `features`.
+      - Errors are `{error, code}`. Missing/malformed `project`, `user` or date is 400 (was 404);
+        unknown ids and "no engagement" stay 404 (`no_engagement`); `engagement-status` keeps
+        answering `active: false`. Another user's data without `drehzettel_manage` is 403 on
+        film-days too (was 404 when that user had no engagement).
+      - `extraPayCents` (Zusatzgage/Spesen, reference app "Tag-Erfassung"): column
+        `extra_pay_cents` (migration `Version20260925000000`), added to the day's pay after the
+        catering deduction, no surcharges. Week grid, timesheet form, PDF (below the day's pay), API.
+      - `GET /v1/days/{date}/summary`: the day out of its calculated week, incl. `payCents`.
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".
@@ -230,6 +245,10 @@ session, and `php tests/run.php` (261 checks, unaffected) — not just `php -l`.
   own timesheet entry form (one save for `Timesheet` + `FilmDay`, form concept A), not only in the week
   view's inline dropdowns. Still open: the new-entry limitation where the toggle needs a project already
   picked to appear.
+- `productionDay` meanings differ: the plugin's is the day within the shooting week (1-7, drives the
+  6th/7th-day surcharge), Plasmai's FilmDayView treats it as a running shooting-day counter (0-999,
+  "Drehtag Nr. 37"). Semantics unchanged until the product owner decides; the API docs state the
+  plugin's meaning.
 - New-engagement view: the User, Project and Ruleset fields should be searchable (select with
   filter-as-you-type) instead of plain dropdowns — noted while testing in production, where the user
   and project lists are long enough that scrolling a plain `<select>` is impractical.
