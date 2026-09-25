@@ -210,3 +210,28 @@ Neu geprüft (Q1, Q3 erneut gelesen):
   **[PA-Auslegung]** Q3 S. 8: AZV-Tag ist „Ruhezeit“, auf einem Feiertag kein Zuschlag. Nehmen/Abziehen ist
   im Plugin noch nicht modelliert (roadmap).
 - **[Fakt]** TZ 5.6.3 (versetzter Dreh) bleibt offen, Wortlaut und Grund in `roadmap.md`.
+
+## Nachtrag 2026-09-25: PO-Entscheidungen D-11 bis D-17 und Umsetzung
+
+- **D-11** Reisetage: Option im Regelwerk (`travelDays`), Voreinstellung Tarif (TZ 12.1, zählen nicht);
+  „zählen“ = Reisetag zählt für Tag N und Wochenmehrarbeit (früher D-3a).
+- **D-12, D-13**: unverändert.
+- **D-14** AZV: Gutschrift nach Tariftext TZ 6.4 „ab dem 26. Drehtag“; Q3 („ab 25 Drehtagen“) weicht ab.
+- **D-15** Versetzter Dreh, **[Fakt]** TZ 5.6.3 S. 2 (Wortlaut oben). Umgesetzt wörtlich: Sonntag bzw.
+  Hl. Drei Könige, Fronleichnam, Mariä Himmelfahrt, Allerheiligen als 1.–5. Produktionstag der KW → kein
+  Zuschlag. **[Interpretation]** Auch eine Woche mit nur einem Sonntagsdreh (Tag 1) fällt darunter; der
+  Klammerzusatz „(versetzter Dreh)“ spricht für einen engeren Zweck, der Wortlaut nicht. Plugin warnt je Tag.
+  **[Interpretation]** Andere Feiertage auf einem Sonntag (z. B. 25.12.) behalten den Feiertagszuschlag,
+  da die Liste abschließend ist. **[PA-Auslegung]** Q3 S. 4: Samstagszuschlag nie betroffen.
+- **D-16** Nachtdreh, **[Fakt]** TZ 5.2.4 S. 2: „Im Falle von Nachtdreharbeiten beginnt kein neuer Arbeitstag
+  am 2. Kalendertag, soweit an diesem die Arbeit um 4 Uhr beendet ist.“ Grenze 04:00 (inklusive). Was bei
+  Arbeitsende nach 4 Uhr gilt, sagt der Text nicht (e contrario ein neuer Arbeitstag, aber ab wann?);
+  **[PA-Auslegung]** Q3 S. 6: „ohne dass ein ‚zweiter Tag‘ entsteht“. Plugin: ein Arbeitstag + Warnung.
+  **[Fakt]** TZ 5.6.1: Sonn-/Feiertagsarbeit ist die Arbeit 0–24 Uhr, „auch dann, wenn der Arbeitstag an
+  einem vorhergehenden Kalendertag begonnen hat“; TZ 5.6.3 S. 3: „werden die Zuschläge für den ganzen Tag
+  nur dann gewährt, wenn mehr als vier Stunden auf den Sonn- oder Feiertag entfallen, ansonsten werden sie
+  zeitanteilig vergütet.“ Plugin: > 4 h → ganzer Tag, sonst zeitanteilig. **[PA-Auslegung]** Q3 S. 6–7:
+  0–4 Uhr gar kein Sonntagszuschlag, danach nur ab 0 Uhr — weicht vom Wortlaut „zeitanteilig“ ab.
+  **[Interpretation]** Pause wird anteilig auf beide Kalendertage verteilt; Samstag (TZ 5.6.4) immer
+  zeitanteilig; zwei Ganztagszuschläge (Sonntag in einen Feiertag) → nur der höhere.
+- **D-17** AZV-Tage nehmen: später (roadmap).
