@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="d106" resname="drehzettel.compliance.title">
         <source>drehzettel.compliance.title</source>
-        <target>Working time limits</target>
+        <target>Working time and surcharge notes</target>
       </trans-unit>
       <trans-unit id="d107" resname="drehzettel.compliance.daily_max">
         <source>drehzettel.compliance.daily_max</source>
@@ -681,6 +681,22 @@
       <trans-unit id="dz.rules.travel_days.counted" resname="drehzettel.rules.travel_days.counted">
         <source>drehzettel.rules.travel_days.counted</source>
         <target>Count as working days</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.staggered_shoot" resname="drehzettel.compliance.staggered_shoot">
+        <source>drehzettel.compliance.staggered_shoot</source>
+        <target>%date%: no Sunday/holiday surcharge, staggered shoot (TV FFS TZ 5.6.3: a Sunday, or Epiphany, Corpus Christi, Assumption Day or All Saints' Day, as 1st to 5th production day of the calendar week). Applied as worded, also in a week with fewer than 5 shooting days; check with the production if in doubt. The paid rest day (TZ 5.6.2) remains.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.night_cutoff" resname="drehzettel.compliance.night_cutoff">
+        <source>drehzettel.compliance.night_cutoff</source>
+        <target>%date%: the night shoot runs %measured% into the next day, past 4:00 (%limit%). TV FFS TZ 5.2.4 only says no new working day begins when work ends by 4:00; calculated as one working day (employers' FAQ: no second day). Check with the production if in doubt.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.staggered_shoot" resname="drehzettel.compliance.short.staggered_shoot">
+        <source>drehzettel.compliance.short.staggered_shoot</source>
+        <target>Staggered shoot</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.night_cutoff" resname="drehzettel.compliance.short.night_cutoff">
+        <source>drehzettel.compliance.short.night_cutoff</source>
+        <target>Night past 4:00</target>
       </trans-unit>
     </body>
   </file>

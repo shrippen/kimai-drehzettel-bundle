@@ -172,7 +172,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/days/{date}/summary', name: 'drehzettel_api_day_summary', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), azvMinutesToDate (AZV credit up to and including the date, TV FFS TZ 6; null when the engagement earns none). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
+    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge (categoryPercent whole day; categoryShares [{percent, minutes}] pro rata for a day past midnight, TV FFS TZ 5.6.3; waivedCategory: sunday/holiday surcharge waived by a staggered shoot, TZ 5.6.3), week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), azvMinutesToDate (AZV credit up to and including the date, TV FFS TZ 6; null when the engagement earns none). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function daySummary(Request $request, string $date): JsonResponse
     {

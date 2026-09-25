@@ -16,6 +16,10 @@ use KimaiPlugin\DrehzettelBundle\Enum\ComplianceIssue;
  *
  * azvMinutesToDate: AZV credit earned up to and including the date (TV FFS TZ 6),
  * null when the engagement earns none.
+ *
+ * categoryPercent is the whole-day Saturday/Sunday/holiday surcharge; a day past
+ * midnight adds pro-rata ones as categoryShares (TZ 5.6.3). waivedCategory: the
+ * Sunday/holiday surcharge a staggered shoot waived (TZ 5.6.3), else null.
  */
 final class DaySummary
 {
@@ -50,6 +54,8 @@ final class DaySummary
             'underMinutes' => $day?->underMinutes ?? 0,
             'category' => $day?->category->value,
             'categoryPercent' => $day?->categorySurcharge === null ? null : self::percent($day->categorySurcharge->basisPoints),
+            'categoryShares' => array_map(self::share(...), $day?->categoryShares ?? []),
+            'waivedCategory' => $day?->waivedCategory?->value,
             'dayNumber' => $day?->dayNumber,
             'shootingDayNumber' => $day?->shootingDayNumber,
             'weeklyOvertimeMinutes' => $week->weeklyPoolMinutes,

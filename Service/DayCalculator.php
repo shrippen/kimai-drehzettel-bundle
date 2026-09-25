@@ -2,14 +2,17 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
+use KimaiPlugin\DrehzettelBundle\Domain\CategorySurcharge;
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
 use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Domain\Ruleset;
 use KimaiPlugin\DrehzettelBundle\Domain\Share;
+use KimaiPlugin\DrehzettelBundle\Domain\StaggeredShoot;
 use KimaiPlugin\DrehzettelBundle\Domain\Tiers;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
+use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
 
@@ -25,6 +28,9 @@ use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
  */
 class DayCalculator
 {
+    // TZ 5.6.3 sentence 3: "mehr als vier Stunden" on a Sunday/holiday pay its surcharge for the whole day.
+    private const WHOLE_DAY_MINUTES = 4 * Units::MINUTES_PER_HOUR;
+
     public function __construct(private readonly PayCalculator $pay)
     {
     }
@@ -39,7 +45,9 @@ class DayCalculator
         $surcharged = $day->type === DayType::WORKDAY;
         $tiers = $surcharged ? Tiers::split($rules->dailyTiers, 0, $work, $rules->surchargeRounding) : [];
         $night = $surcharged ? $this->nightMinutes($day, $gross, $rules) : 0;
-        $category = $surcharged && $work > 0 ? $rules->surchargeFor($day->category) : null;
+        [$category, $categoryShares, $waived] = $surcharged && $work > 0
+            ? $this->categorySurcharges($day, $rules, $gross, $work, $dayNumber)
+            : [null, [], null];
         $dayCount = $rules->countsAsDay($day->type) ? $this->dayCountShare($dayNumber, $work, $rules) : null;
 
         $result = new DayResult(
@@ -63,6 +71,8 @@ class DayCalculator
             extraPayCents: $day->extraPayCents,
             shootingDayNumber: $day->shootingDayNumber,
             productionDay: $day->productionDay,
+            categoryShares: $categoryShares,
+            waivedCategory: $waived,
         );
 
         if ($terms === null) {
@@ -120,6 +130,75 @@ class DayCalculator
         return $date->setTime($hour, $minuteOfDay % Units::MINUTES_PER_HOUR)->getTimestamp();
     }
 
+    /**
+     * Saturday, Sunday and holiday surcharges (TZ 5.6).
+     *
+     * Within one calendar day, or with a category override: the category's
+     * surcharge for the whole day. Past midnight each calendar day brings its
+     * own category (TZ 5.6.1: Sunday work is work on the Sunday 0-24 h, also
+     * when the working day began the day before):
+     *
+     *   Sunday or holiday part over 4 h -> its surcharge for the whole day (TZ 5.6.3 S. 3)
+     *   any other part                  -> its percentage on the part's minutes ("zeitanteilig")
+     *
+     *   Fri 22:00-Sat 03:00  Saturday 25 % on 3 h
+     *   Sat 18:00-Sun 03:00  Saturday 25 % on 6 h, Sunday 75 % on 3 h
+     *   Sat 14:00-Sun 05:00  Saturday 25 % on 10 h, Sunday 75 % for the whole day
+     *
+     * Two whole-day surcharges (Sunday into a holiday) pay the higher one only.
+     * A staggered shoot waives a Sunday or listed holiday part (StaggeredShoot).
+     *
+     * @return array{?CategorySurcharge, list<Share>, ?DayCategory} whole day, pro rata, waived
+     */
+    private function categorySurcharges(DayInput $day, Ruleset $rules, int $gross, int $work, int $dayNumber): array
+    {
+        $split = $day->nextCategory !== null;
+        $whole = null;
+        $shares = [];
+        $waived = null;
+        foreach ($this->calendarParts($day, $gross, $work) as [$category, $date, $minutes]) {
+            if (StaggeredShoot::waives($category, $date, $dayNumber)) {
+                $waived = $category;
+                continue;
+            }
+
+            $surcharge = $rules->surchargeFor($category);
+            if ($surcharge === null || $minutes === 0) {
+                continue;
+            }
+
+            $restDay = $category === DayCategory::SUNDAY || $category === DayCategory::HOLIDAY;
+            if (!$split || ($restDay && $minutes > self::WHOLE_DAY_MINUTES)) {
+                $whole = $whole === null || $surcharge->basisPoints > $whole->basisPoints ? $surcharge : $whole;
+                continue;
+            }
+
+            $shares[] = new Share($surcharge->basisPoints, $rules->surchargeRounding->apply($minutes));
+        }
+
+        return [$whole, $shares, $waived];
+    }
+
+    /**
+     * Work minutes per calendar day. The break is spread like presence:
+     * 18:00-03:00 with 45 min break = 495 min work, 330 before and 165 after midnight.
+     *
+     * @return list<array{DayCategory, \DateTimeImmutable, int}> category, date, work minutes
+     */
+    private function calendarParts(DayInput $day, int $gross, int $work): array
+    {
+        $date = $day->begin->setTime(0, 0);
+        if ($day->nextCategory === null) {
+            return [[$day->category, $date, $work]];
+        }
+
+        $next = $date->modify('+1 day');
+        $after = min($gross, intdiv(max(0, $day->end->getTimestamp() - $next->getTimestamp()), Units::SECONDS_PER_MINUTE));
+        $afterWork = intdiv(2 * $work * $after + $gross, 2 * $gross);
+
+        return [[$day->category, $date, $work - $afterWork], [$day->nextCategory, $next, $afterWork]];
+    }
+
     private function dayCountShare(int $dayNumber, int $work, Ruleset $rules): ?Share
     {
         $basisPoints = match (true) {
@@ -150,6 +229,7 @@ class DayCalculator
         if ($category !== null && $category->basis === SurchargeBasis::HOURLY) {
             $hourly[] = new Share($category->basisPoints, $day->workMinutes);
         }
+        array_push($hourly, ...$day->categoryShares);
         if ($category !== null && $category->basis === SurchargeBasis::DAY_RATE) {
             $dayRate = $category->basisPoints;
         }
@@ -178,6 +258,8 @@ class DayCalculator
             $day->extraPayCents,
             $day->shootingDayNumber,
             $day->productionDay,
+            $day->categoryShares,
+            $day->waivedCategory,
         );
     }
 }

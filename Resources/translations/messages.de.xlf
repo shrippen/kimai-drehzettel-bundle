@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="d106" resname="drehzettel.compliance.title">
         <source>drehzettel.compliance.title</source>
-        <target>Arbeitszeitgrenzen</target>
+        <target>Hinweise zu Arbeitszeit und Zuschlägen</target>
       </trans-unit>
       <trans-unit id="d107" resname="drehzettel.compliance.daily_max">
         <source>drehzettel.compliance.daily_max</source>
@@ -681,6 +681,22 @@
       <trans-unit id="dz.rules.travel_days.counted" resname="drehzettel.rules.travel_days.counted">
         <source>drehzettel.rules.travel_days.counted</source>
         <target>Zählen als Arbeitstage</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.staggered_shoot" resname="drehzettel.compliance.staggered_shoot">
+        <source>drehzettel.compliance.staggered_shoot</source>
+        <target>%date%: kein Sonn-/Feiertagszuschlag, versetzter Dreh (TV FFS TZ 5.6.3: Sonntag oder Hl. Drei Könige, Fronleichnam, Mariä Himmelfahrt, Allerheiligen als 1. bis 5. Produktionstag der Kalenderwoche). Nach dem Wortlaut angewendet, auch in einer Woche mit weniger als 5 Drehtagen; im Zweifel mit der Produktion klären. Der bezahlte Ruhetag (TZ 5.6.2) bleibt.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.night_cutoff" resname="drehzettel.compliance.night_cutoff">
+        <source>drehzettel.compliance.night_cutoff</source>
+        <target>%date%: Der Nachtdreh reicht %measured% in den Folgetag, über 4 Uhr (%limit%) hinaus. TV FFS TZ 5.2.4 sagt nur, dass bei Arbeitsende bis 4 Uhr kein neuer Arbeitstag beginnt; gerechnet wird ein Arbeitstag (PA-FAQ: kein zweiter Tag). Im Zweifel mit der Produktion klären.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.staggered_shoot" resname="drehzettel.compliance.short.staggered_shoot">
+        <source>drehzettel.compliance.short.staggered_shoot</source>
+        <target>Versetzter Dreh</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.night_cutoff" resname="drehzettel.compliance.short.night_cutoff">
+        <source>drehzettel.compliance.short.night_cutoff</source>
+        <target>Nachtdreh nach 4 Uhr</target>
       </trans-unit>
     </body>
   </file>
