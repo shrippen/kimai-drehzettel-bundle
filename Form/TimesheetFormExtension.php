@@ -15,6 +15,7 @@ use KimaiPlugin\DrehzettelBundle\Service\PendingFilmDays;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -46,9 +47,12 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public const FIELD_CATERING = 'drehzettelCatering';
     public const FIELD_CATEGORY = 'drehzettelCategory';
     public const FIELD_NOTE = 'drehzettelNote';
+    public const FIELD_EXTRA_PAY = 'drehzettelExtraPay';
 
     private const MAX_BREAK_MINUTES = 720;
     private const MAX_NOTE_LENGTH = 500;
+    private const CENTS = 100;
+    private const DEFAULT_CURRENCY = 'EUR';
 
     public function __construct(
         private readonly EngagementService $engagements,
@@ -88,7 +92,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         // shows it too - otherwise saving would reset the day to blank fields.
         $existing = $this->filmDays->findOne($engagement, $this->dateOf($timesheet));
 
-        // row_attr classes group these five rows visually (amber box, see the sitewide CSS
+        // row_attr classes group these rows visually (amber box, see the sitewide CSS
         // added by EventSubscriber\ThemeSubscriber) - matches form concept A from the workflow
         // artifact (https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS), chosen 2026-09-23.
         $builder->add(self::FIELD_TOGGLE, YesNoType::class, [
@@ -133,6 +137,18 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
+        // Model value in cents (divisor), shown as 12.50 in the customer's currency.
+        $builder->add(self::FIELD_EXTRA_PAY, MoneyType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.extra_pay.title',
+            'divisor' => self::CENTS,
+            'currency' => $timesheet->getProject()?->getCustomer()?->getCurrency() ?? self::DEFAULT_CURRENCY,
+            'data' => $existing?->getExtraPayCents() ?: null,
+            'constraints' => [new Range(notInRangeMessage: 'drehzettel.extra_pay.range', min: 0, max: FilmDayPatch::MAX_EXTRA_PAY_CENTS)],
+            'row_attr' => ['class' => 'dz-form-row'],
+        ]);
+
         $builder->add(self::FIELD_NOTE, TextareaType::class, [
             'mapped' => false,
             'required' => false,
@@ -165,6 +181,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         }
 
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
+        $extraPay = $form->get(self::FIELD_EXTRA_PAY)->getData();
         $note = $form->get(self::FIELD_NOTE)->getData();
         $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
@@ -175,6 +192,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
                 'catering' => (bool) $form->get(self::FIELD_CATERING)->getData(),
                 'category' => $form->get(self::FIELD_CATEGORY)->getData(),
                 'note' => $note,
+                'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
             ]);
         } catch (\InvalidArgumentException) {
             return; // out of range: the break field's own constraint reports it

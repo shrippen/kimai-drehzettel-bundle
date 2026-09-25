@@ -54,6 +54,7 @@ final class ApiJson
             'note' => $day?->getNote(),
             'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
             'productionDay' => $day?->getProductionDay(),
+            'extraPayCents' => $day?->getExtraPayCents() ?? 0,
             'defaultBreakMinutes' => $rules->defaultBreakMinutes,
             'effectiveCategory' => ($day?->getCategory() ?? $autoCategory)->value,
         ];

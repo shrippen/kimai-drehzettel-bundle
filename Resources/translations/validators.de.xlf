@@ -18,6 +18,10 @@
         <source>drehzettel.signature.invalid</source>
         <target>Nur PNG- oder JPEG-Bilder sind erlaubt.</target>
       </trans-unit>
+      <trans-unit id="dzv.extra_pay.range" resname="drehzettel.extra_pay.range">
+        <source>drehzettel.extra_pay.range</source>
+        <target>Zwischen 0 und 100.000,00.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

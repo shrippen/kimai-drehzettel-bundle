@@ -65,3 +65,17 @@ check('patch production day', 'productionDay must be an integer from 1 to 7.', p
 check('patch note long', 'note must be a string of at most 500 characters.', patchError(['note' => str_repeat('x', 501)]));
 check('patch note type', 'note must be a string of at most 500 characters.', patchError(['note' => ['x']]));
 check('patch note 500 ok', null, patchError(['note' => str_repeat('ä', 500)]));
+
+// Extra pay: integer cents 0..10,000,000, null resets to 0.
+$day = travelDay();
+FilmDayPatch::fromArray(['extraPayCents' => 5000])->applyTo($day);
+check('patch extra pay', [5000, 0, 'Reise'], [$day->getExtraPayCents(), $day->getBreakMinutes(), $day->getNote()]);
+FilmDayPatch::fromArray(['note' => 'x'])->applyTo($day);
+check('patch keeps extra pay', 5000, $day->getExtraPayCents());
+FilmDayPatch::fromArray(['extraPayCents' => null])->applyTo($day);
+check('patch extra pay null resets', 0, $day->getExtraPayCents());
+check('patch extra pay max ok', null, patchError(['extraPayCents' => 10000000]));
+check('patch extra pay too high', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => 10000001]));
+check('patch extra pay negative', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => -1]));
+check('patch extra pay fraction', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => 12.5]));
+check('patch extra pay bool', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => true]));

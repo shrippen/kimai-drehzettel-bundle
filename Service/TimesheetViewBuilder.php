@@ -155,6 +155,7 @@ class TimesheetViewBuilder
             'catering' => $this->labels->t($day->catering === Catering::YES ? 'drehzettel.pdf.yes' : 'drehzettel.pdf.no', $locale),
             'day_type' => $this->labels->t('drehzettel.day_type.' . $day->dayType->value, $locale),
             'pay' => $showPay && $day->amountCents !== null ? Format::money($day->amountCents, $locale, $this->currency) : '',
+            'extra_pay' => $showPay && $day->extraPayCents > 0 ? $this->labels->t('drehzettel.pdf.extra_pay', $locale, ['%amount%' => Format::money($day->extraPayCents, $locale, $this->currency)]) : '',
         ];
     }
 

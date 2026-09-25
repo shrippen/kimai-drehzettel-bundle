@@ -29,6 +29,7 @@ class FilmDayService
         DayType $type = DayType::WORKDAY,
         ?int $productionDay = null,
         ?string $note = null,
+        int $extraPayCents = 0,
     ): FilmDay {
         $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
         $day->setEngagement($engagement);
@@ -39,6 +40,7 @@ class FilmDayService
         $day->setDayType($type);
         $day->setProductionDay($productionDay);
         $day->setNote($note);
+        $day->setExtraPayCents($extraPayCents);
 
         $this->days->save($day);
 

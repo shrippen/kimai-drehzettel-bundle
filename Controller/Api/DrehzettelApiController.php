@@ -126,8 +126,8 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['PUT'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_put', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default.')]
-    #[OA\Response(response: 400, description: 'code invalid_json, or invalid_value for a field: breakMinutes 0-720, productionDay 1-7, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
+    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default and extraPayCents to 0.')]
+    #[OA\Response(response: 400, description: 'code invalid_json, or invalid_value for a field: breakMinutes 0-720, productionDay 1-7, extraPayCents integer 0-10000000, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function filmDayPut(Request $request, string $date): JsonResponse
     {

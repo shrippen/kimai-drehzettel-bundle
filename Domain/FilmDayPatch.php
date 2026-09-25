@@ -21,6 +21,7 @@ final class FilmDayPatch
     public const MAX_BREAK_MINUTES = 720;
     public const MAX_PRODUCTION_DAY = 7;
     public const MAX_NOTE_LENGTH = 500;
+    public const MAX_EXTRA_PAY_CENTS = 10_000_000;
 
     /**
      * @param array<string, mixed> $values validated values of the sent keys only
@@ -54,6 +55,9 @@ final class FilmDayPatch
         if (array_key_exists('note', $body)) {
             $values['note'] = self::note($body['note']);
         }
+        if (array_key_exists('extraPayCents', $body)) {
+            $values['extraPayCents'] = self::intOrNull($body['extraPayCents'], 0, self::MAX_EXTRA_PAY_CENTS, 'extraPayCents') ?? 0;
+        }
 
         return new self($values);
     }
@@ -77,6 +81,9 @@ final class FilmDayPatch
         }
         if (array_key_exists('note', $this->values)) {
             $day->setNote($this->values['note']);
+        }
+        if (array_key_exists('extraPayCents', $this->values)) {
+            $day->setExtraPayCents($this->values['extraPayCents']);
         }
     }
 

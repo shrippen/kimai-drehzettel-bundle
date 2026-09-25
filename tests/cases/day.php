@@ -64,3 +64,15 @@ $r = dayCalc()->calc(shift('2025-03-29', '20:00', '06:00', 0), $app, null);
 check('night spring forward dst', 420, $r->nightMinutes);
 $r = dayCalc()->calc(shift('2025-10-26', '01:00', '07:00', 0), $app, null);
 check('night starts inside window on dst day', 360, $r->nightMinutes);
+
+// Extra pay (Zusatzgage/Spesen) is added to the day as is, after the catering deduction:
+// 9:00 h = 284.58, catering -9.50, extra +50.00 -> 325.08.
+$extra = new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2025-05-19', '08:30'), at('2025-05-19', '17:30'), catering: KimaiPlugin\DrehzettelBundle\Enum\Catering::YES, breakMinutes: 0, extraPayCents: 5000);
+$r = dayCalc()->calc($extra, $app, $terms);
+check('extra pay added to day', [32508, 5000], [$r->amountCents, $r->extraPayCents]);
+$r = dayCalc()->calc($extra, $app, null);
+check('extra pay without terms', [null, 5000], [$r->amountCents, $r->extraPayCents]);
+$travel = new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2025-05-19', '08:30'), at('2025-05-19', '17:30'), type: KimaiPlugin\DrehzettelBundle\Enum\DayType::TRAVEL, breakMinutes: 0, extraPayCents: 1234);
+check('extra pay on travel day', 28458 + 1234, dayCalc()->calc($travel, $app, $terms)->amountCents);
+$week = weekCalc()->calc([$extra], $app, $terms);
+check('extra pay in week total', 32508, $week->totalCents);

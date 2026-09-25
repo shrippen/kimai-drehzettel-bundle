@@ -614,6 +614,18 @@
         <source>drehzettel.permission_section</source>
         <target>Drehzettel</target>
       </trans-unit>
+      <trans-unit id="dz.extra_pay.title" resname="drehzettel.extra_pay.title">
+        <source>drehzettel.extra_pay.title</source>
+        <target>Zusatzgage/Spesen</target>
+      </trans-unit>
+      <trans-unit id="dz.extra_pay.short" resname="drehzettel.extra_pay.short">
+        <source>drehzettel.extra_pay.short</source>
+        <target>Zusatz</target>
+      </trans-unit>
+      <trans-unit id="dz.pdf.extra_pay" resname="drehzettel.pdf.extra_pay">
+        <source>drehzettel.pdf.extra_pay</source>
+        <target>inkl. %amount% Zusatz</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

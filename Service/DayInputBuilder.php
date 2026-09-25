@@ -53,6 +53,7 @@ class DayInputBuilder
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
                 note: $extra?->getNote(),
+                extraPayCents: $extra?->getExtraPayCents() ?? 0,
             );
         }
 
@@ -69,6 +70,7 @@ class DayInputBuilder
         $day->setDayType($draft->type);
         $day->setProductionDay($draft->productionDay);
         $day->setNote($draft->note);
+        $day->setExtraPayCents($draft->extraPayCents);
 
         return $day;
     }

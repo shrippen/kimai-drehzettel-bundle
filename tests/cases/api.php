@@ -75,3 +75,13 @@ $stored->setBreakMinutes(30);
 $json = KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, $stored, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY);
 check('api film day override wins', [30, 'holiday', 'holiday'], [$json['breakMinutes'], $json['category'], $json['effectiveCategory']]);
 check('api ping defaults', true, in_array('defaults', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
+check('api film day extra pay', [5000, 0], [
+    (function () use ($engagement, $rules): int {
+        $d = new KimaiPlugin\DrehzettelBundle\Entity\FilmDay();
+        $d->setExtraPayCents(5000);
+
+        return KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, $d, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['extraPayCents'];
+    })(),
+    KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['extraPayCents'],
+]);
+check('api ping extra pay', true, in_array('extraPay', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));

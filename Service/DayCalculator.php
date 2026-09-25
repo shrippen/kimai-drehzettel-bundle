@@ -60,6 +60,7 @@ class DayCalculator
             category: $day->category,
             note: $day->note,
             underMinutes: $surcharged && $work > 0 ? max(0, $rules->minDayMinutes - $work) : 0,
+            extraPayCents: $day->extraPayCents,
         );
 
         if ($terms === null) {
@@ -151,7 +152,8 @@ class DayCalculator
             $dayRate = $category->basisPoints;
         }
 
-        $cents = $this->pay->dayCents($day->workMinutes, $hourly, $dayRate, $day->catering, $terms, $rules);
+        // Extra pay (Zusatzgage/Spesen) is a fixed amount on top: no surcharge, no rounding.
+        $cents = $this->pay->dayCents($day->workMinutes, $hourly, $dayRate, $day->catering, $terms, $rules) + $day->extraPayCents;
 
         return new DayResult(
             $day->begin,
@@ -171,6 +173,7 @@ class DayCalculator
             $day->category,
             $day->note,
             $day->underMinutes,
+            $day->extraPayCents,
         );
     }
 }

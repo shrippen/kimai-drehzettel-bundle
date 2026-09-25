@@ -111,3 +111,12 @@ check('money negative en', '-€12.00', Format::money(-1200, 'en'));
 // The PDF uses the customer currency of the project.
 $chf = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true, currency: 'CHF'), $period, [$noteWeek], $rules, new PdfOptions([PdfOption::PAY]));
 check('view: pay in customer currency', true, str_ends_with($chf['weeks'][0]['sums']['pay'], ' CHF'));
+
+// Extra pay: included in the day's pay, named below it in the PDF.
+$extraWeek = weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), extraPayCents: 5000)], $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100));
+$extraView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [$extraWeek], $rules, new PdfOptions([PdfOption::PAY]));
+check('view: extra pay line', 'drehzettel.pdf.extra_pay(%amount%=' . Format::money(5000, 'de') . ')', $extraView['weeks'][0]['rows'][0]['extra_pay']);
+check('view: extra pay in day pay', Format::money($extraWeek->days[0]->amountCents, 'de'), $extraView['weeks'][0]['rows'][0]['pay']);
+check('view: no extra pay line', '', $withPay['weeks'][0]['rows'][0]['extra_pay']);
+$extraHidden = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [$extraWeek], $rules, new PdfOptions([]));
+check('view: extra pay hidden without pay', '', $extraHidden['weeks'][0]['rows'][0]['extra_pay']);
