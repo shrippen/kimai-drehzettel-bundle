@@ -56,7 +56,11 @@ class WeekCommand extends Command
         $week = (int) $input->getArgument('week');
         $monday = (new \DateTimeImmutable('today', $user->getDateTimezone()))->setISODate($year, $week);
 
-        $engagement = $this->engagements->active($user, $project, $monday);
+        // An engagement that starts or ends mid-week counts too: take the first active day.
+        $engagement = null;
+        for ($day = 0; $day < 7 && $engagement === null; ++$day) {
+            $engagement = $this->engagements->active($user, $project, $monday->modify("+$day days"));
+        }
         if ($engagement === null) {
             $io->error('No active engagement in this week.');
 

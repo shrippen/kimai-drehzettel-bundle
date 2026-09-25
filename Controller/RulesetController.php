@@ -53,7 +53,7 @@ class RulesetController extends AbstractController
 
         if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
             $name = trim((string) $request->request->get('name'));
-            if ($name === '' || $this->custom->findByName($name) !== null) {
+            if ($name === '' || $this->catalog->isPresetKey($name) || $this->custom->findByName($name) !== null) {
                 $this->flashError('action.update.error');
             } else {
                 try {

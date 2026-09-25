@@ -16,6 +16,6 @@
 ## P2
 - [x] 📖 Timesheet-Zeitzone vs. User-Zone (DayInputBuilder::spans): Umrechnen in User-Zone verworfen (Kimai zeigt Einträge in ihrer eigenen Zone, alle Zeiten der Dev-Daten würden sich verschieben). Stattdessen Abfrage ±1 Tag, Filter nach lokalem Datum; live reproduziert: Berlin-Eintrag Mo 00:30 bei User-Zone UTC → Woche 40 gab 500
 - [x] 📖 DST bei Nachtminuten (DayCalculator.php:96) + Test
-- [ ] 📖 500er: EngagementController::edit Datum (:88), PayKind::from (:165), RulesetController::new unbekanntes {from} (:48), \d+ bei {year}/{week}
-- [ ] 📖 Kleinkram: Custom-Ruleset-Name kollidiert mit Preset-Key, hardcodiertes /api im Banner-JS (ThemeSubscriber.php:78), Mail-Flash leakt Exception-Message, WeekCommand Engagement mitten in der Woche, verwaiste Drehtage nach API-PATCH
+- [x] 📖 500er: EngagementController::edit Datum (:88), PayKind::from (:165), RulesetController::new unbekanntes {from} (:48), \d+ bei {year}/{week}
+- [x] 📖 Kleinkram: Custom-Ruleset-Name kollidiert mit Preset-Key, hardcodiertes /api im Banner-JS (ThemeSubscriber.php:78), Mail-Flash leakt Exception-Message, WeekCommand Engagement mitten in der Woche, verwaiste Drehtage nach API-PATCH
 - [x] kein Fehler: Signatur >48 KB (LONGTEXT, live 240 KB gespeichert)

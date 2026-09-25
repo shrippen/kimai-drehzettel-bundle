@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\EventSubscriber;
 
 use App\Event\ThemeEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Two small, sitewide additions via Kimai's own theme extension points
@@ -27,6 +28,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class ThemeSubscriber implements EventSubscriberInterface
 {
+    private const STATUS_URL_PLACEHOLDER = '%STATUS_URL%';
+
+    public function __construct(private readonly UrlGeneratorInterface $urls)
+    {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -49,9 +56,11 @@ class ThemeSubscriber implements EventSubscriberInterface
             HTML);
     }
 
+    // The API URL comes from the router, so Kimai under a sub path (/kimai/api/...) works too.
     public function onJavascript(ThemeEvent $event): void
     {
-        $event->addContent(<<<'HTML'
+        $statusUrl = json_encode($this->urls->generate('drehzettel_api_engagement_status'), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES);
+        $event->addContent(str_replace(self::STATUS_URL_PLACEHOLDER, $statusUrl, <<<'HTML'
             <script>
             (function () {
                 var texts = {
@@ -75,7 +84,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                         if (toRemove) { toRemove.remove(); }
                         return;
                     }
-                    fetch('/api/drehzettel/v1/engagement-status?project=' + encodeURIComponent(projectId), {
+                    fetch(%STATUS_URL% + '?project=' + encodeURIComponent(projectId), {
                         headers: {'Accept': 'application/json'},
                         credentials: 'same-origin'
                     })
@@ -111,6 +120,6 @@ class ThemeSubscriber implements EventSubscriberInterface
                 });
             })();
             </script>
-            HTML);
+            HTML));
     }
 }
