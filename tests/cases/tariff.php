@@ -75,15 +75,21 @@ check('staggered: christmas kept', [10000, null], [$christmas->days[4]->category
 // --- Night shoot day boundary ---
 
 $span = static fn (string $date, string $begin, string $end): array => [shift($date, $begin, $end)->begin, shift($date, $begin, $end)->end];
-$joinKeys = static fn (array $spans): array => array_map(static fn (array $s): string => $s[0]->format('D H:i') . '-' . $s[1]->format('D H:i'), array_values(NightShoot::join($spans)));
+$joinKeys = static fn (array $entries): array => array_map(static fn (array $s): string => $s[0]->format('D H:i') . '-' . $s[1]->format('D H:i'), array_values(NightShoot::byWorkingDay($entries)));
 
 // Sat 18:00-24:00 + Sun 00:00-03:00 is one working day; ending exactly at 04:00 still is.
-check('night: joined by 04:00', ['Sat 18:00-Sun 03:00'], $joinKeys(['2026-06-20' => $span('2026-06-20', '18:00', '00:00'), '2026-06-21' => $span('2026-06-21', '00:00', '03:00')]));
-check('night: joined at 04:00', ['Sat 18:00-Sun 04:00'], $joinKeys(['2026-06-20' => $span('2026-06-20', '18:00', '00:00'), '2026-06-21' => $span('2026-06-21', '00:30', '04:00')]));
+check('night: joined by 04:00', ['Sat 18:00-Sun 03:00'], $joinKeys([$span('2026-06-21', '00:00', '03:00'), $span('2026-06-20', '18:00', '00:00')]));
+check('night: joined at 04:00', ['Sat 18:00-Sun 04:00'], $joinKeys([$span('2026-06-20', '18:00', '00:00'), $span('2026-06-21', '00:30', '04:00')]));
+
+// A later Sunday entry stays a day of its own: Sun 14:00-22:00 does not swallow the night's end.
+check('night: joined and next day', ['Sat 18:00-Sun 03:00', 'Sun 14:00-Sun 22:00'], $joinKeys([$span('2026-06-20', '18:00', '00:00'), $span('2026-06-21', '00:00', '03:00'), $span('2026-06-21', '14:00', '22:00')]));
+
+// Entries of one date still make one span.
+check('night: same date grouped', ['Mon 08:00-Mon 18:00'], $joinKeys([$span('2026-06-15', '08:00', '12:00'), $span('2026-06-15', '13:00', '18:00')]));
 
 // Past 04:00, or after a day that ended before 22:00, a new working day begins.
-check('night: past 04:00 separate', ['Sat 18:00-Sun 00:00', 'Sun 00:00-Sun 05:00'], $joinKeys(['2026-06-20' => $span('2026-06-20', '18:00', '00:00'), '2026-06-21' => $span('2026-06-21', '00:00', '05:00')]));
-check('night: no night shoot before', ['Sat 08:00-Sat 17:00', 'Sun 01:00-Sun 03:00'], $joinKeys(['2026-06-20' => $span('2026-06-20', '08:00', '17:00'), '2026-06-21' => $span('2026-06-21', '01:00', '03:00')]));
+check('night: past 04:00 separate', ['Sat 18:00-Sun 00:00', 'Sun 00:00-Sun 05:00'], $joinKeys([$span('2026-06-20', '18:00', '00:00'), $span('2026-06-21', '00:00', '05:00')]));
+check('night: no night shoot before', ['Sat 08:00-Sat 17:00', 'Sun 01:00-Sun 03:00'], $joinKeys([$span('2026-06-20', '08:00', '17:00'), $span('2026-06-21', '01:00', '03:00')]));
 
 // Joined, the night shoot is one day: day numbering, rest time and daily maximum follow.
 // Fri 12:00-24:00 + Sat 00:00-03:00 (15 h, break 45), then Sat 18:00-24:00.

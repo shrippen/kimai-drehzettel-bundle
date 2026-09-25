@@ -114,22 +114,16 @@ class DayInputBuilder
         $fromKey = $from->format(self::DATE_FORMAT);
         $toKey = $to->format(self::DATE_FORMAT);
 
-        $spans = [];
+        $valid = [];
         foreach ($entries as $entry) {
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
-            $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
-            $key = $begin->format(self::DATE_FORMAT);
-            if (!$this->isValid($engagement, $key)) {
-                continue;
+            if ($this->isValid($engagement, $begin->format(self::DATE_FORMAT))) {
+                $valid[] = [$begin, \DateTimeImmutable::createFromInterface($entry->getEnd())];
             }
-
-            $known = $spans[$key] ?? [$begin, $end];
-            $spans[$key] = [min($known[0], $begin), max($known[1], $end)];
         }
-        ksort($spans);
 
-        // Join night shoot ends before cutting to the range: Sunday night may end in Monday's week.
-        $spans = NightShoot::join($spans);
+        // Group before cutting to the range: a Sunday night shoot may end in Monday's week.
+        $spans = NightShoot::byWorkingDay($valid);
 
         return array_filter($spans, static fn (string $key): bool => $key >= $fromKey && $key < $toKey, ARRAY_FILTER_USE_KEY);
     }

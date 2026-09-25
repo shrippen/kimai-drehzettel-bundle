@@ -9,8 +9,8 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
  *   2. Kalendertag, soweit an diesem die Arbeit um 4 Uhr beendet ist."
  *
  * A working day is keyed by its begin date, so one entry past midnight is one
- * working day already. join() adds a separate entry after midnight to the
- * night shoot of the day before when it ends by 04:00:
+ * working day already. byWorkingDay() adds a separate entry after midnight to
+ * the night shoot of the day before when it ends by 04:00:
  *
  *   Sat 18:00-24:00 + Sun 00:00-03:00  -> one working day, Sat 18:00-Sun 03:00
  *   Sat 18:00-24:00 + Sun 00:00-05:00  -> two working days (ends after 04:00)
@@ -28,20 +28,28 @@ final class NightShoot
     private const DATE_FORMAT = 'Y-m-d';
 
     /**
-     * @param array<string, array{\DateTimeImmutable, \DateTimeImmutable}> $spans begin/end by begin date, sorted
-     * @return array<string, array{\DateTimeImmutable, \DateTimeImmutable}> continuations joined to the day before
+     * Entries to working days: earliest begin to latest end of the entries of one
+     * begin date, plus the night shoot continuations of the next date.
+     *
+     * @param list<array{\DateTimeImmutable, \DateTimeImmutable}> $entries begin/end
+     * @return array<string, array{\DateTimeImmutable, \DateTimeImmutable}> spans by date (Y-m-d), sorted
      */
-    public static function join(array $spans): array
+    public static function byWorkingDay(array $entries): array
     {
-        foreach ($spans as $key => [$begin, $end]) {
+        usort($entries, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $spans = [];
+        foreach ($entries as [$begin, $end]) {
+            $key = $begin->format(self::DATE_FORMAT);
             $previousKey = $begin->modify('-1 day')->format(self::DATE_FORMAT);
-            if (!isset($spans[$previousKey]) || !self::continues($spans[$previousKey][1], $begin, $end)) {
-                continue;
+            if (isset($spans[$previousKey]) && self::continues($spans[$previousKey][1], $begin, $end)) {
+                $key = $previousKey;
             }
 
-            $spans[$previousKey] = [$spans[$previousKey][0], max($spans[$previousKey][1], $end)];
-            unset($spans[$key]);
+            $known = $spans[$key] ?? [$begin, $end];
+            $spans[$key] = [min($known[0], $begin), max($known[1], $end)];
         }
+        ksort($spans);
 
         return $spans;
     }
