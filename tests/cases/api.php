@@ -62,3 +62,16 @@ check('api engagement json', [
     'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true,
 ], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement));
 check('api ping engagements', true, in_array('engagements', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
+
+// Film day: a null field reports the default it falls back to.
+$rules = KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024();
+$json = KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY);
+check('api film day defaults', [null, null, $rules->defaultBreakMinutes, 'saturday'], [$json['breakMinutes'], $json['category'], $json['defaultBreakMinutes'], $json['effectiveCategory']]);
+check('api film day keys kept', ['date', 'engagementId', 'breakMinutes', 'catering', 'category', 'note', 'dayType', 'productionDay'], array_slice(array_keys($json), 0, 8));
+
+$stored = new KimaiPlugin\DrehzettelBundle\Entity\FilmDay();
+$stored->setCategory(KimaiPlugin\DrehzettelBundle\Enum\DayCategory::HOLIDAY);
+$stored->setBreakMinutes(30);
+$json = KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, $stored, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY);
+check('api film day override wins', [30, 'holiday', 'holiday'], [$json['breakMinutes'], $json['category'], $json['effectiveCategory']]);
+check('api ping defaults', true, in_array('defaults', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));

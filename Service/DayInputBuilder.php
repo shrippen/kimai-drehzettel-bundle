@@ -124,7 +124,7 @@ class DayInputBuilder
     }
 
     // A film day override always wins (checked by the caller); this is only the fallback.
-    private function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
+    public function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
     {
         if ($this->holidays->isHoliday($engagement->getUser(), $date)) {
             return DayCategory::HOLIDAY;

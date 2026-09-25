@@ -11,8 +11,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\ApiQuery;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
-use KimaiPlugin\DrehzettelBundle\Enum\Catering;
-use KimaiPlugin\DrehzettelBundle\Enum\DayType;
+use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
@@ -56,6 +55,7 @@ final class DrehzettelApiController extends AbstractController
         private readonly ProjectRepository $projects,
         private readonly UserRepository $users,
         private readonly Security $security,
+        private readonly DayInputBuilder $dayInputs,
     ) {
     }
 
@@ -113,7 +113,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_get', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the ruleset default".')]
+    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the default": defaultBreakMinutes (engagement ruleset) and effectiveCategory (weekday or public holiday, or the stored category). productionDay is the day within the shooting week, 1-7 (6/7 trigger the 6th/7th-day surcharge; null = count entries of the week), not a running shooting-day number.')]
     #[OA\Response(response: 404, description: 'code no_engagement: no active engagement for project, user and date; or unknown_project/unknown_user.')]
     public function filmDayGet(Request $request, string $date): JsonResponse
     {
@@ -169,19 +169,13 @@ final class DrehzettelApiController extends AbstractController
         return new JsonResponse($error->body(), $error->status);
     }
 
-    // Shared GET/PUT shape. dayType/productionDay were added later: clients must ignore unknown keys.
+    // Shared GET/PUT shape, with the defaults a null field falls back to.
     private function filmDayJson(string $date, Engagement $engagement, ?FilmDay $day): array
     {
-        return [
-            'date' => $date,
-            'engagementId' => $engagement->getId(),
-            'breakMinutes' => $day?->getBreakMinutes(),
-            'catering' => ($day?->getCatering() ?? Catering::NO) === Catering::YES,
-            'category' => $day?->getCategory()?->value,
-            'note' => $day?->getNote(),
-            'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
-            'productionDay' => $day?->getProductionDay(),
-        ];
+        $rules = $this->engagements->ruleset($engagement);
+        $autoCategory = $this->dayInputs->categoryFor($engagement, ApiQuery::date($date, new \DateTimeImmutable()));
+
+        return ApiJson::filmDay($date, $engagement, $day, $rules, $autoCategory);
     }
 
     // engagement-status may legitimately answer "false" for a user/project with no
