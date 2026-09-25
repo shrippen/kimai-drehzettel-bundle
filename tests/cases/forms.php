@@ -9,6 +9,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\Rulesets;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 // Ruleset -> form -> ruleset changes nothing, for both presets.
 foreach ([Rulesets::tvFfs2024(), Rulesets::quarterHour()] as $rules) {
@@ -21,6 +22,7 @@ $form = RulesetFormMapper::toForm(Rulesets::tvFfs2024());
 check('form shows hours and percent', [10.0, 25.0, 11.0, 50.0, null], [$form['dailyTier1After'], $form['dailyTier1Percent'], $form['dailyTier2After'], $form['dailyTier2Percent'], $form['dailyTier3After']]);
 check('form clock', ['22:00', '06:00'], [$form['nightFrom'], $form['nightTo']]);
 check('form no fixed 6th day', null, $form['sixthDayPercent']);
+check('form streak mode', ['calendarWeek', StreakMode::CONSECUTIVE, StreakMode::CALENDAR_WEEK], [$form['streakMode'], RulesetFormMapper::fromForm(['streakMode' => 'consecutive'] + $form)->streakMode, RulesetFormMapper::fromForm(['streakMode' => 'bogus'] + $form)->streakMode]);
 
 // Emptying a tier slot removes the tier, clearing a category removes its surcharge.
 $form['dailyTier2After'] = null;

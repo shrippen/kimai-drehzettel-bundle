@@ -564,11 +564,11 @@
       </trans-unit>
       <trans-unit id="dz.rules.sixth_day" resname="drehzettel.rules.sixth_day">
         <source>drehzettel.rules.sixth_day</source>
-        <target>6th day of the week</target>
+        <target>6th day</target>
       </trans-unit>
       <trans-unit id="dz.rules.seventh_day" resname="drehzettel.rules.seventh_day">
         <source>drehzettel.rules.seventh_day</source>
-        <target>7th day of the week</target>
+        <target>7th day (and later)</target>
       </trans-unit>
       <trans-unit id="dz.rules.break_help" resname="drehzettel.rules.break_help">
         <source>drehzettel.rules.break_help</source>
@@ -628,7 +628,7 @@
       </trans-unit>
       <trans-unit id="dz.production_day.title" resname="drehzettel.production_day.title">
         <source>drehzettel.production_day.title</source>
-        <target>Shooting day of week (1–7)</target>
+        <target>Surcharge day (empty = automatic)</target>
       </trans-unit>
       <trans-unit id="dz.shooting_day.title" resname="drehzettel.shooting_day.title">
         <source>drehzettel.shooting_day.title</source>
@@ -637,6 +637,30 @@
       <trans-unit id="dz.shooting_day.label" resname="drehzettel.shooting_day.label">
         <source>drehzettel.shooting_day.label</source>
         <target>Shooting day %number%</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.streak_mode" resname="drehzettel.rules.streak_mode">
+        <source>drehzettel.rules.streak_mode</source>
+        <target>Counting</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.streak_mode.calendarWeek" resname="drehzettel.rules.streak_mode.calendarWeek">
+        <source>drehzettel.rules.streak_mode.calendarWeek</source>
+        <target>Working days of the calendar week (TV FFS)</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.streak_mode.consecutive" resname="drehzettel.rules.streak_mode.consecutive">
+        <source>drehzettel.rules.streak_mode.consecutive</source>
+        <target>Consecutive days, across weeks</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.streak_mode.help" resname="drehzettel.rules.streak_mode.help">
+        <source>drehzettel.rules.streak_mode.help</source>
+        <target>Calendar week: n-th day with an entry in the ISO week (TV FFS TZ 5.4.3.4). Consecutive: a day without entry resets, travel days count, day 8 and later count as day 7.</target>
+      </trans-unit>
+      <trans-unit id="dz.streak.calendarWeek" resname="drehzettel.streak.calendarWeek">
+        <source>drehzettel.streak.calendarWeek</source>
+        <target>Day %number% of the week</target>
+      </trans-unit>
+      <trans-unit id="dz.streak.consecutive" resname="drehzettel.streak.consecutive">
+        <source>drehzettel.streak.consecutive</source>
+        <target>Day %number% in a row</target>
       </trans-unit>
     </body>
   </file>
