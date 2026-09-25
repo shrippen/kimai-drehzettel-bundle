@@ -24,7 +24,7 @@ All visual design decisions for this project follow the shared [shrippen DesignD
 
 ## Inside Kimai
 
-The plugin UI lives inside Kimai's Tabler theme. Do not restyle Kimai. Use core components (cards, tables, badges, form themes) so light/dark follow the user's Kimai setting.
+The pages inside Kimai follow the shared UI guidelines of [kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) ([GUIDELINES.md](https://github.com/shrippen/kimai-plugin-ui/blob/main/GUIDELINES.md), [CHECKLIST.md](https://github.com/shrippen/kimai-plugin-ui/blob/main/CHECKLIST.md)). The kit lives in `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf`; update it only with `bin/sync.sh` from that repo. The DesignDefault palette above is for the landing page, not for Kimai pages. Status of the migration: `UI-TODO.md`.
 
 ## Timesheet PDF
 

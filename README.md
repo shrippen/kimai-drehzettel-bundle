@@ -35,7 +35,7 @@ php tests/run.php                                   # unit tests, no Kimai neede
 docker compose -f dev/compose.yaml up -d            # local Kimai 2.67 on http://localhost:8091
 ```
 
-See [`roadmap.md`](roadmap.md) for the dev workflow, phases and open questions, [`Design.md`](Design.md) for the visual identity.
+See [`roadmap.md`](roadmap.md) for the dev workflow, phases and open questions, [`Design.md`](Design.md) for the visual identity. Pages inside Kimai follow the [kimai-plugin-ui guidelines](https://github.com/shrippen/kimai-plugin-ui/blob/main/GUIDELINES.md).
 
 ## License
 
