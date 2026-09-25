@@ -6,13 +6,12 @@ use App\Entity\Timesheet;
 use App\Form\TimesheetAdminEditForm;
 use App\Form\TimesheetEditForm;
 use App\Form\Type\YesNoType;
-use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
-use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
-use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
+use KimaiPlugin\DrehzettelBundle\Service\PendingFilmDays;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -20,6 +19,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * Adds the "film day" toggle and film-day fields to Kimai's own timesheet
@@ -53,7 +53,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public function __construct(
         private readonly EngagementService $engagements,
         private readonly FilmDayRepository $filmDays,
-        private readonly FilmDayService $filmDayService,
+        private readonly PendingFilmDays $pending,
     ) {
     }
 
@@ -84,9 +84,9 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             $builder->remove('break');
         }
 
-        $isEdit = $timesheet->getId() !== null;
-        $originalDate = $this->dateOf($timesheet);
-        $existing = $isEdit ? $this->filmDays->findOne($engagement, $originalDate) : null;
+        // The film day is shared by every entry of its date, so a new or duplicated entry
+        // shows it too - otherwise saving would reset the day to blank fields.
+        $existing = $this->filmDays->findOne($engagement, $this->dateOf($timesheet));
 
         // row_attr classes group these five rows visually (amber box, see the sitewide CSS
         // added by EventSubscriber\ThemeSubscriber) - matches form concept A from the workflow
@@ -105,6 +105,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'label' => 'drehzettel.pdf.break',
             'data' => $existing?->getBreakMinutes(),
             'attr' => ['min' => 0, 'max' => self::MAX_BREAK_MINUTES],
+            'constraints' => [new Range(min: 0, max: self::MAX_BREAK_MINUTES)],
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
@@ -142,13 +143,15 @@ final class TimesheetFormExtension extends AbstractTypeExtension
 
         $builder->addEventListener(
             FormEvents::POST_SUBMIT,
-            function (FormEvent $event) use ($engagement, $isEdit, $originalDate): void {
-                $this->onSubmit($event, $engagement, $isEdit, $originalDate);
+            function (FormEvent $event): void {
+                $this->onSubmit($event);
             }
         );
     }
 
-    private function onSubmit(FormEvent $event, Engagement $engagement, bool $isEdit, \DateTimeImmutable $originalDate): void
+    // Only queues the fields: TimesheetSaveSubscriber writes them once Kimai has saved
+    // the entry, against the engagement of its final user/project/date.
+    private function onSubmit(FormEvent $event): void
     {
         $form = $event->getForm();
         if (!$form->isValid()) {
@@ -161,38 +164,25 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             return;
         }
 
-        /** @var Timesheet $timesheet */
-        $timesheet = $event->getData();
-        $date = $this->dateOf($timesheet);
-
-        if ($isEdit && $date->format('Y-m-d') !== $originalDate->format('Y-m-d')) {
-            // Editing moved this entry off its original date - that date's FilmDay row
-            // (break/catering/category/note) is orphaned once no other entry of this
-            // engagement still lands on it, and must not silently pre-fill whatever
-            // entry gets created there next (see FilmDayService::deleteIfOrphaned()).
-            // The controller flushes this entity's new begin/project only after this
-            // listener runs, so a re-query still finds the not-yet-persisted old row -
-            // this timesheet's own id must be excluded by hand, same as a real delete.
-            $this->filmDayService->deleteIfOrphaned($engagement, $originalDate, [$timesheet->getId()]);
-        }
-
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
-        $catering = ((bool) $form->get(self::FIELD_CATERING)->getData()) ? Catering::YES : Catering::NO;
-        $categoryValue = $form->get(self::FIELD_CATEGORY)->getData();
-        $category = ($categoryValue !== null && $categoryValue !== '') ? DayCategory::from((string) $categoryValue) : null;
         $note = $form->get(self::FIELD_NOTE)->getData();
         $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
-        $this->filmDayService->save(
-            $engagement,
-            $date,
-            $breakMinutes !== null ? (int) $breakMinutes : null,
-            $catering,
-            $category,
-            DayType::WORKDAY,
-            null,
-            $note,
-        );
+        // Day type and production day are not on this form: they keep their stored value.
+        try {
+            $patch = FilmDayPatch::fromArray([
+                'breakMinutes' => $breakMinutes !== null ? (int) $breakMinutes : null,
+                'catering' => (bool) $form->get(self::FIELD_CATERING)->getData(),
+                'category' => $form->get(self::FIELD_CATEGORY)->getData(),
+                'note' => $note,
+            ]);
+        } catch (\InvalidArgumentException) {
+            return; // out of range: the break field's own constraint reports it
+        }
+
+        /** @var Timesheet $timesheet */
+        $timesheet = $event->getData();
+        $this->pending->put($timesheet, $patch);
     }
 
     private function dateOf(Timesheet $timesheet): \DateTimeImmutable

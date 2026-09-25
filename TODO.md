@@ -8,10 +8,10 @@
 - [x] ✅ API-Validierung: breakMinutes 0–720, note ≤500, unbekannte category/dayType → 400 (DrehzettelApiController.php:312); negative Pause in der Berechnung abfangen
 
 ## P1
-- [ ] 📖 Timesheet-Form: existierenden Drehtag immer vorbefüllen, auch bei Duplicate/Neuanlage (TimesheetFormExtension.php:87)
-- [ ] 📖 Kein flush() im POST_SUBMIT; persist bzw. Timesheet*PostEvent-Subscriber (TimesheetFormExtension.php:186)
+- [x] 📖 Timesheet-Form: existierenden Drehtag immer vorbefüllen, auch bei Duplicate/Neuanlage (TimesheetFormExtension.php:87)
+- [x] 📖 Kein flush() im POST_SUBMIT; persist bzw. Timesheet*PostEvent-Subscriber (TimesheetFormExtension.php:186)
 - [ ] 📖 Wochen-Überstunden nur einem Monat zuordnen (TimesheetViewBuilder::sums) + Test
-- [ ] 📖 Admin-Edit mit geändertem User/Projekt/Datum: Engagement neu ermitteln
+- [x] 📖 Admin-Edit mit geändertem User/Projekt/Datum: Engagement neu ermitteln
 
 ## P2
 - [ ] 📖 Timesheet-Zeitzone vor Tages-Keying in User-Zone umrechnen (DayInputBuilder::spans)

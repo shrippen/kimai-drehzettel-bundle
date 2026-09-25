@@ -41,4 +41,22 @@ class TimesheetRangeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * User, project and begin as last loaded from the database, before unsaved changes.
+     *
+     * @return array{User, Project, \DateTimeInterface}|null null for a new entry
+     */
+    public function stored(Timesheet $timesheet): ?array
+    {
+        $data = $this->getEntityManager()->getUnitOfWork()->getOriginalEntityData($timesheet);
+        $user = $data['user'] ?? null;
+        $project = $data['project'] ?? null;
+        $begin = $data['begin'] ?? null;
+        if (!$user instanceof User || !$project instanceof Project || !$begin instanceof \DateTimeInterface) {
+            return null;
+        }
+
+        return [$user, $project, $begin];
+    }
 }
