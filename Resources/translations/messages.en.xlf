@@ -666,6 +666,22 @@
         <source>drehzettel.azv.pdf_line</source>
         <target>AZV credit (TV FFS TZ 6) up to %date%: %hours% h from %shooting% shooting day(s), i.e. %days% of 10 h. AZV days taken are not deducted.</target>
       </trans-unit>
+      <trans-unit id="dz.rules.travel_days" resname="drehzettel.rules.travel_days">
+        <source>drehzettel.rules.travel_days</source>
+        <target>Travel days for the 6th/7th day and weekly overtime</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days_help" resname="drehzettel.rules.travel_days_help">
+        <source>drehzettel.rules.travel_days_help</source>
+        <target>TV FFS TZ 12.1: travel time is paid like normal working time without surcharges, so a travel day is no working day for the 6th/7th day and the 50-hour week. Counting it is a deviating agreement.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.excluded" resname="drehzettel.rules.travel_days.excluded">
+        <source>drehzettel.rules.travel_days.excluded</source>
+        <target>Do not count (tariff, TZ 12.1)</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.counted" resname="drehzettel.rules.travel_days.counted">
+        <source>drehzettel.rules.travel_days.counted</source>
+        <target>Count as working days</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

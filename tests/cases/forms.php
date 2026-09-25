@@ -75,3 +75,9 @@ check('draft keeps unsent fields', [15, Catering::YES, DayCategory::HOLIDAY, Day
 $cleared = FilmDayDraftReader::read(['break' => '', 'catering' => '0', 'category' => '', 'type' => '', 'production_day' => '', 'note' => '', 'extra_pay' => '', 'shooting_day' => ''], $stored);
 check('draft sent empty clears', [null, Catering::NO, null, DayType::WORKDAY, null, null, 0, null], [$cleared->breakMinutes, $cleared->catering, $cleared->category, $cleared->type, $cleared->productionDay, $cleared->note, $cleared->extraPayCents, $cleared->shootingDayNumber]);
 check('draft production day sent', 7, FilmDayDraftReader::read(['production_day' => '7'], $stored)->productionDay);
+
+// Travel days option on the rules form.
+$travelForm = RulesetFormMapper::toForm(Rulesets::tvFfs2024());
+check('form travel days default', 'excluded', $travelForm['travelDays']);
+$travelForm['travelDays'] = 'counted';
+check('form travel days counted', KimaiPlugin\DrehzettelBundle\Enum\TravelDays::COUNTED, RulesetFormMapper::fromForm($travelForm)->travelDays);

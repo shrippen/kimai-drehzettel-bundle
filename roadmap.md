@@ -167,6 +167,11 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       "Tag N der Woche" from day 6 or when overridden, also in the PDF. Travel days are no working days
       (TZ 12.1 "wie normale Arbeitszeit ohne Zuschläge"; PA FAQ: "Auch die Reisezeit gehört nicht zur
       Arbeitszeit"): they do not advance the day number and do not feed weekly overtime.
+- [x] Travel days option (D-11, 2026-09-25): ruleset field `travelDays`, `excluded` (default, TZ 12.1) or
+      `counted` (earlier answer D-3a). Counted, a travel day advances day N and feeds weekly overtime, its
+      own surcharges stay off. Rules page and engagement rules page, API `GET /v1/engagements` key
+      `travelDays`, ping feature `travelDays`. Stored in the ruleset JSON (template and engagement
+      snapshot), so no schema migration: a missing key reads as `excluded`.
 - [x] Working and rest time warnings on net working time (PO decision 2026-09-25, replaces D-7/D-8): daily
       maximum 12 h (TZ 5.2.5) and the begun 12th hour that extends rest to 11.5 h (TZ 5.9.1) exclude breaks up
       to the free break (TZ 5.8.2) and travel days. Warnings only.

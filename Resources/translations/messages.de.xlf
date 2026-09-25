@@ -666,6 +666,22 @@
         <source>drehzettel.azv.pdf_line</source>
         <target>AZV-Guthaben (TV FFS TZ 6) bis %date%: %hours% h aus %shooting% Drehtag(en), entspricht %days% à 10 h. Genommene AZV-Tage sind nicht abgezogen.</target>
       </trans-unit>
+      <trans-unit id="dz.rules.travel_days" resname="drehzettel.rules.travel_days">
+        <source>drehzettel.rules.travel_days</source>
+        <target>Reisetage beim 6./7. Tag und bei Wochenmehrarbeit</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days_help" resname="drehzettel.rules.travel_days_help">
+        <source>drehzettel.rules.travel_days_help</source>
+        <target>TV FFS TZ 12.1: Reisezeit wird wie normale Arbeitszeit ohne Zuschläge vergütet, ein Reisetag ist daher kein Arbeitstag für den 6./7. Tag und die 50-Stunden-Woche. Mitzählen ist eine abweichende Vereinbarung.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.excluded" resname="drehzettel.rules.travel_days.excluded">
+        <source>drehzettel.rules.travel_days.excluded</source>
+        <target>Zählen nicht (Tarif, TZ 12.1)</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.counted" resname="drehzettel.rules.travel_days.counted">
+        <source>drehzettel.rules.travel_days.counted</source>
+        <target>Zählen als Arbeitstage</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

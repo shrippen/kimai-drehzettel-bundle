@@ -15,10 +15,11 @@ final class ApiJson
 
     /**
      * One entry of GET /v1/engagements. No pay: the list is for picking a project.
+     * travelDays: "excluded" (tariff, TZ 12.1) or "counted", see Enum\TravelDays.
      *
      * @return array<string, mixed>
      */
-    public static function engagement(Engagement $engagement): array
+    public static function engagement(Engagement $engagement, Ruleset $rules): array
     {
         $project = $engagement->getProject();
 
@@ -33,6 +34,7 @@ final class ApiJson
             'validTo' => $engagement->getValidTo()?->format(self::DATE_FORMAT),
             'toggleDefault' => true,
             'azvEligible' => Azv::eligible($engagement),
+            'travelDays' => $rules->travelDays->value,
         ];
     }
 

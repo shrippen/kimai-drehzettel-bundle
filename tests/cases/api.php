@@ -59,8 +59,8 @@ $engagement->setRulesetName('TV FFS 2024');
 $engagement->setValidFrom(new DateTimeImmutable('2026-03-01'));
 check('api engagement json', [
     'engagementId' => null, 'projectId' => 7, 'projectName' => 'Musterfilm', 'customerName' => 'ACME',
-    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true, 'azvEligible' => true,
-], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement));
+    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true, 'azvEligible' => true, 'travelDays' => 'excluded',
+], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement, KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024()));
 check('api ping engagements', true, in_array('engagements', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
 
 // Film day: a null field reports the default it falls back to.

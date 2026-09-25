@@ -74,3 +74,11 @@ check('travel day no badge', false, $travelWeek->days[0]->showsDayNumber());
 // A travel day after five working days is no 6th day: no weekly pool from travel time.
 $travelSaturday = weekDays(['2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18', '2026-06-19', ['2026-06-20', null, DayType::TRAVEL]]);
 check('travel day not pooled (tv)', 0, weekCalc()->calc($travelSaturday, $tv, null)->weeklyPoolMinutes);
+
+// Ruleset option (D-11): travel days count as working days for day N and weekly overtime.
+$counted = static fn (KimaiPlugin\DrehzettelBundle\Domain\Ruleset $r): KimaiPlugin\DrehzettelBundle\Domain\Ruleset => KimaiPlugin\DrehzettelBundle\Domain\RulesetCodec::fromArray(['travelDays' => 'counted'] + KimaiPlugin\DrehzettelBundle\Domain\RulesetCodec::toArray($r));
+check('travel days default excluded', [KimaiPlugin\DrehzettelBundle\Enum\TravelDays::EXCLUDED, KimaiPlugin\DrehzettelBundle\Enum\TravelDays::EXCLUDED], [$tv->travelDays, $app->travelDays]);
+check('travel day counted', [1, 6, 7], [...array_map(static fn (int $i): int => weekCalc()->calc($travelMonday, $counted($app), null)->days[$i]->dayNumber, [0, 5, 6])]);
+check('travel day counted pooled (tv)', 480, weekCalc()->calc($travelSaturday, $counted($tv), null)->weeklyPoolMinutes);
+$travelSixth = weekCalc()->calc($travelSaturday, $counted($app), null)->days[5];
+check('travel day counted: day surcharge, no own surcharges', [6, 2500, null, [], 0], [$travelSixth->dayNumber, $travelSixth->dayCountShare?->basisPoints, $travelSixth->categorySurcharge, $travelSixth->dailyShares, $travelSixth->nightMinutes]);

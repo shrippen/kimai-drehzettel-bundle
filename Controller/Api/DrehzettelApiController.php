@@ -98,7 +98,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/engagements', name: 'drehzettel_api_engagements')]
-    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible}]. azvEligible: the engagement earns AZV credit (TV FFS TZ 6), see /v1/engagements/{id}/azv.')]
+    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible, travelDays}]. azvEligible: the engagement earns AZV credit (TV FFS TZ 6), see /v1/engagements/{id}/azv. travelDays: excluded (tariff, TZ 12.1) or counted, whether travel days count for the 6th/7th day and weekly overtime (ruleset option).')]
     #[OA\Response(response: 400, description: 'code invalid_user or invalid_date.')]
     #[OA\Response(response: 403, description: 'code forbidden: another user without drehzettel_manage.')]
     #[OA\Response(response: 404, description: 'code unknown_user.')]
@@ -112,7 +112,7 @@ final class DrehzettelApiController extends AbstractController
             // Own engagements still need the "drehzettel" permission, as in the web UI.
             $visible = array_filter($this->engagements->activeOn($user, $date), $this->access->canView(...));
 
-            return array_values(array_map(ApiJson::engagement(...), $visible));
+            return array_values(array_map(fn (Engagement $e): array => ApiJson::engagement($e, $this->engagements->ruleset($e)), $visible));
         });
     }
 

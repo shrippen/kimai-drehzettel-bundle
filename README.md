@@ -33,6 +33,8 @@ Until the interface exists, engagements are created in code. `bin/console drehze
 
 Day N is the n-th working day of the ISO calendar week (TV FFS TZ 5.4.3.1/5.4.3.4: "Arbeit am 6. und 7. Tag der Kalenderwoche"), 1-7. A day off does not reset the count, and weeks never carry over: Mon, Tue, (Wed off), Thu-Sun makes Sunday day 6; Wed-Tue worked makes Monday and Tuesday day 1 and 2 of the new week. A day is the local date an entry begins on. Travel days are no working days: travel time is paid "wie normale Arbeitszeit ohne Zuschläge" (TZ 12.1) and is no working time (Produktionsallianz FAQ), so a travel day neither advances N nor counts toward weekly overtime. Mon travel, Tue-Sun shooting makes Sunday day 6.
 
+Ruleset option "Reisetage beim 6./7. Tag und bei Wochenmehrarbeit" (`travelDays`): `excluded` (default, the tariff reading above) or `counted`, for a deviating agreement. Counted, a travel day advances N and its time feeds weekly overtime (and gets a fixed 6th/7th-day surcharge where the ruleset has one); it still gets no daily, night, Saturday, Sunday or holiday surcharge (TZ 12.1) and still counts 0 for the working-time warnings and AZV. Mon travel, Tue-Sun shooting then makes Sunday day 7. Rulesets stored before the option read as `excluded`.
+
 `productionDay` ("Zuschlagstag", surcharge day) overrides N for that day only, 1-7. The week page shows "Tag N der Woche" next to the date from day 6 or when overridden; the override field shows the counted N as placeholder.
 
 What day 6 and 7 pay comes from the ruleset: TV FFS pools them into weekly overtime, the quarter-hour preset adds 25 % / 50 %. Either comes on top of Saturday, Sunday and holiday surcharges.
@@ -70,8 +72,8 @@ Under Kimai's own `/api`, same `Authorization: Bearer <token>`, listed in `/api/
 
 | Request | Answer |
 |---|---|
-| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber", "azv"]}` |
-| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible}]` |
+| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber", "azv", "travelDays"]}` |
+| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible, travelDays}]`; `travelDays` is the ruleset option `excluded` or `counted` |
 | `GET /api/drehzettel/v1/engagements/{id}/azv?date=` | AZV credit up to and including `date` (default today), see below |
 | `GET /api/drehzettel/v1/engagement-status?project=&date=&user=` | `{active, engagementId, toggleDefault, rulesetName}`; no engagement is `active: false`, not 404 |
 | `GET /api/drehzettel/v1/film-days/{date}?project=&user=` | stored fields, see below |

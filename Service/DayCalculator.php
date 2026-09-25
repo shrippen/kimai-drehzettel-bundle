@@ -40,7 +40,7 @@ class DayCalculator
         $tiers = $surcharged ? Tiers::split($rules->dailyTiers, 0, $work, $rules->surchargeRounding) : [];
         $night = $surcharged ? $this->nightMinutes($day, $gross, $rules) : 0;
         $category = $surcharged && $work > 0 ? $rules->surchargeFor($day->category) : null;
-        $dayCount = $surcharged ? $this->dayCountShare($dayNumber, $work, $rules) : null;
+        $dayCount = $rules->countsAsDay($day->type) ? $this->dayCountShare($dayNumber, $work, $rules) : null;
 
         $result = new DayResult(
             begin: $day->begin,

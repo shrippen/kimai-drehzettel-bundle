@@ -10,7 +10,6 @@ use KimaiPlugin\DrehzettelBundle\Domain\Share;
 use KimaiPlugin\DrehzettelBundle\Domain\Tiers;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
-use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 
 /**
  * One calendar week: days plus weekly overtime.
@@ -26,6 +25,10 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayType;
  * advances N nor feeds the pool:
  *
  *   Mon travel, Tue-Sun shooting -> Tue = day 1 ... Sun = day 6
+ *
+ * Ruleset option TravelDays::COUNTED makes travel days count for both:
+ *
+ *   Mon travel, Tue-Sun shooting -> Mon = day 1 ... Sun = day 7
  *
  * The pool runs through the weekly tiers: TV FFS 25 % for 5 h, then 50 %.
  */
@@ -51,8 +54,8 @@ class WeekCalculator
         $days = [];
         $worked = 0;
         foreach ($inputs as $input) {
-            // A travel day shows the number the next working day gets.
-            $counted = $input->type === DayType::WORKDAY ? ++$worked : $worked + 1;
+            // A travel day that does not count shows the number the next working day gets.
+            $counted = $rules->countsAsDay($input->type) ? ++$worked : $worked + 1;
             $days[] = $this->days->calc($input, $rules, $terms, $input->productionDay ?? $counted);
         }
 
@@ -103,7 +106,7 @@ class WeekCalculator
         $regular = 0;
         $pooled = 0;
         foreach ($days as $day) {
-            if ($day->dayType !== DayType::WORKDAY) {
+            if (!$rules->countsAsDay($day->dayType)) {
                 continue;
             }
             if ($day->dayNumber <= Units::WEEK_WORKDAYS) {
