@@ -37,7 +37,7 @@ class WeekController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/week/{year}/{week}', name: 'drehzettel_week', defaults: ['year' => null, 'week' => null], requirements: ['week' => '\d+'], methods: ['GET'])]
+    #[Route(path: '/week/{year}/{week}', name: 'drehzettel_week', defaults: ['year' => null, 'week' => null], requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['GET'])]
     public function week(Request $request, int $id, ?int $year, ?int $week): Response
     {
         $engagement = $this->findEngagement($id);
@@ -51,7 +51,7 @@ class WeekController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/week/{year}/{week}/save', name: 'drehzettel_week_save', requirements: ['week' => '\d+'], methods: ['POST'])]
+    #[Route(path: '/week/{year}/{week}/save', name: 'drehzettel_week_save', requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['POST'])]
     public function save(Request $request, int $id, int $year, int $week): Response
     {
         $engagement = $this->findEngagement($id);
@@ -78,7 +78,7 @@ class WeekController extends AbstractController
     }
 
     // Live preview while typing: same calculation, no save. Returns the row/sum fragment.
-    #[Route(path: '/week/{year}/{week}/preview', name: 'drehzettel_week_preview', requirements: ['week' => '\d+'], methods: ['POST'])]
+    #[Route(path: '/week/{year}/{week}/preview', name: 'drehzettel_week_preview', requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['POST'])]
     public function preview(Request $request, int $id, int $year, int $week): Response
     {
         $engagement = $this->findEngagement($id);
@@ -93,7 +93,7 @@ class WeekController extends AbstractController
         return $this->render('@Drehzettel/drehzettel/_week_table.html.twig', ['v' => $view]);
     }
 
-    #[Route(path: '/pdf/{year}/{week}', name: 'drehzettel_week_pdf', requirements: ['week' => '\d+'], methods: ['GET'])]
+    #[Route(path: '/pdf/{year}/{week}', name: 'drehzettel_week_pdf', requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['GET'])]
     public function pdf(Request $request, int $id, int $year, int $week): Response
     {
         $engagement = $this->findEngagement($id);
@@ -105,7 +105,7 @@ class WeekController extends AbstractController
         return $this->pdfResponse($document->filename, $document->content);
     }
 
-    #[Route(path: '/pdf/month/{year}/{month}', name: 'drehzettel_month_pdf', requirements: ['month' => '\d+'], methods: ['GET'])]
+    #[Route(path: '/pdf/month/{year}/{month}', name: 'drehzettel_month_pdf', requirements: ['year' => '\d+', 'month' => '\d+'], methods: ['GET'])]
     public function monthPdf(Request $request, int $id, int $year, int $month): Response
     {
         $engagement = $this->findEngagement($id);
@@ -117,7 +117,7 @@ class WeekController extends AbstractController
         return $this->pdfResponse($document->filename, $document->content);
     }
 
-    #[Route(path: '/week/{year}/{week}/mail', name: 'drehzettel_week_mail', requirements: ['week' => '\d+'], methods: ['POST'])]
+    #[Route(path: '/week/{year}/{week}/mail', name: 'drehzettel_week_mail', requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['POST'])]
     public function mail(Request $request, int $id, int $year, int $week): Response
     {
         $engagement = $this->findEngagement($id);
@@ -143,7 +143,9 @@ class WeekController extends AbstractController
             $this->mailRecipients->remember($engagement, $address);
             $this->flashSuccess('action.update.success');
         } catch (\Throwable $e) {
-            $this->flashError('action.update.error', $e->getMessage());
+            // Transport errors can name hosts or accounts: log them, show only a generic error.
+            $this->logException($e);
+            $this->flashError('action.update.error');
         }
 
         return $this->redirectToRoute('drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week]);

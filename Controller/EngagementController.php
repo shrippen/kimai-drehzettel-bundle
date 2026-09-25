@@ -53,7 +53,7 @@ class EngagementController extends AbstractController
                     $project,
                     (string) $request->request->get('role'),
                     $this->termsFromRequest($request),
-                    new \DateTimeImmutable((string) $request->request->get('valid_from')),
+                    $this->date($request->request->get('valid_from')),
                     $this->optionalDate($request->request->get('valid_to')),
                     (string) $request->request->get('ruleset'),
                 );
@@ -80,20 +80,23 @@ class EngagementController extends AbstractController
         $engagement = $this->find($id);
 
         if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
-            $engagement->setRole((string) $request->request->get('role'));
-            $terms = $this->termsFromRequest($request);
-            $engagement->setPayKind($terms->kind);
-            $engagement->setGageCents($terms->gageCents);
-            $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
-            $engagement->setValidFrom(new \DateTimeImmutable((string) $request->request->get('valid_from')));
-            $engagement->setValidTo($this->optionalDate($request->request->get('valid_to')));
-
             try {
+                $terms = $this->termsFromRequest($request);
+                $validFrom = $this->date($request->request->get('valid_from'));
+                $validTo = $this->optionalDate($request->request->get('valid_to'));
+
+                $engagement->setRole((string) $request->request->get('role'));
+                $engagement->setPayKind($terms->kind);
+                $engagement->setGageCents($terms->gageCents);
+                $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
+                $engagement->setValidFrom($validFrom);
+                $engagement->setValidTo($validTo);
+
                 $this->service->save($engagement);
                 $this->flashSuccess('action.update.success');
 
                 return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
-            } catch (\DomainException $e) {
+            } catch (\DomainException|\InvalidArgumentException $e) {
                 $this->flashError('action.update.error', $e->getMessage());
             }
         }
@@ -162,7 +165,10 @@ class EngagementController extends AbstractController
 
     private function termsFromRequest(Request $request): PayTerms
     {
-        $kind = PayKind::from((string) $request->request->get('pay_kind', PayKind::WEEKLY->value));
+        $kind = PayKind::tryFrom((string) $request->request->get('pay_kind', PayKind::WEEKLY->value));
+        if ($kind === null) {
+            throw new \InvalidArgumentException('Unknown pay kind.');
+        }
         $gage = (float) str_replace(',', '.', (string) $request->request->get('gage', '0'));
         $catering = (float) str_replace(',', '.', (string) $request->request->get('catering_deduction', '0'));
 
@@ -173,6 +179,18 @@ class EngagementController extends AbstractController
     {
         $text = trim((string) $value);
 
-        return $text === '' ? null : new \DateTimeImmutable($text);
+        return $text === '' ? null : $this->date($text);
+    }
+
+    // Y-m-d from the date input; anything else is a user error, not a 500.
+    private function date(mixed $value): \DateTimeImmutable
+    {
+        $text = trim((string) $value);
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $text);
+        if ($date === false || $date->format('Y-m-d') !== $text) {
+            throw new \InvalidArgumentException('Invalid date, expected YYYY-MM-DD.');
+        }
+
+        return $date;
     }
 }

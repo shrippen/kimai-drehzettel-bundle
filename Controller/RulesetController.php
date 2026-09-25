@@ -45,7 +45,11 @@ class RulesetController extends AbstractController
     #[Route(path: '/new/{from}', name: 'drehzettel_ruleset_new', methods: ['GET', 'POST'])]
     public function new(Request $request, string $from): Response
     {
-        $base = $this->catalog->get($from);
+        try {
+            $base = $this->catalog->get($from);
+        } catch (\InvalidArgumentException) {
+            throw $this->createNotFoundException('Unknown ruleset.');
+        }
 
         if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
             $name = trim((string) $request->request->get('name'));
