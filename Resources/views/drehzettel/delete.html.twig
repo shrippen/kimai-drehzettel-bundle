@@ -1,0 +1,12 @@
+{# Kimai delete confirmation for engagements, rulesets and the signature: modal, or page without JS. #}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {{ include(kimai_context.modalRequest ? 'default/_form_delete_modal.html.twig' : 'default/_form_delete.html.twig', {
+        message: message,
+        form: form,
+        delete_item_name: item,
+        used: true,
+        back: back,
+    }) }}
+{% endblock %}

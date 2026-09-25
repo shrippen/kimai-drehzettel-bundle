@@ -3,9 +3,9 @@
 namespace KimaiPlugin\DrehzettelBundle\Controller;
 
 use App\Controller\AbstractController;
-use App\Utils\PageSetup;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
+use KimaiPlugin\DrehzettelBundle\Service\PageSetups;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -17,6 +17,7 @@ class OverviewController extends AbstractController
     public function __construct(
         private readonly EngagementRepository $engagements,
         private readonly EngagementAccess $access,
+        private readonly PageSetups $pages,
     ) {
     }
 
@@ -27,7 +28,7 @@ class OverviewController extends AbstractController
         $engagements = $manages ? $this->engagements->findAllSorted() : $this->engagements->findForUser($this->getUser());
 
         return $this->render('@Drehzettel/drehzettel/overview.html.twig', [
-            'page_setup' => new PageSetup('drehzettel.menu'),
+            'page_setup' => $this->pages->create('drehzettel_overview'),
             'engagements' => $engagements,
             'manages' => $manages,
             'today' => new \DateTimeImmutable('today'),
