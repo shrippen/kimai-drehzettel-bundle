@@ -51,4 +51,16 @@ final class Period
 
         return $day >= $this->from->format('Y-m-d') && $day <= $this->to->format('Y-m-d');
     }
+
+    // Y-m-d key -> midnight of that date in the period's zone, or null when invalid or outside.
+    // '!' zeroes the time: without it, a Sunday parsed at 14:00 lies after "to" (Sunday 00:00).
+    public function day(string $key): ?\DateTimeImmutable
+    {
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $key, $this->from->getTimezone());
+        if ($date === false || $date->format('Y-m-d') !== $key) {
+            return null;
+        }
+
+        return $this->contains($date) ? $date : null;
+    }
 }

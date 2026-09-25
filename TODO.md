@@ -3,7 +3,7 @@
 ✅ = live reproduziert, 📖 = aus Code-Review
 
 ## P0
-- [ ] ✅ Sonntag beim Wochen-Speichern: '!Y-m-d' mit User-Zeitzone + Test (WeekController.php:67)
+- [x] ✅ Sonntag beim Wochen-Speichern: '!Y-m-d' mit User-Zeitzone + Test (WeekController.php:67)
 - [ ] ✅ API-PUT als Partial-Update (nur übergebene Felder), dayType/productionDay in GET/PUT (DrehzettelApiController.php:130)
 - [ ] ✅ API-Validierung: breakMinutes 0–720, note ≤500, unbekannte category/dayType → 400 (DrehzettelApiController.php:312); negative Pause in der Berechnung abfangen
 

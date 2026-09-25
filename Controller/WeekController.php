@@ -61,11 +61,11 @@ class WeekController extends AbstractController
             return $this->redirectToRoute('drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week]);
         }
 
-        $monday = Period::week($year, $week, $engagement->getUser()->getDateTimezone())->from;
+        $period = Period::week($year, $week, $engagement->getUser()->getDateTimezone());
         $days = (array) $request->request->all('day');
         foreach ($days as $dateKey => $fields) {
-            $date = \DateTimeImmutable::createFromFormat('Y-m-d', (string) $dateKey);
-            if ($date === false || $date < $monday || $date > $monday->modify('+6 days')) {
+            $date = $period->day((string) $dateKey);
+            if ($date === null) {
                 continue; // only accept dates of this week
             }
             $draft = FilmDayDraftReader::read((array) $fields);
