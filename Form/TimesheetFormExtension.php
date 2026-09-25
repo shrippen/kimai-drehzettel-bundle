@@ -9,6 +9,7 @@ use App\Form\Type\YesNoType;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\PendingFilmDays;
@@ -139,14 +140,16 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
-        // Day of the shooting week behind the 6th/7th-day surcharge; empty counts the week's entries.
+        // Day number behind the 6th/7th-day surcharge; empty counts it (StreakMode of the ruleset).
+        $mode = $this->engagements->ruleset($engagement)->streakMode;
+        $maxDay = $mode->maxDay();
         $builder->add(self::FIELD_PRODUCTION_DAY, IntegerType::class, [
             'mapped' => false,
             'required' => false,
             'label' => 'drehzettel.production_day.title',
             'data' => $existing?->getProductionDay(),
-            'attr' => ['min' => 1, 'max' => FilmDayPatch::MAX_PRODUCTION_DAY, 'placeholder' => 'drehzettel.category.auto_short'],
-            'constraints' => [new Range(min: 1, max: FilmDayPatch::MAX_PRODUCTION_DAY)],
+            'attr' => ['min' => 1, 'max' => $maxDay, 'placeholder' => 'drehzettel.category.auto_short'],
+            'constraints' => [new Range(min: 1, max: $maxDay)],
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
@@ -183,15 +186,15 @@ final class TimesheetFormExtension extends AbstractTypeExtension
 
         $builder->addEventListener(
             FormEvents::POST_SUBMIT,
-            function (FormEvent $event): void {
-                $this->onSubmit($event);
+            function (FormEvent $event) use ($mode): void {
+                $this->onSubmit($event, $mode);
             }
         );
     }
 
     // Only queues the fields: TimesheetSaveSubscriber writes them once Kimai has saved
     // the entry, against the engagement of its final user/project/date.
-    private function onSubmit(FormEvent $event): void
+    private function onSubmit(FormEvent $event, StreakMode $mode): void
     {
         $form = $event->getForm();
         if (!$form->isValid()) {
@@ -221,7 +224,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
                 'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
                 'shootingDayNumber' => $shootingDay !== null ? (int) $shootingDay : null,
                 'productionDay' => $productionDay !== null ? (int) $productionDay : null,
-            ]);
+            ], $mode);
         } catch (\InvalidArgumentException) {
             return; // out of range: the break field's own constraint reports it
         }

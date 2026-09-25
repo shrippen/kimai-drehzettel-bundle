@@ -48,6 +48,7 @@ $bad = FilmDayDraftReader::read(['break' => '99999', 'category' => 'bogus', 'typ
 check('draft clamps and ignores junk', [720, null, DayType::WORKDAY, 7, 500], [$bad->breakMinutes, $bad->category, $bad->type, $bad->productionDay, mb_strlen($bad->note)]);
 $neg = FilmDayDraftReader::read(['break' => '-5', 'production_day' => 'abc']);
 check('draft negative and non numeric', [0, null], [$neg->breakMinutes, $neg->productionDay]);
+check('draft production day by mode', [42, 999], [FilmDayDraftReader::read(['production_day' => '42'], null, StreakMode::CONSECUTIVE)->productionDay, FilmDayDraftReader::read(['production_day' => '5000'], null, StreakMode::CONSECUTIVE)->productionDay]);
 
 // Extra pay is typed in currency units: comma or dot, clamped to 0..100,000.00.
 check('draft extra pay comma', 1250, FilmDayDraftReader::read(['extra_pay' => '12,50'])->extraPayCents);

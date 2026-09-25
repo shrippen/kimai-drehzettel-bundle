@@ -115,7 +115,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_get', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the default": defaultBreakMinutes (engagement ruleset) and effectiveCategory (weekday or public holiday, or the stored category). productionDay is the day within the shooting week, 1-7 (6/7 trigger the 6th/7th-day surcharge; null = count entries of the week). shootingDayNumber is the running shooting day of the production (1-999, "Drehtag 37"), informational only.')]
+    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the default": defaultBreakMinutes (engagement ruleset) and effectiveCategory (weekday or public holiday, or the stored category). productionDay overrides the day number behind the 6th/7th-day surcharge (null = automatic); streakMode says how it is counted: calendarWeek = n-th entry of the ISO week, 1-7; consecutive = n-th day in a row across weeks, 1-999, following days continue from the override. shootingDayNumber is the running shooting day of the production (1-999, "Drehtag 37"), informational only.')]
     #[OA\Response(response: 404, description: 'code no_engagement: no active engagement for project, user and date; or unknown_project/unknown_user.')]
     public function filmDayGet(Request $request, string $date): JsonResponse
     {
@@ -129,7 +129,7 @@ final class DrehzettelApiController extends AbstractController
 
     #[Route(methods: ['PUT'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_put', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
     #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default, extraPayCents to 0 and shootingDayNumber to none.')]
-    #[OA\Response(response: 400, description: 'code invalid_json, or invalid_value for a field: breakMinutes 0-720, productionDay 1-7, extraPayCents integer 0-10000000, shootingDayNumber 1-999, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
+    #[OA\Response(response: 400, description: 'code invalid_json, or invalid_value for a field: breakMinutes 0-720, productionDay 1-7 (ruleset streakMode calendarWeek) or 1-999 (consecutive), extraPayCents integer 0-10000000, shootingDayNumber 1-999, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function filmDayPut(Request $request, string $date): JsonResponse
     {
@@ -142,7 +142,7 @@ final class DrehzettelApiController extends AbstractController
             }
 
             try {
-                $patch = FilmDayPatch::fromArray($body);
+                $patch = FilmDayPatch::fromArray($body, $this->engagements->ruleset($engagement)->streakMode);
             } catch (\InvalidArgumentException $e) {
                 throw ApiError::badRequest(ApiError::INVALID_VALUE, $e->getMessage());
             }
@@ -154,7 +154,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/days/{date}/summary', name: 'drehzettel_api_day_summary', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
+    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), dayNumber = consecutiveDay (day number behind the 6th/7th-day surcharge, counted per streakMode), consecutiveDayOverridden (productionDay set), streakMode. hasEntry false: no timesheet entry on that date, all figures 0/null.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function daySummary(Request $request, string $date): JsonResponse
     {
