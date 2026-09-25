@@ -6,6 +6,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
 
 /**
@@ -41,6 +42,7 @@ final class RulesetFormMapper
             'nightPercent' => self::percent($rules->nightBasisPoints),
             'sixthDayPercent' => $rules->sixthDayBasisPoints === null ? null : self::percent($rules->sixthDayBasisPoints),
             'seventhDayPercent' => $rules->seventhDayBasisPoints === null ? null : self::percent($rules->seventhDayBasisPoints),
+            'streakMode' => $rules->streakMode->value,
         ];
 
         foreach (self::slots($rules->dailyTiers, self::DAILY_TIER_SLOTS) as $i => $tier) {
@@ -96,6 +98,7 @@ final class RulesetFormMapper
             sixthDayBasisPoints: self::optionalBasisPoints($data['sixthDayPercent'] ?? null),
             seventhDayBasisPoints: self::optionalBasisPoints($data['seventhDayPercent'] ?? null),
             minDayMinutes: self::minutes($data['minDayHours'] ?? 8),
+            streakMode: StreakMode::tryFrom((string) ($data['streakMode'] ?? '')) ?? StreakMode::DEFAULT,
         );
     }
 

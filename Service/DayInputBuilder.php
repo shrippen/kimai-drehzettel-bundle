@@ -61,6 +61,24 @@ class DayInputBuilder
         return $inputs;
     }
 
+    /**
+     * Dates with an entry in [from, to) and their day-in-a-row override, for the streak
+     * lookback. Lighter than build(): no holiday lookup, no calculator input.
+     *
+     * @return array<string, ?int> productionDay by date (Y-m-d), ascending
+     */
+    public function workedDays(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $film = $this->filmDaysByDate($engagement, $from, $to);
+
+        $days = [];
+        foreach (array_keys($this->spans($engagement, $from, $to)) as $key) {
+            $days[$key] = ($film[$key] ?? null)?->getProductionDay();
+        }
+
+        return $days;
+    }
+
     // A draft is applied through a throw-away FilmDay, so both sources read alike.
     private function fromDraft(FilmDayDraft $draft): FilmDay
     {

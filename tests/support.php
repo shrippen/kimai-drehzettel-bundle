@@ -40,6 +40,12 @@ function shift(string $date, string $begin, string $end, ?int $break = null, Cat
     return new DayInput($beginAt, $endAt, $category, breakMinutes: $break, catering: $catering);
 }
 
+// A ruleset switched to another StreakMode, the way a stored ruleset carries it.
+function withMode(Ruleset $rules, KimaiPlugin\DrehzettelBundle\Enum\StreakMode $mode): Ruleset
+{
+    return KimaiPlugin\DrehzettelBundle\Domain\RulesetCodec::fromArray(['streakMode' => $mode->value] + KimaiPlugin\DrehzettelBundle\Domain\RulesetCodec::toArray($rules));
+}
+
 function shareMinutes(array $shares): array
 {
     return array_map(static fn ($s): int => $s->minutes, $shares);

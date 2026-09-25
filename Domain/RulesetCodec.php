@@ -5,6 +5,7 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
 use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
 
 /**
@@ -49,6 +50,7 @@ final class RulesetCodec
             'sixthDayBp' => $rules->sixthDayBasisPoints,
             'seventhDayBp' => $rules->seventhDayBasisPoints,
             'minDayMinutes' => $rules->minDayMinutes,
+            'streakMode' => $rules->streakMode->value,
         ];
     }
 
@@ -99,6 +101,8 @@ final class RulesetCodec
             sixthDayBasisPoints: $data['sixthDayBp'],
             seventhDayBasisPoints: $data['seventhDayBp'],
             minDayMinutes: $data['minDayMinutes'] ?? 480,
+            // Stored before the key existed: the default, which was the only behaviour then.
+            streakMode: StreakMode::from($data['streakMode'] ?? StreakMode::DEFAULT->value),
         );
     }
 

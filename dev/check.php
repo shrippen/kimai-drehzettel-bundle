@@ -22,6 +22,7 @@ use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 use KimaiPlugin\DrehzettelBundle\Service\DayCalculator;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
+use KimaiPlugin\DrehzettelBundle\Service\ConsecutiveDayCounter;
 use KimaiPlugin\DrehzettelBundle\Service\FilmWeekService;
 use KimaiPlugin\DrehzettelBundle\Service\NullHolidayLookup;
 use KimaiPlugin\DrehzettelBundle\Service\PayCalculator;
@@ -54,11 +55,13 @@ $engagements = new EngagementRepository($registry);
 $service = new EngagementService($engagements, new RulesetCatalog(new FilmRulesetRepository($registry)));
 $pay = new PayCalculator();
 $dayCalc = new DayCalculator($pay);
+$inputs = new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry), new NullHolidayLookup());
 $weeks = new FilmWeekService(
-    new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry), new NullHolidayLookup()),
+    $inputs,
     new WeekCalculator($dayCalc, $pay),
     $dayCalc,
     $service,
+    new ConsecutiveDayCounter($inputs),
 );
 
 // Overlap is rejected.

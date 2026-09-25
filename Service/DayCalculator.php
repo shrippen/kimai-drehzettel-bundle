@@ -62,6 +62,7 @@ class DayCalculator
             underMinutes: $surcharged && $work > 0 ? max(0, $rules->minDayMinutes - $work) : 0,
             extraPayCents: $day->extraPayCents,
             shootingDayNumber: $day->shootingDayNumber,
+            productionDay: $day->productionDay,
         );
 
         if ($terms === null) {
@@ -176,6 +177,7 @@ class DayCalculator
             $day->underMinutes,
             $day->extraPayCents,
             $day->shootingDayNumber,
+            $day->productionDay,
         );
     }
 }

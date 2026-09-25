@@ -6,12 +6,14 @@ use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Domain\Rounding;
 use KimaiPlugin\DrehzettelBundle\Domain\Ruleset;
 use KimaiPlugin\DrehzettelBundle\Domain\Rulesets;
+use KimaiPlugin\DrehzettelBundle\Domain\Streak;
 use KimaiPlugin\DrehzettelBundle\Domain\Tier;
 use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 /*
  * Rows come from exported reference timesheets (tests/fixtures).
@@ -62,38 +64,45 @@ $fixtures = json_decode(file_get_contents(dirname(__DIR__) . '/fixtures/referenc
 $exact = 0;
 $off = 0;
 
-foreach ($setups as $project => [$rules, $terms]) {
-    foreach ($fixtures[$project]['weeks'] as $week) {
-        $inputs = [];
-        foreach ($week['rows'] as $row) {
-            $inputs[] = shift(
-                $row['date'],
-                $row['begin'],
-                $row['end'],
-                $row['breakMinutes'],
-                $row['catering'] ? Catering::YES : Catering::NO,
-            );
-        }
-
-        $result = weekCalc()->calc($inputs, $rules, $terms);
-        foreach ($week['rows'] as $i => $row) {
-            $day = $result->days[$i];
-            $name = "$project {$row['date']}";
-            check("$name work", $row['workMinutes'], $day->workMinutes);
-            check("$name tiers", $row['tierMinutes'], shareMinutes($day->dailyShares));
-            check("$name night", $row['nightMinutes'], $day->nightMinutes);
-            if (isset($row['underMinutes'])) {
-                check("$name under-time", $row['underMinutes'], $day->underMinutes);
+// Both streak modes give the same figures: no fixture week reaches a 6th day either way.
+foreach ([StreakMode::CALENDAR_WEEK, StreakMode::CONSECUTIVE] as $mode) {
+    foreach ($setups as $project => [$rules, $terms]) {
+        $rules = withMode($rules, $mode);
+        // Weeks carry the day-in-a-row count, as FilmWeekService::period() does.
+        $last = null;
+        foreach ($fixtures[$project]['weeks'] as $week) {
+            $inputs = [];
+            foreach ($week['rows'] as $row) {
+                $inputs[] = shift(
+                    $row['date'],
+                    $row['begin'],
+                    $row['end'],
+                    $row['breakMinutes'],
+                    $row['catering'] ? Catering::YES : Catering::NO,
+                );
             }
 
-            if ($terms === null || $row['cents'] === null) {
-                continue;
+            $result = weekCalc()->calc($inputs, $rules, $terms, $last === null ? 0 : Streak::carry($last, $inputs[0]));
+            $last = $result->days[count($result->days) - 1];
+            foreach ($week['rows'] as $i => $row) {
+                $day = $result->days[$i];
+                $name = "$project {$mode->value} {$row['date']}";
+                check("$name work", $row['workMinutes'], $day->workMinutes);
+                check("$name tiers", $row['tierMinutes'], shareMinutes($day->dailyShares));
+                check("$name night", $row['nightMinutes'], $day->nightMinutes);
+                if (isset($row['underMinutes'])) {
+                    check("$name under-time", $row['underMinutes'], $day->underMinutes);
+                }
+
+                if ($terms === null || $row['cents'] === null) {
+                    continue;
+                }
+                $diff = abs($row['cents'] - $day->amountCents);
+                check("$name cents within tolerance", true, $diff <= CENT_TOLERANCE);
+                $diff === 0 ? $exact++ : $off++;
             }
-            $diff = abs($row['cents'] - $day->amountCents);
-            check("$name cents within tolerance", true, $diff <= CENT_TOLERANCE);
-            $diff === 0 ? $exact++ : $off++;
+            check("$project {$mode->value} {$week['file']} no weekly pool", 0, $result->weeklyPoolMinutes);
         }
-        check("$project {$week['file']} no weekly pool", 0, $result->weeklyPoolMinutes);
     }
 }
 

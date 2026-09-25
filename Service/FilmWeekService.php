@@ -5,8 +5,10 @@ namespace KimaiPlugin\DrehzettelBundle\Service;
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
 use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
+use KimaiPlugin\DrehzettelBundle\Domain\Streak;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 /**
  * Results for an engagement: one week, or any period split by ISO week.
@@ -23,6 +25,7 @@ class FilmWeekService
         private readonly WeekCalculator $weeks,
         private readonly DayCalculator $days,
         private readonly EngagementService $engagements,
+        private readonly ConsecutiveDayCounter $streaks,
     ) {
     }
 
@@ -53,7 +56,16 @@ class FilmWeekService
         }
         ksort($byWeek);
 
-        return array_map(fn (array $days): WeekResult => $this->calc($engagement, $days), array_values($byWeek));
+        // Only the first week looks back; later weeks carry N from the week before.
+        $results = [];
+        $last = null;
+        foreach ($byWeek as $days) {
+            $result = $this->calc($engagement, $days, $last === null ? null : Streak::carry($last, $days[0]));
+            $results[] = $result;
+            $last = $result->days[count($result->days) - 1];
+        }
+
+        return $results;
     }
 
     /**
@@ -73,14 +85,23 @@ class FilmWeekService
     }
 
     /**
-     * @param list<DayInput> $days
+     * @param list<DayInput> $days sorted by begin
+     * @param ?int $streakBefore N of the day before the first day; null looks it up
      */
-    private function calc(Engagement $engagement, array $days): WeekResult
+    private function calc(Engagement $engagement, array $days, ?int $streakBefore = null): WeekResult
     {
+        $rules = $this->engagements->ruleset($engagement);
+
+        // Only consecutive counting reaches into earlier weeks.
+        if ($streakBefore === null && $days !== [] && $rules->streakMode === StreakMode::CONSECUTIVE) {
+            $streakBefore = $this->streaks->before($engagement, $days[0]->begin);
+        }
+
         return $this->weeks->calc(
             $days,
-            $this->engagements->ruleset($engagement),
+            $rules,
             $this->engagements->terms($engagement),
+            $streakBefore ?? 0,
         );
     }
 

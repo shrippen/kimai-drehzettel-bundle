@@ -7,6 +7,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Domain\Ruleset;
 use KimaiPlugin\DrehzettelBundle\Domain\Share;
+use KimaiPlugin\DrehzettelBundle\Domain\Streak;
 use KimaiPlugin\DrehzettelBundle\Domain\Tiers;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
@@ -18,7 +19,11 @@ use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
  *
  * regular: counted minutes of days 1-5 (daily overtime excluded)
  * base:    first weekly tier, TV FFS 50 h
- * pooled:  6th and 7th day when the rules give them no fixed surcharge
+ * pooled:  6th and later day when the rules give them no fixed surcharge
+ *
+ * Day N comes from Streak: the n-th entry of the week, or with StreakMode
+ * CONSECUTIVE the n-th day in a row across weeks (Wed-Tue worked makes
+ * Monday the 6th and Tuesday the 7th day).
  *
  * The pool runs through the weekly tiers: TV FFS 25 % for 5 h, then 50 %.
  */
@@ -35,16 +40,17 @@ class WeekCalculator
 
     /**
      * @param list<DayInput> $inputs entries of one ISO calendar week
+     * @param int $streakBefore CONSECUTIVE: N of the day before the first entry, 0 if not worked
      */
-    public function calc(array $inputs, Ruleset $rules, ?PayTerms $terms): WeekResult
+    public function calc(array $inputs, Ruleset $rules, ?PayTerms $terms, int $streakBefore = 0): WeekResult
     {
         usort($inputs, static fn (DayInput $a, DayInput $b): int => $a->begin <=> $b->begin);
         $this->validate($inputs);
 
+        $numbers = Streak::numbers($inputs, $streakBefore, $rules->streakMode);
         $days = [];
         foreach ($inputs as $index => $input) {
-            $number = $input->productionDay ?? $index + 1;
-            $days[] = $this->days->calc($input, $rules, $terms, $number);
+            $days[] = $this->days->calc($input, $rules, $terms, $numbers[$index]);
         }
 
         $pool = $this->poolMinutes($days, $rules);

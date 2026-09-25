@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
 
 use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
+use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 final class Ruleset
 {
@@ -20,6 +21,7 @@ final class Ruleset
      * @param ?int $sixthDayBasisPoints fixed surcharge on 6th day; null pools it as weekly overtime
      * @param ?int $seventhDayBasisPoints fixed surcharge on 7th day; null pools it as weekly overtime
      * @param int $minDayMinutes shorter days count as under-time (TV FFS 5.3.1: a begun day counts 8 h)
+     * @param StreakMode $streakMode how the 6th/7th day is counted
      */
     public function __construct(
         public readonly string $name,
@@ -39,6 +41,7 @@ final class Ruleset
         public readonly ?int $sixthDayBasisPoints,
         public readonly ?int $seventhDayBasisPoints,
         public readonly int $minDayMinutes = 480,
+        public readonly StreakMode $streakMode = StreakMode::DEFAULT,
     ) {
         $this->dailyTiers = self::sorted($dailyTiers);
         $this->weeklyTiers = self::sorted($weeklyTiers);
