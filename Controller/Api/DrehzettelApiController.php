@@ -12,6 +12,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
+use KimaiPlugin\DrehzettelBundle\Service\DaySummaryService;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
@@ -56,6 +57,7 @@ final class DrehzettelApiController extends AbstractController
         private readonly UserRepository $users,
         private readonly Security $security,
         private readonly DayInputBuilder $dayInputs,
+        private readonly DaySummaryService $daySummaries,
     ) {
     }
 
@@ -148,6 +150,18 @@ final class DrehzettelApiController extends AbstractController
             $day = $this->filmDayService->patch($engagement, ApiQuery::date($date, new \DateTimeImmutable()), $patch);
 
             return $this->filmDayJson($date, $engagement, $day);
+        });
+    }
+
+    #[Route(methods: ['GET'], path: '/v1/days/{date}/summary', name: 'drehzettel_api_day_summary', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
+    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
+    #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
+    public function daySummary(Request $request, string $date): JsonResponse
+    {
+        return $this->respond(function () use ($request, $date): array {
+            $engagement = $this->requireEngagement($request, $date);
+
+            return $this->daySummaries->summary($engagement, ApiQuery::date($date, new \DateTimeImmutable()));
         });
     }
 

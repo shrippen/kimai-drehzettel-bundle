@@ -49,7 +49,7 @@ check('api ping error codes', true, in_array('errorCodes', $ping['features'], tr
 
 // Engagement list entry. Kimai's Project/Customer are stubbed: tests run without Kimai.
 if (!class_exists('App\Entity\Project')) {
-    eval('namespace App\Entity; class Customer { public function getName(): string { return "ACME"; } }
+    eval('namespace App\Entity; class Customer { public function getName(): string { return "ACME"; } public function getCurrency(): string { return "EUR"; } }
         class Project { public function getId(): int { return 7; } public function getName(): string { return "Musterfilm"; } public function getCustomer(): Customer { return new Customer(); } }');
 }
 $engagement = new KimaiPlugin\DrehzettelBundle\Entity\Engagement();
@@ -85,3 +85,23 @@ check('api film day extra pay', [5000, 0], [
     KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['extraPayCents'],
 ]);
 check('api ping extra pay', true, in_array('extraPay', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
+
+// Day summary: one day out of the calculated week, with its warnings. TV FFS rounds begun hours up.
+$engagement->setGageCents(158100);
+$summaryWeek = weekCalc()->calc([
+    shift('2026-03-02', '08:00', '21:00', 45, KimaiPlugin\DrehzettelBundle\Enum\Catering::YES),
+    new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-03', '08:00'), at('2026-03-03', '16:45'), breakMinutes: 45, extraPayCents: 5000),
+], $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100, 950));
+$summaryWarnings = (new KimaiPlugin\DrehzettelBundle\Service\ComplianceChecker())->check($summaryWeek);
+$monday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-02', $summaryWarnings, $engagement);
+check('summary long day', [true, 735, 45, [['percent' => 25.0, 'minutes' => 60], ['percent' => 50.0, 'minutes' => 120]], 'workday', null, 1], [$monday['hasEntry'], $monday['workMinutes'], $monday['breakMinutes'], $monday['overtime'], $monday['category'], $monday['categoryPercent'], $monday['dayNumber']]);
+check('summary long day warning', [['issue' => 'daily_max', 'minutes' => 780, 'limitMinutes' => 720]], $monday['warnings']);
+check('summary pay is the day amount', $summaryWeek->days[0]->amountCents, $monday['payCents']);
+$tuesday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement);
+// Tuesday starts 11 h after a 13 h day: 11.5 h rest were due.
+check('summary extra pay', [5000, $summaryWeek->days[1]->amountCents, [['issue' => 'rest_time', 'minutes' => 660, 'limitMinutes' => 690]], 'EUR'], [$tuesday['extraPayCents'], $tuesday['payCents'], $tuesday['warnings'], $tuesday['currency']]);
+$empty = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-04', $summaryWarnings, $engagement);
+check('summary no entry', [false, 0, [], null, null], [$empty['hasEntry'], $empty['workMinutes'], $empty['overtime'], $empty['payCents'], $empty['dayNumber']]);
+$engagement->setGageCents(0);
+check('summary no gage no pay', null, KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement)['payCents']);
+check('api ping day summary', true, in_array('daySummary', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
