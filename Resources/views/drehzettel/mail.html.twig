@@ -1,0 +1,14 @@
+{# Week PDF by mail: Kimai modal from the week page ("Mail" action), page without JS. #}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {% embed (kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig') with {
+        title: 'drehzettel.mail.title'|trans,
+        form: form,
+        back: back,
+        reset: false,
+        submit_button: 'drehzettel.mail.send',
+    } %}
+        {% block modal_size %}{% endblock %}
+    {% endembed %}
+{% endblock %}

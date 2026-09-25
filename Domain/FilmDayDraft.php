@@ -16,6 +16,8 @@ final class FilmDayDraft
         public readonly DayType $type,
         public readonly ?int $productionDay,
         public readonly ?string $note,
+        public readonly int $extraPayCents = 0,
+        public readonly ?int $shootingDayNumber = null,
     ) {
     }
 }

@@ -18,6 +18,8 @@ final class DayInput
         public readonly ?int $breakMinutes = null,
         public readonly ?int $productionDay = null,
         public readonly ?string $note = null,
+        public readonly int $extraPayCents = 0,
+        public readonly ?int $shootingDayNumber = null,
     ) {
     }
 }

@@ -1,49 +1,38 @@
 {% extends 'base.html.twig' %}
+{% import '@Drehzettel/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>{{ 'drehzettel.rulesets'|trans }}</h2>
-        <a href="{{ path('drehzettel_overview') }}" class="btn btn-sm btn-outline-secondary">{{ 'action.back'|trans }}</a>
-    </div>
+{% block stylesheets %}
+    {{ parent() }}
+    {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'css'} %}
+{% endblock %}
 
-    <div class="card mb-3">
-        <div class="card-header">{{ 'drehzettel.ruleset.builtin'|trans }}</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                {% for b in builtin %}
-                    <li class="mb-1">
-                        {{ b.name }}
-                        <a href="{{ path('drehzettel_ruleset_new', {from: b.key}) }}" class="btn btn-xs btn-outline-secondary ms-2">{{ 'drehzettel.ruleset.copy'|trans }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+{% block javascripts %}
+    {{ parent() }}
+    {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'js'} %}
+{% endblock %}
 
-    <div class="card">
-        <div class="card-header">{{ 'drehzettel.ruleset.custom'|trans }}</div>
-        <div class="card-body p-0">
-            {% if custom is empty %}
-                <p class="text-muted p-3 mb-0">{{ 'drehzettel.ruleset.none'|trans }}</p>
-            {% else %}
-                <table class="table mb-0">
-                    <tbody>
-                    {% for r in custom %}
-                        <tr>
-                            <td>{{ r.name }}</td>
-                            <td class="text-end">
-                                <a href="{{ path('drehzettel_ruleset_edit', {id: r.id}) }}" class="btn btn-xs btn-outline-secondary">{{ 'action.edit'|trans }}</a>
-                                <a href="{{ path('drehzettel_ruleset_new', {from: r.name}) }}" class="btn btn-xs btn-outline-secondary">{{ 'drehzettel.ruleset.copy'|trans }}</a>
-                                <form class="d-inline" method="post" action="{{ path('drehzettel_ruleset_delete', {id: r.id}) }}" onsubmit="return confirm('{{ 'drehzettel.ruleset.delete_confirm'|trans|e('js') }}');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_ruleset') }}">
-                                    <button class="btn btn-xs btn-outline-danger" type="submit">{{ 'action.delete'|trans }}</button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </div>
-    </div>
+{% block main %}
+    {% set columns = {
+        'name': {class: 'alwaysVisible', orderBy: false, title: 'drehzettel.ruleset.name'},
+        'kind': {class: 'w-min text-nowrap', orderBy: false, title: 'drehzettel.ruleset.kind'},
+        'actions': {class: 'actions alwaysVisible', orderBy: false},
+    } %}
+    {{ tables.datatable_header('drehzettel_rulesets', columns, null, {boxClass: 'card', columnConfig: false, sticky: false}) }}
+        {% for r in rows %}
+            <tr>
+                <td class="{{ datatable_column_class('drehzettel_rulesets', 'name') }}">
+                    {% if r.id %}<a href="{{ path('drehzettel_ruleset_edit', {id: r.id}) }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}
+                </td>
+                <td class="{{ datatable_column_class('drehzettel_rulesets', 'kind') }} text-secondary">
+                    {{ (r.id ? 'drehzettel.ruleset.custom' : 'drehzettel.ruleset.builtin')|trans }}
+                </td>
+                <td class="{{ datatable_column_class('drehzettel_rulesets', 'actions') }}">
+                    {% set event = actions(app.user, 'drehzettel_ruleset', 'index', {key: r.key, id: r.id}) %}
+                    {{ widgets.table_actions(event.actions) }}
+                </td>
+            </tr>
+        {% endfor %}
+    {{ tables.data_table_footer(null, null, null) }}
 {% endblock %}

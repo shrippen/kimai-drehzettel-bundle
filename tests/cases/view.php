@@ -81,6 +81,23 @@ $month = $builder->build($meta, Period::month(2026, 3, $zone), [$week, $w2], $ru
 check('view: month total', ['51:45 h', 2], [$month['total']['work'], count($month['weeks'])]);
 check('view: month label spans weeks', 'Montag, 2. März 2026 - Dienstag, 10. März 2026 / KW 10-11', $month['period']);
 
+// A week across a month boundary: its weekly overtime is paid in one month only,
+// the one holding the week's last worked day (Mon 30.3. - Sat 4.4.2026 -> April).
+$split = [];
+foreach (['2026-03-30', '2026-03-31', '2026-04-01', '2026-04-02', '2026-04-03'] as $d) {
+    $split[] = shift($d, '08:00', '18:45', 45);
+}
+$split[] = shift('2026-04-04', '08:00', '16:45', 45, category: KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY);
+$splitWeek = weekCalc()->calc($split, $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100));
+$payMeta = new TimesheetMeta('X', 'Y', 'Z', 'de', true);
+$payOptions = new PdfOptions([PdfOption::PAY, PdfOption::WEEKLY_OVERTIME]);
+$march = $builder->build($payMeta, Period::month(2026, 3, $zone), [$splitWeek], $rules, $payOptions);
+$april = $builder->build($payMeta, Period::month(2026, 4, $zone), [$splitWeek], $rules, $payOptions);
+$dayCents = array_map(static fn ($d): int => $d->amountCents, $splitWeek->days);
+check('view: split week has weekly pay', true, $splitWeek->weeklyCents > 0);
+check('view: split week march without weekly', [null, Format::money($dayCents[0] + $dayCents[1], 'de')], [$march['weeks'][0]['weekly'], $march['weeks'][0]['sums']['pay']]);
+check('view: split week april with weekly', [true, Format::money(array_sum(array_slice($dayCents, 2)) + $splitWeek->weeklyCents, 'de')], [$april['weeks'][0]['weekly'] !== null, $april['weeks'][0]['sums']['pay']]);
+
 // Helpers.
 check('options round trip', ['break', 'pay'], PdfOptions::fromKeys(['break', 'pay', 'bogus'])->toKeys());
 check('options default has signature', true, PdfOptions::defaults()->has(PdfOption::SIGNATURE_LINES));
@@ -88,3 +105,23 @@ check('options default hides pay', false, PdfOptions::defaults()->has(PdfOption:
 check('money de', '1.234,50 €', Format::money(123450, 'de'));
 check('money en', '€1,234.50', Format::money(123450, 'en'));
 check('hours', '31:30 h', Format::hours(1890));
+check('money currency', '1.234,50 CHF', Format::money(123450, 'de', 'CHF'));
+check('money negative en', '-€12.00', Format::money(-1200, 'en'));
+
+// The PDF uses the customer currency of the project.
+$chf = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true, currency: 'CHF'), $period, [$noteWeek], $rules, new PdfOptions([PdfOption::PAY]));
+check('view: pay in customer currency', true, str_ends_with($chf['weeks'][0]['sums']['pay'], ' CHF'));
+
+// Extra pay: included in the day's pay, named below it in the PDF.
+$extraWeek = weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), extraPayCents: 5000)], $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100));
+$extraView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [$extraWeek], $rules, new PdfOptions([PdfOption::PAY]));
+check('view: extra pay line', 'drehzettel.pdf.extra_pay(%amount%=' . Format::money(5000, 'de') . ')', $extraView['weeks'][0]['rows'][0]['extra_pay']);
+check('view: extra pay in day pay', Format::money($extraWeek->days[0]->amountCents, 'de'), $extraView['weeks'][0]['rows'][0]['pay']);
+check('view: no extra pay line', '', $withPay['weeks'][0]['rows'][0]['extra_pay']);
+$extraHidden = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [$extraWeek], $rules, new PdfOptions([]));
+check('view: extra pay hidden without pay', '', $extraHidden['weeks'][0]['rows'][0]['extra_pay']);
+
+// Shooting day of the production: labelled below the date in the PDF.
+$shootView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), shootingDayNumber: 37)], $rules, null)], $rules, new PdfOptions([]));
+check('view: shooting day label', 'drehzettel.shooting_day.label(%number%=37)', $shootView['weeks'][0]['rows'][0]['shooting_day']);
+check('view: no shooting day', '', $withPay['weeks'][0]['rows'][0]['shooting_day']);

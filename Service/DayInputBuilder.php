@@ -53,6 +53,8 @@ class DayInputBuilder
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
                 note: $extra?->getNote(),
+                extraPayCents: $extra?->getExtraPayCents() ?? 0,
+                shootingDayNumber: $extra?->getShootingDayNumber(),
             );
         }
 
@@ -69,6 +71,8 @@ class DayInputBuilder
         $day->setDayType($draft->type);
         $day->setProductionDay($draft->productionDay);
         $day->setNote($draft->note);
+        $day->setExtraPayCents($draft->extraPayCents);
+        $day->setShootingDayNumber($draft->shootingDayNumber);
 
         return $day;
     }
@@ -78,14 +82,19 @@ class DayInputBuilder
      */
     private function spans(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
-        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from, $to);
+        // Days are keyed by the entry's own local date, as Kimai shows it. That zone can differ
+        // from the user's zone of [from, to) (Berlin 00:30 Monday = UTC 22:30 Sunday), so query
+        // a day wider and filter by key: otherwise such an entry lands in the wrong week.
+        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from->modify('-1 day'), $to->modify('+1 day'));
+        $fromKey = $from->format(self::DATE_FORMAT);
+        $toKey = $to->format(self::DATE_FORMAT);
 
         $spans = [];
         foreach ($entries as $entry) {
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
             $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
             $key = $begin->format(self::DATE_FORMAT);
-            if (!$this->isValid($engagement, $key)) {
+            if ($key < $fromKey || $key >= $toKey || !$this->isValid($engagement, $key)) {
                 continue;
             }
 
@@ -119,7 +128,7 @@ class DayInputBuilder
     }
 
     // A film day override always wins (checked by the caller); this is only the fallback.
-    private function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
+    public function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
     {
         if ($this->holidays->isHoliday($engagement->getUser(), $date)) {
             return DayCategory::HOLIDAY;

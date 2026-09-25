@@ -1,67 +1,32 @@
-{% extends 'base.html.twig' %}
+{# Engagement create/edit: Kimai modal (overview, week page), page without JS. #}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
 
-{% block page_content %}
-    <h2>{{ engagement ? 'action.edit'|trans : 'drehzettel.engagement.new'|trans }}</h2>
-    <form method="post" class="card" style="max-width: 640px;">
-        <div class="card-body">
-            <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_engagement') }}">
-
-            {% if not engagement %}
-                <div class="mb-3">
-                    <label class="form-label">{{ 'drehzettel.user'|trans }}</label>
-                    <select name="user" class="form-select" required>
-                        {% for u in users %}<option value="{{ u.id }}">{{ u.displayName }} ({{ u.username }})</option>{% endfor %}
-                    </select>
+{% block main %}
+    {% embed (kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig') with {
+        title: title,
+        form: form,
+        back: back,
+        reset: false,
+    } %}
+        {% block form_body %}
+            {% if form.user is defined %}
+                <div class="row">
+                    <div class="col-md-6">{{ form_row(form.user) }}</div>
+                    <div class="col-md-6">{{ form_row(form.project) }}</div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">{{ 'drehzettel.project'|trans }}</label>
-                    <select name="project" class="form-select" required>
-                        {% for p in projects %}<option value="{{ p.id }}">{{ p.customer ? p.customer.name ~ ' – ' : '' }}{{ p.name }}</option>{% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">{{ 'drehzettel.ruleset'|trans }}</label>
-                    <select name="ruleset" class="form-select">
-                        {% for r in rulesets %}<option value="{{ r.key }}">{{ r.name }}</option>{% endfor %}
-                    </select>
-                </div>
+                {{ form_row(form.ruleset) }}
             {% endif %}
-
-            <div class="mb-3">
-                <label class="form-label">{{ 'drehzettel.role'|trans }}</label>
-                <input type="text" name="role" class="form-control" value="{{ engagement ? engagement.role : '' }}" required>
+            {{ form_row(form.role) }}
+            <div class="row">
+                <div class="col-md-4">{{ form_row(form.payKind) }}</div>
+                <div class="col-md-4">{{ form_row(form.gage) }}</div>
+                <div class="col-md-4">{{ form_row(form.cateringDeduction) }}</div>
             </div>
             <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.pay_kind'|trans }}</label>
-                    <select name="pay_kind" class="form-select">
-                        <option value="weekly" {% if engagement and engagement.payKind.value == 'weekly' %}selected{% endif %}>{{ 'drehzettel.pay_kind.weekly'|trans }}</option>
-                        <option value="daily" {% if engagement and engagement.payKind.value == 'daily' %}selected{% endif %}>{{ 'drehzettel.pay_kind.daily'|trans }}</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.gage'|trans }}</label>
-                    <input type="text" name="gage" class="form-control" value="{{ engagement ? (engagement.gageCents / 100)|number_format(2) : '' }}">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">{{ 'drehzettel.catering_deduction'|trans }}</label>
-                    <input type="text" name="catering_deduction" class="form-control" value="{{ engagement ? (engagement.cateringDeductionCents / 100)|number_format(2) : '' }}">
-                </div>
+                <div class="col-md-6">{{ form_row(form.validFrom) }}</div>
+                <div class="col-md-6">{{ form_row(form.validTo) }}</div>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">{{ 'drehzettel.valid_from'|trans }}</label>
-                    <input type="date" name="valid_from" class="form-control" value="{{ engagement ? engagement.validFrom|date('Y-m-d') : 'now'|date('Y-m-d') }}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">{{ 'drehzettel.valid_to'|trans }}</label>
-                    <input type="date" name="valid_to" class="form-control" value="{{ engagement and engagement.validTo ? engagement.validTo|date('Y-m-d') : '' }}">
-                    <div class="form-text">{{ 'drehzettel.valid_to_help'|trans }}</div>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">{{ 'action.save'|trans }}</button>
-            <a href="{{ path('drehzettel_overview') }}" class="btn btn-link">{{ 'action.close'|trans }}</a>
-        </div>
-    </form>
+            {{ form_rest(form) }}
+        {% endblock %}
+    {% endembed %}
 {% endblock %}

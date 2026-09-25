@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use App\Pdf\HtmlToPdfConverter;
+use KimaiPlugin\DrehzettelBundle\Domain\Format;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfDocument;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
@@ -67,6 +68,7 @@ class PdfExporter
             locale: $locale ?? $user->getLanguage(),
             hasPay: $engagement->getGageCents() > 0,
             signatureDataUri: $signature,
+            currency: $engagement->getProject()?->getCustomer()?->getCurrency() ?? Format::CURRENCY,
         );
 
         return $this->views->build($meta, $period, $weeks, $rules, $options);

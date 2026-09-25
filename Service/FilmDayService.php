@@ -2,6 +2,9 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraftReader;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
@@ -28,6 +31,8 @@ class FilmDayService
         DayType $type = DayType::WORKDAY,
         ?int $productionDay = null,
         ?string $note = null,
+        int $extraPayCents = 0,
+        ?int $shootingDayNumber = null,
     ): FilmDay {
         $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
         $day->setEngagement($engagement);
@@ -38,6 +43,31 @@ class FilmDayService
         $day->setDayType($type);
         $day->setProductionDay($productionDay);
         $day->setNote($note);
+        $day->setExtraPayCents($extraPayCents);
+        $day->setShootingDayNumber($shootingDayNumber);
+
+        $this->days->save($day);
+
+        return $day;
+    }
+
+    /**
+     * Week view fields of one day over the stored day: fields the form did not send keep their value.
+     *
+     * @param array<string, mixed> $fields see FilmDayDraftReader::read()
+     */
+    public function draft(Engagement $engagement, \DateTimeImmutable $date, array $fields): FilmDayDraft
+    {
+        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date));
+    }
+
+    // Changes only the patched fields; a new day starts from the entity defaults.
+    public function patch(Engagement $engagement, \DateTimeImmutable $date, FilmDayPatch $patch): FilmDay
+    {
+        $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
+        $day->setEngagement($engagement);
+        $day->setDate($date);
+        $patch->applyTo($day);
 
         $this->days->save($day);
 
@@ -59,9 +89,10 @@ class FilmDayService
             return;
         }
 
-        $entriesOfDay = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $date, $date->modify('+1 day'));
-        foreach ($entriesOfDay as $entry) {
-            if (!\in_array($entry->getId(), $excludedTimesheetIds, true)) {
+        // A day wider, then matched by local date: see DayInputBuilder::spans().
+        $entriesAround = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $date->modify('-1 day'), $date->modify('+2 days'));
+        foreach ($entriesAround as $entry) {
+            if (EngagementService::dateOf($entry)->format('Y-m-d') === $date->format('Y-m-d') && !\in_array($entry->getId(), $excludedTimesheetIds, true)) {
                 return;
             }
         }

@@ -60,6 +60,8 @@ class DayCalculator
             category: $day->category,
             note: $day->note,
             underMinutes: $surcharged && $work > 0 ? max(0, $rules->minDayMinutes - $work) : 0,
+            extraPayCents: $day->extraPayCents,
+            shootingDayNumber: $day->shootingDayNumber,
         );
 
         if ($terms === null) {
@@ -83,29 +85,38 @@ class DayCalculator
             $break = min($break, $rules->freeBreakMinutes);
         }
 
-        return min($break, $gross);
+        // A negative stored break (bad import, old API) must never add work time.
+        return max(0, min($break, $gross));
     }
 
     /**
-     * Night windows sit at k * 24 h + [from, to). Shift minutes are counted
-     * from the begin day's midnight, so a 07:30-00:00 shift spans 450..1440
-     * and overlaps 22:00-24:00 (1320..1440) by 120 min.
+     * Night windows are wall-clock [from, to) on the day before, of and after the begin,
+     * measured in real time: a 07:30-00:00 shift overlaps 22:00-24:00 by 120 min, and
+     * 22:00-06:00 lasts 9 h in the night clocks fall back (DST), 7 h when they spring forward.
      */
     private function nightMinutes(DayInput $day, int $gross, Ruleset $rules): int
     {
-        $start = (int) $day->begin->format('G') * Units::MINUTES_PER_HOUR + (int) $day->begin->format('i');
-        $end = $start + $gross;
-        $to = $rules->nightToMinute <= $rules->nightFromMinute
-            ? $rules->nightToMinute + Units::MINUTES_PER_DAY
-            : $rules->nightToMinute;
+        $midnight = $day->begin->setTime(0, 0);
+        $end = $day->begin->getTimestamp() + $gross * Units::SECONDS_PER_MINUTE;
 
-        $sum = 0;
+        $seconds = 0;
         foreach ([-1, 0, 1] as $offset) {
-            $shift = $offset * Units::MINUTES_PER_DAY;
-            $sum += max(0, min($end, $shift + $to) - max($start, $shift + $rules->nightFromMinute));
+            $windowDay = $midnight->modify("$offset day");
+            $from = $this->wallClock($windowDay, $rules->nightFromMinute);
+            $toDay = $rules->nightToMinute <= $rules->nightFromMinute ? $windowDay->modify('+1 day') : $windowDay;
+            $to = $this->wallClock($toDay, $rules->nightToMinute);
+            $seconds += max(0, min($end, $to) - max($day->begin->getTimestamp(), $from));
         }
 
-        return $rules->surchargeRounding->apply($sum);
+        return $rules->surchargeRounding->apply(intdiv($seconds, Units::SECONDS_PER_MINUTE));
+    }
+
+    // Timestamp of a minute of the day on that date's wall clock (1320 -> 22:00).
+    private function wallClock(\DateTimeImmutable $date, int $minuteOfDay): int
+    {
+        $hour = intdiv($minuteOfDay, Units::MINUTES_PER_HOUR);
+
+        return $date->setTime($hour, $minuteOfDay % Units::MINUTES_PER_HOUR)->getTimestamp();
     }
 
     private function dayCountShare(int $dayNumber, int $work, Ruleset $rules): ?Share
@@ -142,7 +153,8 @@ class DayCalculator
             $dayRate = $category->basisPoints;
         }
 
-        $cents = $this->pay->dayCents($day->workMinutes, $hourly, $dayRate, $day->catering, $terms, $rules);
+        // Extra pay (Zusatzgage/Spesen) is a fixed amount on top: no surcharge, no rounding.
+        $cents = $this->pay->dayCents($day->workMinutes, $hourly, $dayRate, $day->catering, $terms, $rules) + $day->extraPayCents;
 
         return new DayResult(
             $day->begin,
@@ -162,6 +174,8 @@ class DayCalculator
             $day->category,
             $day->note,
             $day->underMinutes,
+            $day->extraPayCents,
+            $day->shootingDayNumber,
         );
     }
 }

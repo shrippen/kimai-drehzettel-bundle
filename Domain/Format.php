@@ -4,6 +4,8 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
 
 final class Format
 {
+    public const CURRENCY = 'EUR';
+
     // 525 -> "08:45"
     public static function hm(int $minutes): string
     {
@@ -16,12 +18,13 @@ final class Format
         return self::hm($minutes) . ' h';
     }
 
-    // 28458, "de" -> "284,58 €"; "en" -> "€284.58"
-    public static function money(int $cents, string $locale): string
+    // 28458, "de" -> "284,58 €"; "en" -> "€284.58"; "de", "CHF" -> "284,58 CHF"
+    public static function money(int $cents, string $locale, string $currency = self::CURRENCY): string
     {
-        $amount = number_format(abs($cents) / 100, 2, $locale === 'de' ? ',' : '.', $locale === 'de' ? '.' : ',');
-        $sign = $cents < 0 ? '-' : '';
+        $formatter = new \NumberFormatter($locale, \NumberFormatter::CURRENCY);
+        $text = (string) $formatter->formatCurrency($cents / 100, $currency);
 
-        return $locale === 'de' ? "{$sign}{$amount} €" : "{$sign}€{$amount}";
+        // Intl separates with non-breaking spaces; the PDF font and the tests expect plain ones.
+        return str_replace(["\u{00A0}", "\u{202F}"], ' ', $text);
     }
 }

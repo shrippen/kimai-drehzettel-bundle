@@ -32,6 +32,12 @@ class RulesetCatalog
         return $keys;
     }
 
+    // Preset keys win in get(): a custom ruleset of that name could never be picked.
+    public function isPresetKey(string $name): bool
+    {
+        return \in_array($name, [self::TV_FFS_2024, self::QUARTER_HOUR], true);
+    }
+
     public function get(string $key): Ruleset
     {
         if ($key === self::TV_FFS_2024) {

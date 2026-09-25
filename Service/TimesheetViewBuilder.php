@@ -23,21 +23,22 @@ use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
  *   total (only when the period spans more than one week)
  *
  * Only days inside the period are listed, but weekly overtime always
- * comes from the whole calendar week.
+ * comes from the whole calendar week. It is listed and paid only in the
+ * period holding the week's last worked day, so a week across a month
+ * boundary is never paid twice (Mon 30.3. - Sat 4.4. -> April).
  */
 class TimesheetViewBuilder
 {
     private const DATE_KEY = 'Y-m-d';
 
-    private const WEEKDAYS = [
-        'de' => ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
-        'en' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    // Intl patterns of the long date: "Montag, 15. Juni 2026" / "Monday, 15 June 2026"
+    private const DATE_PATTERNS = [
+        'de' => 'EEEE, d. MMMM y',
+        'en' => 'EEEE, d MMMM y',
     ];
 
-    private const MONTHS = [
-        'de' => ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-        'en' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    ];
+    // Currency of the timesheet being built, set by build() for the money columns.
+    private string $currency = Format::CURRENCY;
 
     public function __construct(private readonly Labels $labels)
     {
@@ -50,6 +51,7 @@ class TimesheetViewBuilder
     public function build(TimesheetMeta $meta, Period $period, array $weeks, Ruleset $rules, PdfOptions $options): array
     {
         $locale = $meta->locale === 'de' ? 'de' : 'en';
+        $this->currency = $meta->currency;
         $showPay = $meta->hasPay && $options->has(PdfOption::PAY);
 
         $blocks = [];
@@ -101,8 +103,9 @@ class TimesheetViewBuilder
             $rows[] = $day === null ? ['empty' => true, 'key' => $date->format(self::DATE_KEY), 'date' => $this->dateLabel($date, $locale)] : $this->row($day, $rules, $locale, $showPay);
         }
 
-        $sums = $this->sums($week, $days, $rules);
-        $weekly = $options->has(PdfOption::WEEKLY_OVERTIME) ? $this->weeklyLine($week, $rules, $locale) : null;
+        $ownsWeekly = $period->contains($week->days[array_key_last($week->days)]->begin);
+        $sums = $this->sums($week, $days, $rules, $ownsWeekly);
+        $weekly = $ownsWeekly && $options->has(PdfOption::WEEKLY_OVERTIME) ? $this->weeklyLine($week, $rules, $locale) : null;
 
         return [
             'view' => ['rows' => $rows, 'weekly' => $weekly, 'sums' => $this->formatSums($sums, $locale, $showPay)],
@@ -142,6 +145,7 @@ class TimesheetViewBuilder
             'empty' => false,
             'key' => $day->begin->format(self::DATE_KEY),
             'date' => $this->dateLabel($day->begin, $locale),
+            'shooting_day' => $day->shootingDayNumber === null ? '' : $this->labels->t('drehzettel.shooting_day.label', $locale, ['%number%' => $day->shootingDayNumber]),
             'begin' => $day->begin->format('H:i'),
             'end' => $day->end->format('H:i'),
             'break' => Format::hm($day->breakMinutes),
@@ -151,7 +155,8 @@ class TimesheetViewBuilder
             'under' => Format::hours($day->underMinutes),
             'catering' => $this->labels->t($day->catering === Catering::YES ? 'drehzettel.pdf.yes' : 'drehzettel.pdf.no', $locale),
             'day_type' => $this->labels->t('drehzettel.day_type.' . $day->dayType->value, $locale),
-            'pay' => $showPay && $day->amountCents !== null ? Format::money($day->amountCents, $locale) : '',
+            'pay' => $showPay && $day->amountCents !== null ? Format::money($day->amountCents, $locale, $this->currency) : '',
+            'extra_pay' => $showPay && $day->extraPayCents > 0 ? $this->labels->t('drehzettel.pdf.extra_pay', $locale, ['%amount%' => Format::money($day->extraPayCents, $locale, $this->currency)]) : '',
         ];
     }
 
@@ -159,7 +164,7 @@ class TimesheetViewBuilder
      * @param list<DayResult> $days
      * @return array<string, mixed>
      */
-    private function sums(WeekResult $week, array $days, Ruleset $rules): array
+    private function sums(WeekResult $week, array $days, Ruleset $rules, bool $ownsWeekly): array
     {
         $tiers = array_fill(0, count($rules->dailyTiers), 0);
         $work = $night = $under = $catering = $pay = 0;
@@ -176,7 +181,7 @@ class TimesheetViewBuilder
 
         return [
             'work' => $work, 'tiers' => $tiers, 'night' => $night, 'under' => $under,
-            'catering' => $catering, 'pay' => $pay + ($week->weeklyCents ?? 0),
+            'catering' => $catering, 'pay' => $pay + ($ownsWeekly ? $week->weeklyCents ?? 0 : 0),
         ];
     }
 
@@ -192,7 +197,7 @@ class TimesheetViewBuilder
             'night' => Format::hours($sums['night']),
             'under' => Format::hours($sums['under']),
             'catering' => $sums['catering'] . 'x',
-            'pay' => $showPay ? Format::money($sums['pay'], $locale) : '',
+            'pay' => $showPay ? Format::money($sums['pay'], $locale, $this->currency) : '',
         ];
     }
 
@@ -317,12 +322,9 @@ class TimesheetViewBuilder
     // "Montag, 15. Juni 2026" / "Monday, 15 June 2026"
     public function dateLabel(\DateTimeImmutable $date, string $locale): string
     {
-        $weekday = self::WEEKDAYS[$locale][(int) $date->format('N') - 1];
-        $month = self::MONTHS[$locale][(int) $date->format('n') - 1];
-        $day = (int) $date->format('j');
-        $year = $date->format('Y');
+        $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $date->getTimezone(), \IntlDateFormatter::GREGORIAN, self::DATE_PATTERNS[$locale]);
 
-        return $locale === 'de' ? "$weekday, $day. $month $year" : "$weekday, $day $month $year";
+        return (string) $formatter->format($date);
     }
 
     private function periodLabel(\DateTimeImmutable $from, \DateTimeImmutable $to, string $locale): string

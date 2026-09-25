@@ -1,55 +1,54 @@
 {% extends 'base.html.twig' %}
+{% import '@Drehzettel/_kit/macros.html.twig' as kit %}
+{% import 'macros/widgets.html.twig' as widgets %}
+{% import 'macros/datatables.html.twig' as tables %}
 
-{% block page_content %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>{{ 'drehzettel.menu'|trans }}</h2>
-        <span>
-            <a href="{{ path('drehzettel_signature') }}" class="btn btn-sm btn-outline-secondary">{{ 'drehzettel.signature'|trans }}</a>
-            {% if manages %}
-                <a href="{{ path('drehzettel_ruleset_list') }}" class="btn btn-sm btn-outline-secondary">{{ 'drehzettel.rulesets'|trans }}</a>
-                <a href="{{ path('drehzettel_engagement_new') }}" class="btn btn-sm btn-primary">{{ 'drehzettel.engagement.new'|trans }}</a>
-            {% endif %}
-        </span>
-    </div>
+{% block stylesheets %}
+    {{ parent() }}
+    {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'css'} %}
+{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'js'} %}
+{% endblock %}
+
+{% block main %}
     {% if engagements is empty %}
-        <p class="text-muted">{{ 'drehzettel.overview.empty'|trans }}</p>
+        {% if manages %}
+            {{ kit.empty_state('drehzettel.overview.empty'|trans, path('drehzettel_engagement_new'), 'drehzettel.engagement.new'|trans, 'modal-ajax-form') }}
+        {% else %}
+            {{ kit.empty_state('drehzettel.overview.empty_own'|trans) }}
+        {% endif %}
     {% else %}
-        <div class="card">
-            <div class="card-body p-0">
-                <table class="table table-striped mb-0">
-                    <thead>
-                        <tr>
-                            {% if manages %}<th>{{ 'drehzettel.user'|trans }}</th>{% endif %}
-                            <th>{{ 'drehzettel.project'|trans }}</th>
-                            <th>{{ 'drehzettel.role'|trans }}</th>
-                            <th>{{ 'drehzettel.ruleset'|trans }}</th>
-                            <th>{{ 'drehzettel.valid_from'|trans }}</th>
-                            <th>{{ 'drehzettel.valid_to'|trans }}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for e in engagements %}
-                        <tr{% if e.validTo and e.validTo < today %} class="text-muted"{% endif %}>
-                            {% if manages %}<td>{{ e.user.displayName }}</td>{% endif %}
-                            <td>{{ e.project.name }}</td>
-                            <td>{{ e.role }}</td>
-                            <td>{{ e.rulesetName }}</td>
-                            <td>{{ e.validFrom|date('Y-m-d') }}</td>
-                            <td>{{ e.validTo ? e.validTo|date('Y-m-d') : '—' }}</td>
-                            <td class="text-end">
-                                <a href="{{ path('drehzettel_week', {id: e.id}) }}" class="btn btn-xs btn-primary">{{ 'drehzettel.open'|trans }}</a>
-                                {% if manages %}
-                                    <a href="{{ path('drehzettel_engagement_edit', {id: e.id}) }}" class="btn btn-xs btn-outline-secondary">{{ 'action.edit'|trans }}</a>
-                                    <a href="{{ path('drehzettel_engagement_rules', {id: e.id}) }}" class="btn btn-xs btn-outline-secondary">{{ 'drehzettel.rules.edit'|trans }}</a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        {% set columns = {
+            'project': {class: 'alwaysVisible', orderBy: false, title: 'drehzettel.project'},
+            'role': {class: 'd-none d-sm-table-cell', orderBy: false, title: 'drehzettel.role'},
+            'user': {class: manages ? 'd-none d-md-table-cell' : 'd-none', orderBy: false, title: 'drehzettel.user'},
+            'ruleset': {class: 'd-none d-lg-table-cell', orderBy: false, title: 'drehzettel.ruleset'},
+            'valid_from': {class: 'd-none d-md-table-cell w-min text-nowrap', orderBy: false, title: 'drehzettel.valid_from'},
+            'valid_to': {class: 'd-none d-md-table-cell w-min text-nowrap', orderBy: false, title: 'drehzettel.valid_to'},
+            'actions': {class: 'actions alwaysVisible', orderBy: false},
+        } %}
+        {{ tables.datatable_header('drehzettel_engagements', columns, null, {boxClass: 'card', columnConfig: false, sticky: false}) }}
+            {% for e in engagements %}
+                {% set ended = e.validTo and e.validTo < today %}
+                <tr{% if ended %} class="text-secondary"{% endif %}>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'project') }}">
+                        <a href="{{ path('drehzettel_week', {id: e.id}) }}">{{ e.project.name }}</a>
+                        <div class="d-sm-none small text-secondary">{{ e.role }}</div>
+                    </td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'role') }}">{{ e.role }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'user') }}">{{ e.user.displayName }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'ruleset') }}">{{ e.rulesetName }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_from') }}">{{ e.validFrom|date_short }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_to') }}">{{ e.validTo ? e.validTo|date_short : '–' }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'actions') }}">
+                        {% set event = actions(app.user, 'drehzettel_engagement', 'index', {engagement: e}) %}
+                        {{ widgets.table_actions(event.actions) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        {{ tables.data_table_footer(null, null, null) }}
     {% endif %}
 {% endblock %}

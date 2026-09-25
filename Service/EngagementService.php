@@ -87,6 +87,14 @@ class EngagementService
         return $this->engagements->findActive($user, $project, $date);
     }
 
+    /**
+     * @return list<Engagement> every engagement of the user on that date, one per project at most
+     */
+    public function activeOn(User $user, \DateTimeImmutable $date): array
+    {
+        return $this->engagements->findActiveForUser($user, $date);
+    }
+
     // Shared by TimesheetFormExtension and TimesheetCleanupSubscriber: both need the
     // engagement a given timesheet entry belongs to, keyed off its own project/user/date.
     public function activeFor(Timesheet $timesheet): ?Engagement
@@ -105,6 +113,12 @@ class EngagementService
         $begin = $timesheet->getBegin();
         \assert($begin !== null);
 
+        return self::dayOf($begin);
+    }
+
+    // Calendar date of a begin, in the zone it carries (the timesheet's own, as Kimai shows it).
+    public static function dayOf(\DateTimeInterface $begin): \DateTimeImmutable
+    {
         return \DateTimeImmutable::createFromInterface($begin)->setTime(0, 0);
     }
 
