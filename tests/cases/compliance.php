@@ -87,3 +87,29 @@ check('compliance: week boundary rest minutes measured', 540, $warnings[0]->minu
 $sundayOk = dayCalc()->calc(shift('2026-06-21', '13:00', '23:00', 0), $tv, null);
 $mondayOk = weekCalc()->calc([shift('2026-06-22', '10:00', '18:00', 0)], $tv, null);
 check('compliance: week boundary 11h rest ok', [], issues($checker->check($mondayOk, $sundayOk)));
+
+// TZ 5.2.5 / 5.9.1 measure working time: breaks (TZ 5.8.2) and travel (PA FAQ) do not count.
+// 12:45 gross with 45 min break is 12:00 net: within the daily maximum; 12:46 gross is 12:01 net.
+$net12 = weekCalc()->calc([shift('2026-06-15', '07:00', '19:45', 45)], $tv, null);
+check('compliance: 12:00 net ok', [], issues($checker->check($net12)));
+$net1201 = $checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '19:46', 45)], $tv, null));
+check('compliance: 12:01 net flagged', [ComplianceIssue::DAILY_MAX->value, 721], [$net1201[0]->issue->value, $net1201[0]->minutes]);
+
+// Gross over 12 h, net under: 12:30 gross with 45 min break is 11:45 net, no warning.
+check('compliance: gross over 12h net under ok', [], issues($checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '19:30', 45)], $tv, null))));
+
+// Break beyond the free 45 min counts as work (TV FFS break rule): 13:00 gross, 60 min break = 12:15 net.
+check('compliance: excess break counts', [ComplianceIssue::DAILY_MAX->value], issues($checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '20:00', 60)], $tv, null))));
+
+// Begun 12th hour: 11:00 net keeps 11 h rest, 11:01 net needs 11.5 h. Both next days start after 11:15 h rest.
+$net11 = $checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '18:45', 45), shift('2026-06-16', '06:00', '12:00', 0)], $tv, null));
+check('compliance: 11:00 net keeps 11h rest', [], issues($net11));
+$net1101 = $checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '18:46', 45), shift('2026-06-16', '06:01', '12:00', 0)], $tv, null));
+check('compliance: 11:01 net needs 11.5h rest', [ComplianceIssue::REST_TIME->value, 675, 690], [$net1101[0]->issue->value, $net1101[0]->minutes, $net1101[0]->limitMinutes]);
+
+// Gross 11:45 with 45 min break (11:00 net): the 11.5 h rest is not due.
+check('compliance: gross past 11h net not', [], issues($checker->check(weekCalc()->calc([shift('2026-06-15', '07:00', '18:45', 45), shift('2026-06-16', '05:45', '12:00', 0)], $tv, null))));
+
+// Travel is no working time: a 13 h travel day neither exceeds the daily maximum nor extends the rest.
+$travel = new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-06-15', '06:00'), at('2026-06-15', '19:00'), type: KimaiPlugin\DrehzettelBundle\Enum\DayType::TRAVEL, breakMinutes: 0);
+check('compliance: travel day no daily max, 11h rest', [], issues($checker->check(weekCalc()->calc([$travel, shift('2026-06-16', '06:00', '12:00', 0)], $tv, null))));

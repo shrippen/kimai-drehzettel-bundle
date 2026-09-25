@@ -13,6 +13,12 @@ final class DayResult
      * @param int $countedMinutes regular minutes that count toward the weekly base
      * @param ?int $amountCents null without pay terms; excludes weekly surcharges
      * @param int $underMinutes work time missing to the minimum day of the ruleset
+     * @param int $extraPayCents Zusatzgage/Spesen, already included in $amountCents
+     * @param ?int $shootingDayNumber running day of the production, informational
+     * @param int $dayNumber n-th working day of the calendar week, counted or overridden
+     * @param ?int $productionDay the override of $dayNumber as entered, null when counted
+     * @param list<Share> $categoryShares pro-rata Saturday/Sunday/holiday minutes of a day past midnight
+     * @param ?DayCategory $waivedCategory Sunday or holiday whose surcharge a staggered shoot waived (TZ 5.6.3)
      */
     public function __construct(
         public readonly \DateTimeImmutable $begin,
@@ -32,6 +38,21 @@ final class DayResult
         public readonly DayCategory $category = DayCategory::WORKDAY,
         public readonly ?string $note = null,
         public readonly int $underMinutes = 0,
+        public readonly int $extraPayCents = 0,
+        public readonly ?int $shootingDayNumber = null,
+        public readonly ?int $productionDay = null,
+        public readonly array $categoryShares = [],
+        public readonly ?DayCategory $waivedCategory = null,
     ) {
+    }
+
+    // Worth a badge ("Tag 6 der Woche"): a surcharge day or an override, on a working day only.
+    public function showsDayNumber(): bool
+    {
+        if ($this->dayType !== DayType::WORKDAY) {
+            return false;
+        }
+
+        return $this->productionDay !== null || $this->dayNumber > Units::WEEK_WORKDAYS;
     }
 }

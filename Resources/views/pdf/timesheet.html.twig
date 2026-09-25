@@ -26,8 +26,10 @@
     .grid .total td { font-weight: bold; border-top: 0.4mm solid #111111; }
     .notes-title { font-size: 10.5pt; font-weight: bold; margin: 8mm 0 1.5mm 0; }
     .note { font-size: 8pt; margin: 0 0 1mm 0; }
+    .extra { font-size: 7pt; }
     .note i { font-style: italic; }
     .rounding { font-size: 7pt; color: #555555; margin-top: 4mm; }
+    .azv { font-size: 8pt; margin-top: 4mm; }
     .sign { margin-top: 14mm; width: 100%; }
     .sign td { text-align: center; vertical-align: bottom; font-size: 8pt; }
     .sign .line { border-top: 0.3mm solid #111111; padding-top: 1mm; }
@@ -74,7 +76,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td class="date">{{ row.date }}</td>
+                    <td class="date">{{ row.date }}{% if row.shooting_day or row.day_number %}<br><span class="extra">{{ row.shooting_day }}{% if row.shooting_day and row.day_number %} · {% endif %}{{ row.day_number }}</span>{% endif %}</td>
                     <td>{{ row.begin }}</td>
                     <td>{{ row.end }}</td>
                     {% if c.break %}<td>{{ row.break }}</td>{% endif %}
@@ -84,7 +86,7 @@
                     {% if c.under %}<td>{{ row.under }}</td>{% endif %}
                     {% if c.catering %}<td>{{ row.catering }}</td>{% endif %}
                     {% if c.day_type %}<td>{{ row.day_type }}</td>{% endif %}
-                    {% if c.pay %}<td>{{ row.pay }}</td>{% endif %}
+                    {% if c.pay %}<td>{{ row.pay }}{% if row.extra_pay %}<br><span class="extra">{{ row.extra_pay }}</span>{% endif %}</td>{% endif %}
                 </tr>
             {% endif %}
         {% endfor %}
@@ -124,6 +126,8 @@
         <p class="note"><i>{{ n.date }}:</i> {{ n.text }}</p>
     {% endfor %}
 {% endif %}
+
+{% if v.azv %}<p class="azv">{{ v.azv }}</p>{% endif %}
 
 {% if v.rounding %}<p class="rounding">{{ v.rounding }}</p>{% endif %}
 

@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Domain;
 
 final class Units
 {
+    public const SECONDS_PER_MINUTE = 60;
     public const MINUTES_PER_HOUR = 60;
     public const MINUTES_PER_DAY = 1440;
     public const BASIS_POINTS = 10000;

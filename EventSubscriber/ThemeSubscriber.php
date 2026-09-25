@@ -4,6 +4,8 @@ namespace KimaiPlugin\DrehzettelBundle\EventSubscriber;
 
 use App\Event\ThemeEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Two small, sitewide additions via Kimai's own theme extension points
@@ -13,8 +15,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * 1. CSS that groups the five Drehzettel fields TimesheetFormExtension adds
  *    to Kimai's timesheet form into one amber-tinted block with a clear
  *    toggle (form concept A, https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS),
- *    plus the "bg-drehzettel" cell color for the /contract page markers
- *    added by ContractSubscriber, plus (2026-09-24) ".dz-hidden" for the
+ *    added by ContractSubscriber (colors only through Tabler variables, so
+ *    dark mode follows Kimai), plus (2026-09-24) ".dz-hidden" for the
  *    fields TimesheetFormExtension now renders but starts collapsed on a
  *    brand-new entry.
  * 2. JS that calls the plugin's own API (research/api-external-clients.md)
@@ -27,7 +29,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *    doc comment). An engagement may also restrict itself to specific
  *    activities (Entity\Engagement::activityIds) - e.g. excluding a private
  *    "Anfahrt"/commute activity from the same project - so both fields are
- *    read and sent, not just the project.
+ *    read and sent, not just the project. URL and both texts (shown vs.
+ *    after-save) come as data attributes of the script tag, translated for
+ *    the current user.
  *
  * Both are inert on every other page: the CSS only styles classes/selectors
  * that no other page uses, and the JS no-ops unless a "*_project" select is
@@ -35,6 +39,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class ThemeSubscriber implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly UrlGeneratorInterface $urls,
+        private readonly TranslatorInterface $translator,
+    ) {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -48,8 +58,8 @@ class ThemeSubscriber implements EventSubscriberInterface
         $event->addContent(<<<'HTML'
             <style>
                 .dz-form-row{background:var(--tblr-yellow-lt);border-left:3px solid var(--tblr-yellow);padding-left:.75rem!important;margin-left:-.75rem;}
-                .dz-form-row-first{padding-top:.75rem!important;border-radius:var(--tblr-border-radius-lg,10px) var(--tblr-border-radius-lg,10px) 0 0;margin-top:.5rem;}
-                .dz-form-row-last{padding-bottom:.75rem!important;border-radius:0 0 var(--tblr-border-radius-lg,10px) var(--tblr-border-radius-lg,10px);}
+                .dz-form-row-first{padding-top:.75rem!important;border-radius:var(--tblr-border-radius-lg) var(--tblr-border-radius-lg) 0 0;margin-top:.5rem;}
+                .dz-form-row-last{padding-bottom:.75rem!important;border-radius:0 0 var(--tblr-border-radius-lg) var(--tblr-border-radius-lg);}
                 .bg-drehzettel{background-color:var(--tblr-yellow-lt);--tblr-table-bg:var(--tblr-yellow-lt);}
                 .dz-detect-banner{display:flex;align-items:center;gap:.5rem;background:var(--tblr-yellow-lt);border-left:3px solid var(--tblr-yellow);border-radius:var(--tblr-border-radius,6px);padding:.5rem .75rem;margin-bottom:1rem;font-size:.85rem;}
                 .dz-detect-banner i{color:var(--tblr-yellow);}
@@ -58,29 +68,23 @@ class ThemeSubscriber implements EventSubscriberInterface
             HTML);
     }
 
+    // The API URL comes from the router, so Kimai under a sub path (/kimai/api/...) works too.
     public function onJavascript(ThemeEvent $event): void
     {
-        $event->addContent(<<<'HTML'
-            <script>
-            (function () {
-                // "shown" when TimesheetFormExtension rendered the fields (new entries, or
-                // entries already in an engagement); "afterSave" for an existing entry that
-                // had no engagement when its form was built - it has no fields to reveal.
-                var texts = {
-                    de: {
-                        shown: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder sind unten sichtbar.',
-                        afterSave: 'Drehtag erkannt — Regelwerk „%ruleset%“. Die Drehzettel-Felder erscheinen nach dem Speichern beim Bearbeiten dieses Eintrags.'
-                    },
-                    en: {
-                        shown: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields are shown below.',
-                        afterSave: 'Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.'
-                    }
-                };
-                var lang = (document.documentElement.lang || 'en').slice(0, 2);
-                var t = texts[lang] || texts.en;
+        $url = htmlspecialchars($this->urls->generate('drehzettel_api_engagement_status'), ENT_QUOTES);
+        $shown = htmlspecialchars($this->translator->trans('drehzettel.form.detected_shown'), ENT_QUOTES);
+        $afterSave = htmlspecialchars($this->translator->trans('drehzettel.form.detected'), ENT_QUOTES);
 
+        $event->addContent(<<<HTML
+            <script data-dz-status-url="{$url}" data-dz-detected-shown="{$shown}" data-dz-detected="{$afterSave}">
+            HTML . <<<'HTML'
+            (function (config) {
+                // Delegated on document: survives the timesheet edit form being re-inserted by
+                // Kimai's AJAX modal loader. Only reacts to a project select's own change event.
+                // Date is intentionally not read here - this is a same-day hint, the actual
+                // save-time check in TimesheetFormExtension uses the entry's real date.
                 function existingBanner(row) {
-                    var next = row.nextElementSibling;
+                    const next = row.nextElementSibling;
                     return (next && next.classList.contains('dz-detect-banner')) ? next : null;
                 }
 
@@ -143,7 +147,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                         return;
                     }
                     var activityId = activitySelect ? activitySelect.value : '';
-                    var endpoint = '/api/drehzettel/v1/engagement-status?project=' + encodeURIComponent(projectId);
+                    var endpoint = config.dzStatusUrl + '?project=' + encodeURIComponent(projectId);
                     if (activityId) {
                         endpoint += '&activity=' + encodeURIComponent(activityId);
                     }
@@ -154,20 +158,20 @@ class ThemeSubscriber implements EventSubscriberInterface
                         .then(function (response) { return response.ok ? response.json() : null; })
                         .then(function (data) {
                             if (form._dzSeq !== seq) { return; }
-                            var el = existingBanner(row);
+                            var banner = existingBanner(row);
                             if (!data || !data.active) {
-                                if (el) { el.remove(); }
+                                if (banner) { banner.remove(); }
                                 setFieldsVisible(form, false);
                                 return;
                             }
-                            if (!el) {
-                                el = document.createElement('div');
-                                el.className = 'dz-detect-banner';
-                                el.innerHTML = '<i class="fas fa-clapperboard"></i><span></span>';
-                                row.insertAdjacentElement('afterend', el);
+                            if (!banner) {
+                                banner = document.createElement('div');
+                                banner.className = 'alert alert-warning dz-detect-banner';
+                                banner.setAttribute('role', 'status');
+                                row.insertAdjacentElement('afterend', banner);
                             }
-                            var text = fieldRows(form).length > 0 ? t.shown : t.afterSave;
-                            el.querySelector('span').textContent = text.replace('%ruleset%', data.rulesetName || '');
+                            var text = fieldRows(form).length > 0 ? config.dzDetectedShown : config.dzDetected;
+                            banner.textContent = text.replace('%ruleset%', data.rulesetName || '');
                             setFieldsVisible(form, true);
                         })
                         .catch(function () { /* feedback is a convenience, ignore network errors - leave fields/banner as-is */ });
@@ -179,13 +183,15 @@ class ThemeSubscriber implements EventSubscriberInterface
                 // fires on unrelated pages. Date is intentionally not read here - this
                 // is a same-day hint, the actual save-time check in
                 // TimesheetFormExtension uses the entry's real date.
-                document.addEventListener('change', function (event) {
-                    var target = event.target;
-                    if (target && target.id && /_(project|activity)$/.test(target.id) && target.tagName === 'SELECT') {
-                        scheduleCheck(target);
-                    }
+                document.addEventListener('kimai.initialized', function () {
+                    document.addEventListener('change', function (event) {
+                        var target = event.target;
+                        if (target && target.id && /_(project|activity)$/.test(target.id) && target.tagName === 'SELECT') {
+                            scheduleCheck(target);
+                        }
+                    });
                 });
-            })();
+            })(document.currentScript.dataset);
             </script>
             HTML);
     }

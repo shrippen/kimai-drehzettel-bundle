@@ -6,20 +6,21 @@ use App\Entity\Timesheet;
 use App\Form\TimesheetAdminEditForm;
 use App\Form\TimesheetEditForm;
 use App\Form\Type\YesNoType;
-use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
-use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
-use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
+use KimaiPlugin\DrehzettelBundle\Service\PendingFilmDays;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Validator\Constraints\Range;
 
 /**
  * Adds the "film day" toggle and film-day fields to Kimai's own timesheet
@@ -55,14 +56,19 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public const FIELD_CATERING = 'drehzettelCatering';
     public const FIELD_CATEGORY = 'drehzettelCategory';
     public const FIELD_NOTE = 'drehzettelNote';
+    public const FIELD_EXTRA_PAY = 'drehzettelExtraPay';
+    public const FIELD_SHOOTING_DAY = 'drehzettelShootingDay';
+    public const FIELD_PRODUCTION_DAY = 'drehzettelProductionDay';
 
     private const MAX_BREAK_MINUTES = 720;
     private const MAX_NOTE_LENGTH = 500;
+    private const CENTS = 100;
+    private const DEFAULT_CURRENCY = 'EUR';
 
     public function __construct(
         private readonly EngagementService $engagements,
         private readonly FilmDayRepository $filmDays,
-        private readonly FilmDayService $filmDayService,
+        private readonly PendingFilmDays $pending,
     ) {
     }
 
@@ -103,10 +109,12 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             $builder->remove('break');
         }
 
+        // The film day is shared by every entry of its date, so a new or duplicated entry
+        // shows it too - otherwise saving would reset the day to blank fields.
         $originalDate = $this->dateOf($timesheet);
         $existing = $originalEngagement !== null ? $this->filmDays->findOne($originalEngagement, $originalDate) : null;
 
-        // row_attr classes group these five rows visually (amber box, see the sitewide CSS
+        // row_attr classes group these rows visually (amber box, see the sitewide CSS
         // added by EventSubscriber\ThemeSubscriber) - matches form concept A from the workflow
         // artifact (https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS), chosen 2026-09-23.
         // dz-hidden starts a brand-new entry's fields collapsed until ThemeSubscriber's JS
@@ -130,6 +138,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'label' => 'drehzettel.pdf.break',
             'data' => $existing?->getBreakMinutes(),
             'attr' => ['min' => 0, 'max' => self::MAX_BREAK_MINUTES],
+            'constraints' => [new Range(min: 0, max: self::MAX_BREAK_MINUTES)],
             'row_attr' => ['class' => $rowClass()],
         ]);
 
@@ -157,6 +166,40 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'row_attr' => ['class' => $rowClass()],
         ]);
 
+        // Day of the shooting week behind the 6th/7th-day surcharge; empty counts the week's entries.
+        $builder->add(self::FIELD_PRODUCTION_DAY, IntegerType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.production_day.title',
+            'data' => $existing?->getProductionDay(),
+            'attr' => ['min' => 1, 'max' => FilmDayPatch::MAX_PRODUCTION_DAY, 'placeholder' => 'drehzettel.category.auto_short'],
+            'constraints' => [new Range(min: 1, max: FilmDayPatch::MAX_PRODUCTION_DAY)],
+            'row_attr' => ['class' => $rowClass()],
+        ]);
+
+        // Running shooting day of the production ("Drehtag 37"), optional, no effect on pay.
+        $builder->add(self::FIELD_SHOOTING_DAY, IntegerType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.shooting_day.title',
+            'data' => $existing?->getShootingDayNumber(),
+            'attr' => ['min' => 1, 'max' => FilmDayPatch::MAX_SHOOTING_DAY],
+            'constraints' => [new Range(min: 1, max: FilmDayPatch::MAX_SHOOTING_DAY)],
+            'row_attr' => ['class' => $rowClass()],
+        ]);
+
+        // Model value in cents (divisor), shown as 12.50 in the customer's currency.
+        $builder->add(self::FIELD_EXTRA_PAY, MoneyType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.extra_pay.title',
+            'divisor' => self::CENTS,
+            'currency' => $timesheet->getProject()?->getCustomer()?->getCurrency() ?? self::DEFAULT_CURRENCY,
+            'data' => $existing?->getExtraPayCents() ?: null,
+            'constraints' => [new Range(notInRangeMessage: 'drehzettel.extra_pay.range', min: 0, max: FilmDayPatch::MAX_EXTRA_PAY_CENTS)],
+            'row_attr' => ['class' => $rowClass()],
+        ]);
+
         $builder->add(self::FIELD_NOTE, TextareaType::class, [
             'mapped' => false,
             'required' => false,
@@ -167,43 +210,21 @@ final class TimesheetFormExtension extends AbstractTypeExtension
 
         $builder->addEventListener(
             FormEvents::POST_SUBMIT,
-            function (FormEvent $event) use ($isEdit, $originalEngagement, $originalDate): void {
-                $this->onSubmit($event, $isEdit, $originalEngagement, $originalDate);
+            function (FormEvent $event): void {
+                $this->onSubmit($event);
             }
         );
     }
 
-    private function onSubmit(FormEvent $event, bool $isEdit, ?Engagement $originalEngagement, \DateTimeImmutable $originalDate): void
+    // Only queues the fields: TimesheetSaveSubscriber writes them once Kimai has saved
+    // the entry, against the engagement of its final user/project/date, and also cleans
+    // up a FilmDay row orphaned by an edit that moved the entry off it (see that
+    // class's onSaved()) - so this does not need to re-resolve the engagement itself.
+    private function onSubmit(FormEvent $event): void
     {
         $form = $event->getForm();
         if (!$form->isValid()) {
             return;
-        }
-
-        /** @var Timesheet $timesheet */
-        $timesheet = $event->getData();
-
-        // Re-resolved, not the build-time $originalEngagement: a brand-new entry's
-        // project/activity are commonly only chosen in the browser after the form was
-        // built (see this class's own doc comment) - by POST_SUBMIT the submitted data
-        // is already mapped onto $timesheet, so this reflects the actual choice.
-        $engagement = $this->engagements->activeFor($timesheet);
-        $date = $this->dateOf($timesheet);
-
-        $movedOffOriginalDay = $isEdit && $originalEngagement !== null && (
-            $date->format('Y-m-d') !== $originalDate->format('Y-m-d')
-            || $engagement?->getId() !== $originalEngagement->getId()
-        );
-        if ($movedOffOriginalDay) {
-            // Editing moved this entry off its original (engagement, date) - to another
-            // date, out of the engagement's validity, or onto an excluded activity/project.
-            // That day's FilmDay row is orphaned once no other counting entry still lands
-            // on it, and must not silently pre-fill whatever entry gets created there next
-            // (see FilmDayService::deleteIfOrphaned()). Runs before every early return below
-            // - a toggle turned off or a target with no engagement doesn't un-orphan it.
-            // The controller flushes this entity only after this listener runs, so a
-            // re-query still finds its old row - its own id must be excluded by hand.
-            $this->filmDayService->deleteIfOrphaned($originalEngagement, $originalDate, [$timesheet->getId()]);
         }
 
         if (!(bool) $form->get(self::FIELD_TOGGLE)->getData()) {
@@ -212,27 +233,31 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             return;
         }
 
-        if ($engagement === null) {
-            return;
-        }
-
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
-        $catering = ((bool) $form->get(self::FIELD_CATERING)->getData()) ? Catering::YES : Catering::NO;
-        $categoryValue = $form->get(self::FIELD_CATEGORY)->getData();
-        $category = ($categoryValue !== null && $categoryValue !== '') ? DayCategory::from((string) $categoryValue) : null;
+        $extraPay = $form->get(self::FIELD_EXTRA_PAY)->getData();
+        $shootingDay = $form->get(self::FIELD_SHOOTING_DAY)->getData();
+        $productionDay = $form->get(self::FIELD_PRODUCTION_DAY)->getData();
         $note = $form->get(self::FIELD_NOTE)->getData();
         $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
-        $this->filmDayService->save(
-            $engagement,
-            $date,
-            $breakMinutes !== null ? (int) $breakMinutes : null,
-            $catering,
-            $category,
-            DayType::WORKDAY,
-            null,
-            $note,
-        );
+        // Day type is not on this form: it keeps its stored value.
+        try {
+            $patch = FilmDayPatch::fromArray([
+                'breakMinutes' => $breakMinutes !== null ? (int) $breakMinutes : null,
+                'catering' => (bool) $form->get(self::FIELD_CATERING)->getData(),
+                'category' => $form->get(self::FIELD_CATEGORY)->getData(),
+                'note' => $note,
+                'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
+                'shootingDayNumber' => $shootingDay !== null ? (int) $shootingDay : null,
+                'productionDay' => $productionDay !== null ? (int) $productionDay : null,
+            ]);
+        } catch (\InvalidArgumentException) {
+            return; // out of range: the break field's own constraint reports it
+        }
+
+        /** @var Timesheet $timesheet */
+        $timesheet = $event->getData();
+        $this->pending->put($timesheet, $patch);
     }
 
     private function dateOf(Timesheet $timesheet): \DateTimeImmutable

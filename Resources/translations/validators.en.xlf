@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="en" datatype="plaintext" original="DrehzettelBundle">
+    <body>
+      <trans-unit id="dzv.engagement.ends_before_start" resname="drehzettel.engagement.ends_before_start">
+        <source>drehzettel.engagement.ends_before_start</source>
+        <target>The end must not be before the start.</target>
+      </trans-unit>
+      <trans-unit id="dzv.rules.tier_order" resname="drehzettel.rules.tier_order">
+        <source>drehzettel.rules.tier_order</source>
+        <target>Must start later than tier %tier% (from %after% h).</target>
+      </trans-unit>
+      <trans-unit id="dzv.signature.too_large" resname="drehzettel.signature.too_large">
+        <source>drehzettel.signature.too_large</source>
+        <target>The file is larger than {{ limit }} {{ suffix }}. Choose a smaller image.</target>
+      </trans-unit>
+      <trans-unit id="dzv.signature.invalid" resname="drehzettel.signature.invalid">
+        <source>drehzettel.signature.invalid</source>
+        <target>Only PNG or JPEG images are allowed.</target>
+      </trans-unit>
+      <trans-unit id="dzv.extra_pay.range" resname="drehzettel.extra_pay.range">
+        <source>drehzettel.extra_pay.range</source>
+        <target>Between 0 and 100,000.00.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

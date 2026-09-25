@@ -5,163 +5,205 @@ namespace KimaiPlugin\DrehzettelBundle\Controller;
 use App\Controller\AbstractController;
 use App\Entity\Activity;
 use App\Entity\Project;
-use App\Entity\User;
 use App\Repository\ActivityRepository;
-use App\Repository\ProjectRepository;
-use App\Repository\UserRepository;
-use App\Utils\PageSetup;
-use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Domain\RulesetFormMapper;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
-use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
+use KimaiPlugin\DrehzettelBundle\Form\EngagementData;
+use KimaiPlugin\DrehzettelBundle\Form\EngagementType;
+use KimaiPlugin\DrehzettelBundle\Form\RulesetType;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
+use KimaiPlugin\DrehzettelBundle\Service\PageSetups;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * Engagement create/edit/delete in Kimai's modal (pages without JS),
+ * rules of one engagement on the ruleset editor page.
+ */
 #[Route(path: '/drehzettel/engagement')]
 #[IsGranted('drehzettel_manage')]
 class EngagementController extends AbstractController
 {
-    private const CSRF_ID = 'drehzettel_engagement';
+    use KpuFormSuccessTrait;
+
+    private const FORM_ACTIONS = 'drehzettel_form';
 
     public function __construct(
         private readonly EngagementRepository $engagements,
         private readonly EngagementService $service,
         private readonly RulesetCatalog $catalog,
-        private readonly UserRepository $users,
-        private readonly ProjectRepository $projects,
         private readonly ActivityRepository $activities,
+        private readonly PageSetups $pages,
     ) {
     }
 
     #[Route(path: '/new', name: 'drehzettel_engagement_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
-        if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
-            $user = $this->users->find((int) $request->request->get('user'));
-            $project = $this->projects->find((int) $request->request->get('project'));
-            if ($user === null || $project === null) {
-                $this->flashError('action.update.error');
+        $data = new EngagementData();
+        $data->ruleset = RulesetCatalog::TV_FFS_2024;
+        $data->validFrom = new \DateTimeImmutable('today');
 
-                return $this->redirectToRoute('drehzettel_engagement_new');
-            }
+        $form = $this->createForm(EngagementType::class, $data, [
+            'action' => $this->generateUrl('drehzettel_engagement_new'),
+            'rulesets' => $this->rulesetChoices(),
+        ]);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $engagement = $this->service->open(
-                    $user,
-                    $project,
-                    (string) $request->request->get('role'),
-                    $this->termsFromRequest($request),
-                    new \DateTimeImmutable((string) $request->request->get('valid_from')),
-                    $this->optionalDate($request->request->get('valid_to')),
-                    (string) $request->request->get('ruleset'),
-                );
+                $engagement = $this->service->open($data->user, $data->project, (string) $data->role, $data->terms(), $data->validFrom, $data->validTo, (string) $data->ruleset);
                 $engagement->setActivityIds($this->activityIdsFromRequest($request));
                 $this->service->save($engagement);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
-            } catch (\DomainException|\InvalidArgumentException $e) {
-                $this->flashError('action.update.error', $e->getMessage());
+                // New engagement: open its week page.
+                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $engagement->getId()]);
+            } catch (\DomainException) {
+                $this->overlapError($form);
             }
         }
 
-        return $this->render('@Drehzettel/drehzettel/engagement_form.html.twig', [
-            'page_setup' => new PageSetup('drehzettel.menu'),
-            'engagement' => null,
-            'rulesets' => $this->rulesetOptions(),
-            'users' => $this->users->findBy(['enabled' => true], ['username' => 'ASC']),
-            'projects' => $this->projects->findBy([], ['name' => 'ASC']),
-            // Project isn't chosen yet at render time, so list every visible activity;
-            // each option's label carries its project so the right one is still findable.
-            'activities' => $this->activities->findBy(['visible' => true], ['name' => 'ASC']),
-            'selectedActivityIds' => [],
-        ]);
+        // Project isn't chosen yet at render time, so list every visible activity;
+        // each option's label carries its project so the right one is still findable.
+        return $this->renderEditor($form, 'drehzettel.engagement.new', $this->generateUrl('drehzettel_overview'), null, $this->activities->findBy(['visible' => true], ['name' => 'ASC']), []);
     }
 
     #[Route(path: '/{id}/edit', name: 'drehzettel_engagement_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function edit(Request $request, int $id): Response
     {
         $engagement = $this->find($id);
+        $data = EngagementData::fromEngagement($engagement);
 
-        if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
-            $engagement->setRole((string) $request->request->get('role'));
-            $terms = $this->termsFromRequest($request);
-            $engagement->setPayKind($terms->kind);
-            $engagement->setGageCents($terms->gageCents);
-            $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
-            $engagement->setValidFrom(new \DateTimeImmutable((string) $request->request->get('valid_from')));
-            $engagement->setValidTo($this->optionalDate($request->request->get('valid_to')));
-            $engagement->setActivityIds($this->activityIdsFromRequest($request));
+        $form = $this->createForm(EngagementType::class, $data, [
+            'action' => $this->generateUrl('drehzettel_engagement_edit', ['id' => $id]),
+            'currency' => $engagement->getProject()?->getCustomer()?->getCurrency(),
+            'attr' => ['data-form-event' => 'kpu.reload'],
+        ]);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
+                $data->applyTo($engagement);
+                $engagement->setActivityIds($this->activityIdsFromRequest($request));
                 $this->service->save($engagement);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
-            } catch (\DomainException $e) {
-                $this->flashError('action.update.error', $e->getMessage());
+                // Opened from the overview or a week: reload that page, keeping its week.
+                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $engagement->getId()], true);
+            } catch (\DomainException) {
+                $this->overlapError($form);
             }
         }
 
-        return $this->render('@Drehzettel/drehzettel/engagement_form.html.twig', [
-            'page_setup' => new PageSetup('drehzettel.menu'),
-            'engagement' => $engagement,
-            'rulesets' => $this->rulesetOptions(),
-            // The project is fixed once an engagement exists - scope the picker to its
-            // activities (plus global, project-less ones) instead of every activity in Kimai.
-            'activities' => $this->activitiesForProject($engagement->getProject()),
-            'selectedActivityIds' => $engagement->getActivityIds(),
-        ]);
+        // The project is fixed once an engagement exists - scope the picker to its
+        // activities (plus global, project-less ones) instead of every activity in Kimai.
+        return $this->renderEditor($form, 'drehzettel.engagement.edit', $this->generateUrl('drehzettel_week', ['id' => $id]), $engagement, $this->activitiesForProject($engagement->getProject()), $engagement->getActivityIds());
     }
 
     #[Route(path: '/{id}/rules', name: 'drehzettel_engagement_rules', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function rules(Request $request, int $id): Response
     {
         $engagement = $this->find($id);
+        $back = $this->generateUrl('drehzettel_week', ['id' => $id]);
 
-        if ($request->isMethod('POST') && $this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
+        $form = $this->createForm(RulesetType::class, RulesetFormMapper::toForm($this->service->ruleset($engagement)), [
+            'csrf_token_id' => 'drehzettel_engagement',
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $rules = RulesetFormMapper::fromForm($request->request->all());
-                $this->service->replaceRules($engagement, $rules);
+                $data = $form->getData();
+                $data['name'] = $engagement->getRulesetName();
+                $this->service->replaceRules($engagement, RulesetFormMapper::fromForm($data));
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
-            } catch (\Throwable $e) {
-                $this->flashError('action.update.error', $e->getMessage());
+                return $this->redirect($back);
+            } catch (\DomainException|\ValueError $e) {
+                $this->logException($e);
+                $form->addError(new FormError($this->pages->trans('drehzettel.rules.invalid')));
             }
         }
 
         return $this->render('@Drehzettel/drehzettel/ruleset_form.html.twig', [
-            'page_setup' => new PageSetup('drehzettel.menu'),
-            'engagement' => $engagement,
-            'form' => RulesetFormMapper::toForm($this->service->ruleset($engagement)),
-            'target' => 'drehzettel_engagement_rules',
+            'page_setup' => $this->pages->create(self::FORM_ACTIONS, $this->pages->trans('drehzettel.rules.edit'), ['back' => $back]),
+            'form' => $form->createView(),
+            'title' => $engagement->getRulesetName(),
+            'context' => [$engagement->getProject()?->getName(), $engagement->getRole(), $engagement->getUser()?->getDisplayName()],
+            'back' => $back,
         ]);
     }
 
-    #[Route(path: '/{id}/delete', name: 'drehzettel_engagement_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    // Kimai delete confirmation (modal or page), POST deletes.
+    #[Route(path: '/{id}/delete', name: 'drehzettel_engagement_delete', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
     public function delete(Request $request, int $id): Response
     {
         $engagement = $this->find($id);
-        if ($this->isCsrfTokenValid(self::CSRF_ID, $request->request->get('_token'))) {
+        $form = $this->createFormBuilder(null, ['csrf_token_id' => 'drehzettel_engagement'])
+            ->setAction($this->generateUrl('drehzettel_engagement_delete', ['id' => $id]))
+            ->setMethod('POST')
+            ->getForm();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->service->remove($engagement);
             $this->flashSuccess('action.delete.success');
+
+            // Also from the week page of this engagement, which no longer exists.
+            return $this->kpuFormSuccess($request, 'drehzettel_overview');
         }
 
-        return $this->redirectToRoute('drehzettel_overview');
+        return $this->render('@Drehzettel/drehzettel/delete.html.twig', [
+            'page_setup' => $this->pages->create(self::FORM_ACTIONS, $this->pages->trans('action.delete')),
+            'form' => $form->createView(),
+            'item' => sprintf('%s · %s · %s', $engagement->getProject()?->getName(), $engagement->getRole(), $engagement->getUser()?->getDisplayName()),
+            'message' => $this->pages->trans('drehzettel.engagement.delete_warning'),
+            'back' => $this->generateUrl('drehzettel_week', ['id' => $id]),
+        ]);
     }
 
     /**
-     * @return list<array{key: string, name: string}>
+     * @param list<Activity> $activities
+     * @param list<int>      $selectedActivityIds
      */
-    private function rulesetOptions(): array
+    private function renderEditor(FormInterface $form, string $titleKey, string $back, ?Engagement $engagement = null, array $activities = [], array $selectedActivityIds = []): Response
     {
-        return array_map(fn (string $key): array => ['key' => $key, 'name' => $this->catalog->get($key)->name], $this->catalog->keys());
+        $title = $this->pages->trans($titleKey);
+
+        return $this->render('@Drehzettel/drehzettel/engagement_form.html.twig', [
+            'page_setup' => $this->pages->create(self::FORM_ACTIONS, $title, ['back' => $back]),
+            'form' => $form->createView(),
+            'title' => $title,
+            'engagement' => $engagement,
+            'back' => $back,
+            'activities' => $activities,
+            'selectedActivityIds' => $selectedActivityIds,
+        ]);
+    }
+
+    private function overlapError(FormInterface $form): void
+    {
+        $form->get('validFrom')->addError(new FormError($this->pages->trans('drehzettel.engagement.overlap')));
+    }
+
+    /**
+     * @return array<string, string> ruleset name => key
+     */
+    private function rulesetChoices(): array
+    {
+        $choices = [];
+        foreach ($this->catalog->keys() as $key) {
+            $choices[$this->catalog->get($key)->name] = $key;
+        }
+
+        return $choices;
     }
 
     /**
@@ -199,21 +241,5 @@ class EngagementController extends AbstractController
         }
 
         return $engagement;
-    }
-
-    private function termsFromRequest(Request $request): PayTerms
-    {
-        $kind = PayKind::from((string) $request->request->get('pay_kind', PayKind::WEEKLY->value));
-        $gage = (float) str_replace(',', '.', (string) $request->request->get('gage', '0'));
-        $catering = (float) str_replace(',', '.', (string) $request->request->get('catering_deduction', '0'));
-
-        return new PayTerms($kind, (int) round($gage * 100), (int) round($catering * 100));
-    }
-
-    private function optionalDate(mixed $value): ?\DateTimeImmutable
-    {
-        $text = trim((string) $value);
-
-        return $text === '' ? null : new \DateTimeImmutable($text);
     }
 }

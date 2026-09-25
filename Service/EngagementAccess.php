@@ -26,6 +26,12 @@ class EngagementAccess
         return $this->security->isGranted(self::PERMISSION_MANAGE);
     }
 
+    // At least one's own engagements: what an external client may offer at all.
+    public function canUse(): bool
+    {
+        return $this->canManage() || $this->security->isGranted(self::PERMISSION_OWN);
+    }
+
     public function canView(Engagement $engagement): bool
     {
         if ($this->canManage()) {

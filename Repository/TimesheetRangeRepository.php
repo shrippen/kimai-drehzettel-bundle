@@ -41,4 +41,24 @@ class TimesheetRangeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * User, project and begin as last loaded from the database, before unsaved changes.
+     * Begin is in the entry's stored timezone, like Timesheet::getBegin().
+     *
+     * @return array{User, Project, \DateTimeImmutable}|null null for a new entry
+     */
+    public function stored(Timesheet $timesheet): ?array
+    {
+        $data = $this->getEntityManager()->getUnitOfWork()->getOriginalEntityData($timesheet);
+        $user = $data['user'] ?? null;
+        $project = $data['project'] ?? null;
+        $begin = $data['begin'] ?? null;
+        $zone = $data['timezone'] ?? null;
+        if (!$user instanceof User || !$project instanceof Project || !$begin instanceof \DateTimeInterface || !\is_string($zone)) {
+            return null;
+        }
+
+        return [$user, $project, \DateTimeImmutable::createFromInterface($begin)->setTimezone(new \DateTimeZone($zone))];
+    }
 }

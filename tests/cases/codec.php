@@ -38,3 +38,14 @@ try {
 } catch (InvalidArgumentException) {
     check('codec rejects missing key', true, true);
 }
+
+// A ruleset stored with the removed streakMode key still loads; the key is ignored.
+$withStreak = ['streakMode' => 'consecutive'] + RulesetCodec::toArray(Rulesets::tvFfs2024());
+check('codec ignores streakMode', RulesetCodec::toArray(Rulesets::tvFfs2024()), RulesetCodec::toArray(RulesetCodec::fromArray($withStreak)));
+
+// Travel days option: stored and read back; a ruleset stored before the option reads as the tariff.
+$countedData = ['travelDays' => 'counted'] + RulesetCodec::toArray(Rulesets::tvFfs2024());
+check('codec travel days', 'counted', RulesetCodec::toArray(RulesetCodec::fromArray($countedData))['travelDays']);
+$legacy = RulesetCodec::toArray(Rulesets::tvFfs2024());
+unset($legacy['travelDays']);
+check('codec travel days missing', KimaiPlugin\DrehzettelBundle\Enum\TravelDays::EXCLUDED, RulesetCodec::fromArray($legacy)->travelDays);

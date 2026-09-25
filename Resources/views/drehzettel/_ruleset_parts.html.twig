@@ -1,0 +1,42 @@
+{# Parts of ruleset_form.html.twig. #}
+
+{# Section heading with help text inside a form-fieldset. #}
+{% macro section(title, help) %}
+    <legend class="form-label fs-3 mb-1">{{ title|trans }}</legend>
+    {% if help %}<div class="form-hint mb-3">{{ help|trans }}</div>{% endif %}
+{% endmacro %}
+
+{#
+    Tier ladder: proportional bar of where each surcharge starts, plus threshold marks.
+    prefix: dailyTier | weeklyTier, slots: number of slots, values: RulesetFormMapper form data.
+    Rendered for the first paint; the script in ruleset_form.html.twig redraws it from the fields.
+#}
+{% macro ladder(prefix, slots, values) %}
+    {% set tier_classes = ['bg-yellow text-yellow-fg', 'bg-orange text-orange-fg', 'bg-red text-red-fg', 'bg-red text-red-fg'] %}
+    {% set defined = [] %}
+    {% for i in 1..slots %}
+        {% set after = values[prefix ~ i ~ 'After'] ?? null %}
+        {% set percent = values[prefix ~ i ~ 'Percent'] ?? null %}
+        {% if after is not null and after != '' and percent is not null and percent != '' %}
+            {% set defined = defined|merge([{after: after, percent: percent}]) %}
+        {% endif %}
+    {% endfor %}
+    <div class="dz-ladder" data-prefix="{{ prefix }}" data-slots="{{ slots }}" aria-hidden="true">
+        {% if defined|length > 0 %}
+            {% set max = defined|last.after %}
+            {% set scale = max + (max > 20 ? 4 : 2) %}
+            <div class="dz-ladder-bar">
+                <div class="dz-ladder-seg bg-secondary text-secondary-fg" style="width:{{ defined|first.after / scale * 100 }}%">0–{{ defined|first.after }}</div>
+                {% for t in defined %}
+                    {% set next = defined[loop.index] is defined ? defined[loop.index].after : scale %}
+                    <div class="dz-ladder-seg {{ tier_classes[min(loop.index0, 3)] }}" style="width:{{ (next - t.after) / scale * 100 }}%">+{{ t.percent }} %</div>
+                {% endfor %}
+            </div>
+            <div class="dz-ladder-marks">
+                {% for t in defined %}
+                    <div class="dz-ladder-mark" style="left:{{ t.after / scale * 100 }}%">{{ t.after }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endmacro %}

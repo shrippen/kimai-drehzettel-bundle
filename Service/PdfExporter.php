@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use App\Pdf\HtmlToPdfConverter;
+use KimaiPlugin\DrehzettelBundle\Domain\Format;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfDocument;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
@@ -37,6 +38,7 @@ class PdfExporter
         private readonly SignatureService $signatures,
         private readonly Environment $twig,
         private readonly HtmlToPdfConverter $converter,
+        private readonly AzvService $azv,
     ) {
     }
 
@@ -67,9 +69,10 @@ class PdfExporter
             locale: $locale ?? $user->getLanguage(),
             hasPay: $engagement->getGageCents() > 0,
             signatureDataUri: $signature,
+            currency: $engagement->getProject()?->getCustomer()?->getCurrency() ?? Format::CURRENCY,
         );
 
-        return $this->views->build($meta, $period, $weeks, $rules, $options);
+        return $this->views->build($meta, $period, $weeks, $rules, $options, $this->azv->balance($engagement, $period->endExclusive()));
     }
 
     // Timesheet_Surname_Project_20260615-20260618.pdf

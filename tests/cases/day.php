@@ -43,11 +43,36 @@ check('pay 9:00 h', 28458, $r->amountCents);
 $r = dayCalc()->calc(shift('2025-05-21', '11:15', '17:00', 45), $app, $terms);
 check('pay 5:00 h weekly gage', 15810, $r->amountCents);
 
-// Sunday surcharge sits on the day rate: 1581 / 5 = 316.20, +75 % = 237.15.
-$r = dayCalc()->calc(shift('2025-05-25', '08:00', '16:45', 45, category: DayCategory::SUNDAY), $tv, $terms);
+// Sunday surcharge sits on the day rate: 1581 / 5 = 316.20, +75 % = 237.15. Day 7 of the week: no staggered shoot.
+$r = dayCalc()->calc(shift('2025-05-25', '08:00', '16:45', 45, category: DayCategory::SUNDAY), $tv, $terms, 7);
 check('sunday work 8:00', 480, $r->workMinutes);
 check('sunday pay', 25296 + 23715, $r->amountCents);
 
 // Saturday surcharge sits on the hourly rate: 8 h * 31.62 * 25 % = 63.24.
 $r = dayCalc()->calc(shift('2025-05-24', '08:00', '16:45', 45, category: DayCategory::SATURDAY), $tv, $terms);
 check('saturday pay', 25296 + 6324, $r->amountCents);
+
+// A negative stored break must never add work time: 08:30-20:15, break -300 -> work 11:45, break 0.
+$r = dayCalc()->calc(shift('2025-05-20', '08:30', '20:15', -300), $app, null);
+check('negative break adds nothing', [0, 705], [$r->breakMinutes, $r->workMinutes]);
+
+// DST: night minutes are real minutes of 22:00-06:00 wall clock.
+// Fall back (26.10.2025): 22:00-06:00 lasts 9 h. Spring forward (30.3.2025): 7 h.
+$r = dayCalc()->calc(shift('2025-10-25', '20:00', '06:00', 0), $app, null);
+check('night fall back dst', 540, $r->nightMinutes);
+$r = dayCalc()->calc(shift('2025-03-29', '20:00', '06:00', 0), $app, null);
+check('night spring forward dst', 420, $r->nightMinutes);
+$r = dayCalc()->calc(shift('2025-10-26', '01:00', '07:00', 0), $app, null);
+check('night starts inside window on dst day', 360, $r->nightMinutes);
+
+// Extra pay (Zusatzgage/Spesen) is added to the day as is, after the catering deduction:
+// 9:00 h = 284.58, catering -9.50, extra +50.00 -> 325.08.
+$extra = new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2025-05-19', '08:30'), at('2025-05-19', '17:30'), catering: KimaiPlugin\DrehzettelBundle\Enum\Catering::YES, breakMinutes: 0, extraPayCents: 5000);
+$r = dayCalc()->calc($extra, $app, $terms);
+check('extra pay added to day', [32508, 5000], [$r->amountCents, $r->extraPayCents]);
+$r = dayCalc()->calc($extra, $app, null);
+check('extra pay without terms', [null, 5000], [$r->amountCents, $r->extraPayCents]);
+$travel = new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2025-05-19', '08:30'), at('2025-05-19', '17:30'), type: KimaiPlugin\DrehzettelBundle\Enum\DayType::TRAVEL, breakMinutes: 0, extraPayCents: 1234);
+check('extra pay on travel day', 28458 + 1234, dayCalc()->calc($travel, $app, $terms)->amountCents);
+$week = weekCalc()->calc([$extra], $app, $terms);
+check('extra pay in week total', 32508, $week->totalCents);

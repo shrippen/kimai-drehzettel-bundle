@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="d004" resname="drehzettel.pdf.role_line">
         <source>drehzettel.pdf.role_line</source>
-        <target>Role: %value%</target>
+        <target>Crew role: %value%</target>
       </trans-unit>
       <trans-unit id="d005" resname="drehzettel.pdf.name">
         <source>drehzettel.pdf.name</source>
@@ -32,7 +32,7 @@
       </trans-unit>
       <trans-unit id="d007" resname="drehzettel.pdf.role">
         <source>drehzettel.pdf.role</source>
-        <target>Role</target>
+        <target>Crew role</target>
       </trans-unit>
       <trans-unit id="d008" resname="drehzettel.pdf.date">
         <source>drehzettel.pdf.date</source>
@@ -180,7 +180,7 @@
       </trans-unit>
       <trans-unit id="d044" resname="drehzettel.role">
         <source>drehzettel.role</source>
-        <target>Role</target>
+        <target>Crew role</target>
       </trans-unit>
       <trans-unit id="d045" resname="drehzettel.ruleset">
         <source>drehzettel.ruleset</source>
@@ -200,7 +200,7 @@
       </trans-unit>
       <trans-unit id="d049" resname="drehzettel.open">
         <source>drehzettel.open</source>
-        <target>Open</target>
+        <target>Open week</target>
       </trans-unit>
       <trans-unit id="d050" resname="drehzettel.signature">
         <source>drehzettel.signature</source>
@@ -212,7 +212,7 @@
       </trans-unit>
       <trans-unit id="d052" resname="drehzettel.signature.stored">
         <source>drehzettel.signature.stored</source>
-        <target>A signature is stored.</target>
+        <target>Stored signature</target>
       </trans-unit>
       <trans-unit id="d053" resname="drehzettel.signature.file_help">
         <source>drehzettel.signature.file_help</source>
@@ -230,10 +230,6 @@
         <source>drehzettel.ruleset.custom</source>
         <target>Custom</target>
       </trans-unit>
-      <trans-unit id="d057" resname="drehzettel.ruleset.none">
-        <source>drehzettel.ruleset.none</source>
-        <target>No custom rulesets yet.</target>
-      </trans-unit>
       <trans-unit id="d058" resname="drehzettel.ruleset.copy">
         <source>drehzettel.ruleset.copy</source>
         <target>Copy</target>
@@ -246,17 +242,13 @@
         <source>drehzettel.ruleset.name</source>
         <target>Name</target>
       </trans-unit>
-      <trans-unit id="d061" resname="drehzettel.ruleset.delete_confirm">
-        <source>drehzettel.ruleset.delete_confirm</source>
-        <target>Delete this ruleset?</target>
-      </trans-unit>
       <trans-unit id="d062" resname="drehzettel.engagement.new">
         <source>drehzettel.engagement.new</source>
         <target>New engagement</target>
       </trans-unit>
       <trans-unit id="d063" resname="drehzettel.pay_kind">
         <source>drehzettel.pay_kind</source>
-        <target>Pay</target>
+        <target>Pay basis</target>
       </trans-unit>
       <trans-unit id="d064" resname="drehzettel.pay_kind.weekly">
         <source>drehzettel.pay_kind.weekly</source>
@@ -268,11 +260,11 @@
       </trans-unit>
       <trans-unit id="d066" resname="drehzettel.gage">
         <source>drehzettel.gage</source>
-        <target>Gage (€)</target>
+        <target>Pay</target>
       </trans-unit>
       <trans-unit id="d067" resname="drehzettel.catering_deduction">
         <source>drehzettel.catering_deduction</source>
-        <target>Catering deduction (€)</target>
+        <target>Catering deduction</target>
       </trans-unit>
       <trans-unit id="d068" resname="drehzettel.rules.edit">
         <source>drehzettel.rules.edit</source>
@@ -321,14 +313,6 @@
       <trans-unit id="d079" resname="drehzettel.rules.weekly_tiers">
         <source>drehzettel.rules.weekly_tiers</source>
         <target>Weekly overtime tiers</target>
-      </trans-unit>
-      <trans-unit id="d080" resname="drehzettel.rules.tier">
-        <source>drehzettel.rules.tier</source>
-        <target>Tier</target>
-      </trans-unit>
-      <trans-unit id="d081" resname="drehzettel.rules.after_h">
-        <source>drehzettel.rules.after_h</source>
-        <target>after h</target>
       </trans-unit>
       <trans-unit id="d082" resname="drehzettel.rules.weekly_gage_hours">
         <source>drehzettel.rules.weekly_gage_hours</source>
@@ -382,10 +366,6 @@
         <source>drehzettel.rules.week_count_help</source>
         <target>Empty pools that day into weekly overtime instead.</target>
       </trans-unit>
-      <trans-unit id="d095" resname="drehzettel.week.iso">
-        <source>drehzettel.week.iso</source>
-        <target>CW</target>
-      </trans-unit>
       <trans-unit id="d096" resname="drehzettel.week.no_entry">
         <source>drehzettel.week.no_entry</source>
         <target>No timesheet entry</target>
@@ -422,65 +402,29 @@
         <source>drehzettel.catering.title</source>
         <target>Catering</target>
       </trans-unit>
-      <trans-unit id="d105" resname="drehzettel.pdf.month">
-        <source>drehzettel.pdf.month</source>
-        <target>Month PDF</target>
-      </trans-unit>
       <trans-unit id="d106" resname="drehzettel.compliance.title">
         <source>drehzettel.compliance.title</source>
-        <target>Working time limits</target>
+        <target>Working time and surcharge notes</target>
       </trans-unit>
       <trans-unit id="d107" resname="drehzettel.compliance.daily_max">
         <source>drehzettel.compliance.daily_max</source>
-        <target>%date%: %measured% h is more than the 12 h daily maximum.</target>
+        <target>%date%: %measured% is more than the daily maximum of %limit%.</target>
       </trans-unit>
       <trans-unit id="d108" resname="drehzettel.compliance.weekly_max">
         <source>drehzettel.compliance.weekly_max</source>
-        <target>Week of %date%: %measured% h is more than the 60 h weekly maximum.</target>
+        <target>Week of %date%: %measured% is more than the weekly maximum of %limit%.</target>
       </trans-unit>
       <trans-unit id="d109" resname="drehzettel.compliance.rest_time">
         <source>drehzettel.compliance.rest_time</source>
-        <target>%date%: only %measured% h of rest before this day, %limit% h are required.</target>
+        <target>%date%: only %measured% of rest before this day, %limit% are required.</target>
       </trans-unit>
       <trans-unit id="d110" resname="drehzettel.mail.to">
         <source>drehzettel.mail.to</source>
-        <target>Mail this week's PDF to</target>
-      </trans-unit>
-      <trans-unit id="d111" resname="drehzettel.mail.send">
-        <source>drehzettel.mail.send</source>
-        <target>Send</target>
-      </trans-unit>
-      <trans-unit id="d112" resname="drehzettel.rules.custom">
-        <source>drehzettel.rules.custom</source>
-        <target>Custom</target>
-      </trans-unit>
-      <trans-unit id="d113" resname="drehzettel.rules.unused">
-        <source>drehzettel.rules.unused</source>
-        <target>Not used</target>
-      </trans-unit>
-      <trans-unit id="d114" resname="drehzettel.rules.pooled">
-        <source>drehzettel.rules.pooled</source>
-        <target>Pooled into weekly overtime</target>
+        <target>Recipient</target>
       </trans-unit>
       <trans-unit id="d115" resname="drehzettel.rules.surcharge">
         <source>drehzettel.rules.surcharge</source>
         <target>Surcharge</target>
-      </trans-unit>
-      <trans-unit id="d116" resname="drehzettel.rules.mode_simple">
-        <source>drehzettel.rules.mode_simple</source>
-        <target>Simple</target>
-      </trans-unit>
-      <trans-unit id="d117" resname="drehzettel.rules.mode_advanced">
-        <source>drehzettel.rules.mode_advanced</source>
-        <target>Advanced</target>
-      </trans-unit>
-      <trans-unit id="d118" resname="drehzettel.rules.mode_advanced_hint">
-        <source>drehzettel.rules.mode_advanced_hint</source>
-        <target>Advanced: enter your own values instead of presets, e.g. 42 min or 37.5%.</target>
-      </trans-unit>
-      <trans-unit id="d119" resname="drehzettel.week.compliance_ok">
-        <source>drehzettel.week.compliance_ok</source>
-        <target>No warnings for this week</target>
       </trans-unit>
       <trans-unit id="d120" resname="drehzettel.form.film_day">
         <source>drehzettel.form.film_day</source>
@@ -493,6 +437,10 @@
       <trans-unit id="d122" resname="drehzettel.form.detected">
         <source>drehzettel.form.detected</source>
         <target>Film day detected — ruleset "%ruleset%". The Drehzettel fields appear after saving, when you edit this entry.</target>
+      </trans-unit>
+      <trans-unit id="dz.form.detected_shown" resname="drehzettel.form.detected_shown">
+        <source>drehzettel.form.detected_shown</source>
+        <target>Film day detected — ruleset "%ruleset%". The Drehzettel fields are shown below.</target>
       </trans-unit>
       <trans-unit id="d123" resname="drehzettel.category.auto_short">
         <source>drehzettel.category.auto_short</source>
@@ -509,6 +457,258 @@
       <trans-unit id="d126" resname="drehzettel.activities_help">
         <source>drehzettel.activities_help</source>
         <target>Which Kimai activities on this project count as film time. Leave all unchecked to count every activity (the previous behavior). Check a subset - e.g. "Set" - to keep others, such as a private "Anfahrt"/commute activity, out of the film day, the shooting-day total, and pay.</target>
+      </trans-unit>
+      <trans-unit id="dz.role_help" resname="drehzettel.role_help">
+        <source>drehzettel.role_help</source>
+        <target>The job on set, e.g. gaffer.</target>
+      </trans-unit>
+      <trans-unit id="dz.overview.empty_own" resname="drehzettel.overview.empty_own">
+        <source>drehzettel.overview.empty_own</source>
+        <target>You have no engagement yet. Your production office adds you to a film.</target>
+      </trans-unit>
+      <trans-unit id="dz.engagement.edit" resname="drehzettel.engagement.edit">
+        <source>drehzettel.engagement.edit</source>
+        <target>Edit engagement</target>
+      </trans-unit>
+      <trans-unit id="dz.engagement.overlap" resname="drehzettel.engagement.overlap">
+        <source>drehzettel.engagement.overlap</source>
+        <target>Overlaps another engagement of this user in this project. Change the dates.</target>
+      </trans-unit>
+      <trans-unit id="dz.engagement.delete_warning" resname="drehzettel.engagement.delete_warning">
+        <source>drehzettel.engagement.delete_warning</source>
+        <target>Deletes the engagement and its film day data (breaks, catering, notes). Timesheet entries stay.</target>
+      </trans-unit>
+      <trans-unit id="dz.action.week_pdf" resname="drehzettel.action.week_pdf">
+        <source>drehzettel.action.week_pdf</source>
+        <target>Week PDF</target>
+      </trans-unit>
+      <trans-unit id="dz.action.month_pdf" resname="drehzettel.action.month_pdf">
+        <source>drehzettel.action.month_pdf</source>
+        <target>Month PDF</target>
+      </trans-unit>
+      <trans-unit id="dz.action.mail" resname="drehzettel.action.mail">
+        <source>drehzettel.action.mail</source>
+        <target>Mail week PDF</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.title" resname="drehzettel.mail.title">
+        <source>drehzettel.mail.title</source>
+        <target>Mail week PDF</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.send" resname="drehzettel.mail.send">
+        <source>drehzettel.mail.send</source>
+        <target>Send</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.sent" resname="drehzettel.mail.sent">
+        <source>drehzettel.mail.sent</source>
+        <target>Week PDF sent to %address%.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.failed" resname="drehzettel.mail.failed">
+        <source>drehzettel.mail.failed</source>
+        <target>The mail could not be sent. Check the mail settings of Kimai or try again later.</target>
+      </trans-unit>
+      <trans-unit id="dz.week.details" resname="drehzettel.week.details">
+        <source>drehzettel.week.details</source>
+        <target>Day</target>
+      </trans-unit>
+      <trans-unit id="dz.week.break_minutes" resname="drehzettel.week.break_minutes">
+        <source>drehzettel.week.break_minutes</source>
+        <target>min break</target>
+      </trans-unit>
+      <trans-unit id="dz.week.catering_days" resname="drehzettel.week.catering_days">
+        <source>drehzettel.week.catering_days</source>
+        <target>%count% × catering</target>
+      </trans-unit>
+      <trans-unit id="dz.week.preview_failed" resname="drehzettel.week.preview_failed">
+        <source>drehzettel.week.preview_failed</source>
+        <target>The preview could not be calculated. Check the input, or save.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.daily_max" resname="drehzettel.compliance.short.daily_max">
+        <source>drehzettel.compliance.short.daily_max</source>
+        <target>Daily maximum</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.weekly_max" resname="drehzettel.compliance.short.weekly_max">
+        <source>drehzettel.compliance.short.weekly_max</source>
+        <target>Weekly maximum</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.rest_time" resname="drehzettel.compliance.short.rest_time">
+        <source>drehzettel.compliance.short.rest_time</source>
+        <target>Rest time</target>
+      </trans-unit>
+      <trans-unit id="dz.week.under_warning" resname="drehzettel.week.under_warning">
+        <source>drehzettel.week.under_warning</source>
+        <target>%measured% short of the minimum working day.</target>
+      </trans-unit>
+      <trans-unit id="dz.ruleset.copy_name" resname="drehzettel.ruleset.copy_name">
+        <source>drehzettel.ruleset.copy_name</source>
+        <target>%name% copy</target>
+      </trans-unit>
+      <trans-unit id="dz.ruleset.name_taken" resname="drehzettel.ruleset.name_taken">
+        <source>drehzettel.ruleset.name_taken</source>
+        <target>This name is already used. Choose another one.</target>
+      </trans-unit>
+      <trans-unit id="dz.ruleset.based_on" resname="drehzettel.ruleset.based_on">
+        <source>drehzettel.ruleset.based_on</source>
+        <target>Based on %name%</target>
+      </trans-unit>
+      <trans-unit id="dz.ruleset.kind" resname="drehzettel.ruleset.kind">
+        <source>drehzettel.ruleset.kind</source>
+        <target>Type</target>
+      </trans-unit>
+      <trans-unit id="dz.ruleset.delete_warning" resname="drehzettel.ruleset.delete_warning">
+        <source>drehzettel.ruleset.delete_warning</source>
+        <target>Engagements keep their own copy of the rules.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.invalid" resname="drehzettel.rules.invalid">
+        <source>drehzettel.rules.invalid</source>
+        <target>The rules could not be saved. Check the values.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.rounding_mode" resname="drehzettel.rules.rounding_mode">
+        <source>drehzettel.rules.rounding_mode</source>
+        <target>Rounding</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.after_hours" resname="drehzettel.rules.after_hours">
+        <source>drehzettel.rules.after_hours</source>
+        <target>Tier %tier% from (h)</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.empty_unused" resname="drehzettel.rules.empty_unused">
+        <source>drehzettel.rules.empty_unused</source>
+        <target>Empty: not used</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.sixth_day" resname="drehzettel.rules.sixth_day">
+        <source>drehzettel.rules.sixth_day</source>
+        <target>6th day of the week</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.seventh_day" resname="drehzettel.rules.seventh_day">
+        <source>drehzettel.rules.seventh_day</source>
+        <target>7th day of the week</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.break_help" resname="drehzettel.rules.break_help">
+        <source>drehzettel.rules.break_help</source>
+        <target>Break that counts when an entry has none, and how longer breaks are counted.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.rounding_help" resname="drehzettel.rules.rounding_help">
+        <source>drehzettel.rules.rounding_help</source>
+        <target>First the work time is rounded, then each surcharge share on its own.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.daily_help" resname="drehzettel.rules.daily_help">
+        <source>drehzettel.rules.daily_help</source>
+        <target>From how many hours a day which surcharge applies.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.weekly_help" resname="drehzettel.rules.weekly_help">
+        <source>drehzettel.rules.weekly_help</source>
+        <target>From how many hours a week which surcharge applies.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.night_help" resname="drehzettel.rules.night_help">
+        <source>drehzettel.rules.night_help</source>
+        <target>Time window and surcharge for night work.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.category_help" resname="drehzettel.rules.category_help">
+        <source>drehzettel.rules.category_help</source>
+        <target>Surcharge and basis per day category.</target>
+      </trans-unit>
+      <trans-unit id="dz.signature.file" resname="drehzettel.signature.file">
+        <source>drehzettel.signature.file</source>
+        <target>Image file</target>
+      </trans-unit>
+      <trans-unit id="dz.signature.upload" resname="drehzettel.signature.upload">
+        <source>drehzettel.signature.upload</source>
+        <target>Upload</target>
+      </trans-unit>
+      <trans-unit id="dz.signature.invalid_content" resname="drehzettel.signature.invalid_content">
+        <source>drehzettel.signature.invalid_content</source>
+        <target>The file is no PNG or JPEG image. Choose another file.</target>
+      </trans-unit>
+      <trans-unit id="dz.signature.delete_warning" resname="drehzettel.signature.delete_warning">
+        <source>drehzettel.signature.delete_warning</source>
+        <target>Timesheet PDFs no longer show your signature.</target>
+      </trans-unit>
+      <trans-unit id="dz.permission_section" resname="drehzettel.permission_section">
+        <source>drehzettel.permission_section</source>
+        <target>Drehzettel</target>
+      </trans-unit>
+      <trans-unit id="dz.extra_pay.title" resname="drehzettel.extra_pay.title">
+        <source>drehzettel.extra_pay.title</source>
+        <target>Extra pay / expenses</target>
+      </trans-unit>
+      <trans-unit id="dz.extra_pay.short" resname="drehzettel.extra_pay.short">
+        <source>drehzettel.extra_pay.short</source>
+        <target>extra</target>
+      </trans-unit>
+      <trans-unit id="dz.pdf.extra_pay" resname="drehzettel.pdf.extra_pay">
+        <source>drehzettel.pdf.extra_pay</source>
+        <target>incl. %amount% extra</target>
+      </trans-unit>
+      <trans-unit id="dz.production_day.title" resname="drehzettel.production_day.title">
+        <source>drehzettel.production_day.title</source>
+        <target>Surcharge day (1–7, empty = automatic)</target>
+      </trans-unit>
+      <trans-unit id="dz.shooting_day.title" resname="drehzettel.shooting_day.title">
+        <source>drehzettel.shooting_day.title</source>
+        <target>Production shooting day</target>
+      </trans-unit>
+      <trans-unit id="dz.shooting_day.label" resname="drehzettel.shooting_day.label">
+        <source>drehzettel.shooting_day.label</source>
+        <target>Shooting day %number%</target>
+      </trans-unit>
+      <trans-unit id="dz.production_day.label" resname="drehzettel.production_day.label">
+        <source>drehzettel.production_day.label</source>
+        <target>Day %number% of the week</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.short" resname="drehzettel.azv.short">
+        <source>drehzettel.azv.short</source>
+        <target>AZV</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.title" resname="drehzettel.azv.title">
+        <source>drehzettel.azv.title</source>
+        <target>AZV credit per TV FFS TZ 6 up to today: earned, AZV days taken not deducted</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.days" resname="drehzettel.azv.days">
+        <source>drehzettel.azv.days</source>
+        <target>{0}no AZV day|{1}1 AZV day|]1,Inf[%count% AZV days</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible" resname="drehzettel.azv.eligible">
+        <source>drehzettel.azv.eligible</source>
+        <target>AZV per TZ 6 (crew behind the camera, no high-frequency series)</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible_help" resname="drehzettel.azv.eligible_help">
+        <source>drehzettel.azv.eligible_help</source>
+        <target>Default: on for TV FFS 2024 starting from 2025-05-01 (TZ 6.7). 2.5 h after 5 shooting days, then 0.5 h per shooting day, per 20 shooting days; 10 h = one AZV day. Travel days do not count.</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.pdf_line" resname="drehzettel.azv.pdf_line">
+        <source>drehzettel.azv.pdf_line</source>
+        <target>AZV credit (TV FFS TZ 6) up to %date%: %hours% h from %shooting% shooting day(s), i.e. %days% of 10 h. AZV days taken are not deducted.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days" resname="drehzettel.rules.travel_days">
+        <source>drehzettel.rules.travel_days</source>
+        <target>Travel days for the 6th/7th day and weekly overtime</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days_help" resname="drehzettel.rules.travel_days_help">
+        <source>drehzettel.rules.travel_days_help</source>
+        <target>TV FFS TZ 12.1: travel time is paid like normal working time without surcharges, so a travel day is no working day for the 6th/7th day and the 50-hour week. Counting it is a deviating agreement.</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.excluded" resname="drehzettel.rules.travel_days.excluded">
+        <source>drehzettel.rules.travel_days.excluded</source>
+        <target>Do not count (tariff, TZ 12.1)</target>
+      </trans-unit>
+      <trans-unit id="dz.rules.travel_days.counted" resname="drehzettel.rules.travel_days.counted">
+        <source>drehzettel.rules.travel_days.counted</source>
+        <target>Count as working days</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.staggered_shoot" resname="drehzettel.compliance.staggered_shoot">
+        <source>drehzettel.compliance.staggered_shoot</source>
+        <target>%date%: no Sunday/holiday surcharge, staggered shoot (TV FFS TZ 5.6.3: a Sunday, or Epiphany, Corpus Christi, Assumption Day or All Saints' Day, as 1st to 5th production day of the calendar week). Applied as worded, also in a week with fewer than 5 shooting days; check with the production if in doubt. The paid rest day (TZ 5.6.2) remains.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.night_cutoff" resname="drehzettel.compliance.night_cutoff">
+        <source>drehzettel.compliance.night_cutoff</source>
+        <target>%date%: the night shoot runs %measured% into the next day, past 4:00 (%limit%). TV FFS TZ 5.2.4 only says no new working day begins when work ends by 4:00; calculated as one working day (employers' FAQ: no second day). Check with the production if in doubt.</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.staggered_shoot" resname="drehzettel.compliance.short.staggered_shoot">
+        <source>drehzettel.compliance.short.staggered_shoot</source>
+        <target>Staggered shoot</target>
+      </trans-unit>
+      <trans-unit id="dz.compliance.short.night_cutoff" resname="drehzettel.compliance.short.night_cutoff">
+        <source>drehzettel.compliance.short.night_cutoff</source>
+        <target>Night past 4:00</target>
       </trans-unit>
     </body>
   </file>

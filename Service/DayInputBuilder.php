@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
+use KimaiPlugin\DrehzettelBundle\Domain\NightShoot;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
@@ -17,7 +18,8 @@ use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
  * Kimai timesheet entries + film day data -> calculator input.
  *
  * One shooting day is one continuous span: earliest begin to latest end
- * of all entries that start on that date.
+ * of all entries that start on that date, plus an entry after midnight that
+ * ends a night shoot by 04:00 (TZ 5.2.4, NightShoot).
  */
 class DayInputBuilder
 {
@@ -44,19 +46,44 @@ class DayInputBuilder
         $inputs = [];
         foreach ($spans as $key => [$begin, $end]) {
             $extra = isset($drafts[$key]) ? $this->fromDraft($drafts[$key]) : ($film[$key] ?? null);
+            $override = $extra?->getCategory();
             $inputs[] = new DayInput(
                 begin: $begin,
                 end: $end,
-                category: $extra?->getCategory() ?? $this->categoryFor($engagement, $begin),
+                category: $override ?? $this->categoryFor($engagement, $begin),
                 type: $extra?->getDayType() ?? DayType::WORKDAY,
                 catering: $extra?->getCatering() ?? Catering::NO,
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
                 note: $extra?->getNote(),
+                extraPayCents: $extra?->getExtraPayCents() ?? 0,
+                shootingDayNumber: $extra?->getShootingDayNumber(),
+                nextCategory: $override === null ? $this->nextCategory($engagement, $begin, $end) : null,
             );
         }
 
         return $inputs;
+    }
+
+    /**
+     * Days in [from, to) with an entry that is no travel day, for the AZV count.
+     * Lighter than build(): no holiday lookup, no calculator input.
+     *
+     * @param array<string, FilmDayDraft> $drafts unsaved film day data by date, wins over stored data
+     */
+    public function shootingDays(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to, array $drafts = []): int
+    {
+        $film = $this->filmDaysByDate($engagement, $from, $to);
+
+        $count = 0;
+        foreach (array_keys($this->spans($engagement, $from, $to)) as $key) {
+            $type = isset($drafts[$key]) ? $drafts[$key]->type : ($film[$key] ?? null)?->getDayType();
+            if (($type ?? DayType::WORKDAY) === DayType::WORKDAY) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 
     // A draft is applied through a throw-away FilmDay, so both sources read alike.
@@ -69,6 +96,8 @@ class DayInputBuilder
         $day->setDayType($draft->type);
         $day->setProductionDay($draft->productionDay);
         $day->setNote($draft->note);
+        $day->setExtraPayCents($draft->extraPayCents);
+        $day->setShootingDayNumber($draft->shootingDayNumber);
 
         return $day;
     }
@@ -78,9 +107,14 @@ class DayInputBuilder
      */
     private function spans(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
-        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from, $to);
+        // Days are keyed by the entry's own local date, as Kimai shows it. That zone can differ
+        // from the user's zone of [from, to) (Berlin 00:30 Monday = UTC 22:30 Sunday), so query
+        // a day wider and filter by key: otherwise such an entry lands in the wrong week.
+        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from->modify('-1 day'), $to->modify('+1 day'));
+        $fromKey = $from->format(self::DATE_FORMAT);
+        $toKey = $to->format(self::DATE_FORMAT);
 
-        $spans = [];
+        $valid = [];
         foreach ($entries as $entry) {
             if (!$engagement->appliesToActivity($entry->getActivity())) {
                 // e.g. a private "Anfahrt"/commute activity on the same project - not
@@ -88,18 +122,15 @@ class DayInputBuilder
                 continue;
             }
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
-            $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
-            $key = $begin->format(self::DATE_FORMAT);
-            if (!$this->isValid($engagement, $key)) {
-                continue;
+            if ($this->isValid($engagement, $begin->format(self::DATE_FORMAT))) {
+                $valid[] = [$begin, \DateTimeImmutable::createFromInterface($entry->getEnd())];
             }
-
-            $known = $spans[$key] ?? [$begin, $end];
-            $spans[$key] = [min($known[0], $begin), max($known[1], $end)];
         }
-        ksort($spans);
 
-        return $spans;
+        // Group before cutting to the range: a Sunday night shoot may end in Monday's week.
+        $spans = NightShoot::byWorkingDay($valid);
+
+        return array_filter($spans, static fn (string $key): bool => $key >= $fromKey && $key < $toKey, ARRAY_FILTER_USE_KEY);
     }
 
     private function isValid(Engagement $engagement, string $dateKey): bool
@@ -123,8 +154,16 @@ class DayInputBuilder
         return $byDate;
     }
 
+    // Category of the calendar day after begin, for a day that works past midnight (TZ 5.6.1).
+    private function nextCategory(Engagement $engagement, \DateTimeImmutable $begin, \DateTimeImmutable $end): ?DayCategory
+    {
+        $next = $begin->setTime(0, 0)->modify('+1 day');
+
+        return $end > $next ? $this->categoryFor($engagement, $next) : null;
+    }
+
     // A film day override always wins (checked by the caller); this is only the fallback.
-    private function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
+    public function categoryFor(Engagement $engagement, \DateTimeImmutable $date): DayCategory
     {
         if ($this->holidays->isHoliday($engagement->getUser(), $date)) {
             return DayCategory::HOLIDAY;

@@ -71,7 +71,7 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
 
 ### Phase 2 — Persistence
 
-- [x] Entities: ruleset template, engagement, film day (break, catering, category, day type, production day, note)
+- [x] Entities: ruleset template, engagement, film day (break, catering, category, day type, production day, extra pay, note)
 - [x] Migration and install command (`kimai:bundle:drehzettel:install`)
 - [x] Ruleset codec (array/JSON), used for the engagement snapshot
 - [x] Timesheet entry to day input mapping (`DayInputBuilder`)
@@ -123,8 +123,67 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       Not covered by `php tests/run.php` (needs Kimai entities); checked manually with `kimai:reload` +
       `dev/check.php` + `drehzettel:pdf` on the dev instance without the holiday plugin installed. Still
       needs a manual check with the holiday plugin actually installed once that's convenient to set up.
-- [ ] Time account (AZV day) — deferred. A real accrual ledger (2.5 h + 30 min per consecutive shooting day,
-      TV FFS §6), not a one-line addition; out of scope for this pass.
+- [ ] Overtime time account, TV FFS Anlage Zeitkonto A.1.1 (hours > 50/week plus overtime surcharges as
+      time; dissolved after production in 8 h days at 1/50 weekly fee, A.1.3) — deferred.
+      Source `research/tv-ffs-zeitkonto-und-folgetage.md`.
+- [x] AZV credit, TV FFS TZ 6.1-6.7 (D-9, PO decision 2026-09-25): `Domain/Azv`, `Service/AzvService`.
+      2.5 h after 5 shooting days, 0.5 h per further one, per block of 20 (= 10 h = one AZV day); credit
+      only, separate from the time account (TZ 6.2). Engagement flag `azv` (null = TV FFS 2024 and start
+      from 2025-05-01), editable in the engagement form. Week page (work tile), month PDF, overview, API
+      `GET /v1/engagements/{id}/azv`, `azvMinutesToDate`, `azvEligible`, ping `azv`.
+      Assumptions (tariff text is silent, PO/production to confirm):
+      "zusammenhängend" = consecutive *shooting days* of the engagement (TZ 6.1 fn. 2: "an mindestens 5
+      aufeinanderfolgenden Drehtagen"); days off, weekends and travel days neither count nor break the row;
+      the row ends with the engagement (a new engagement starts at 0, although TZ 6.4 speaks of the
+      "Drehtage des Filmschaffenden in der Produktion"). Every working-day entry counts as a "voller
+      Drehtag", whatever its length (TZ 5.2.4 counts a begun working day as 8 h); prep and post days cannot
+      be told apart from shooting days yet (PA FAQ: they do not count). Days before 2025-05-01 never count,
+      also when the flag is set by hand for a running production (TZ 6.7). The 2.5 h for days 21-25 are
+      credited with day 26 per TZ 6.4 "ab dem 26. Drehtag" (D-14, 2026-09-25); the PA FAQ says "ab 25
+      Drehtagen" (one day earlier, same total from day 26).
+- [ ] Taking AZV days (D-17: later) — not modelled. TZ 6.3: a "freien und bezahlten Tag (in der Zeit von Montag bis
+      Freitag) zwischen dem 2. und 16. Drehtag", announced at least 5 days ahead by the employer; TZ 6.6:
+      travel productions may give it at the end; TZ 10.4/10.5: AZV days can be appended after the contract
+      end. Needs a day type "AZV-Tag" (no timesheet entry or a 0 h entry?), how it is paid under a weekly
+      gage (the week's gage keeps paying it, TZ 6.3 "bezahlt") and deduction of 600 min from the balance.
+      Leftover credit (< 10 h) is paid through the time account (PA FAQ), which does not exist yet either.
+- [x] Staggered shoot, TZ 5.6.3 S. 2 (D-15, 2026-09-25): `Domain/StaggeredShoot`. "Sofern es sich um einen
+      Sonntag oder die Feiertage Heilige Drei Könige, Fronleichnam, Mariä Himmelfahrt oder Allerheiligen
+      innerhalb der Phase des 1. bis 5. Produktionstages einer Kalenderwoche handelt (versetzter Dreh), wird
+      kein Zuschlag gezahlt, unbeschadet bleibt der Anspruch auf einen bezahlten Ruhetag gem. 5.6.2."
+      Day N as for the 6th/7th day (`productionDay` wins). Holiday or not comes from the holiday plugin or
+      the film day category; which holiday from the date (6 Jan, Easter + 60, 15 Aug, 1 Nov), so no holiday
+      plugin names are needed. Literal reading: a week with a single Sunday shoot (day 1) loses the Sunday
+      surcharge; every waived day gets a warning (`staggered_shoot`). Other holidays on a Sunday keep their
+      holiday surcharge (the list is exhaustive) — interpretation. Applies to every ruleset.
+- [x] Night shoot day boundary, TZ 5.2.4 S. 2 (D-16, 2026-09-25): `Domain/NightShoot`, `DayInputBuilder`.
+      "Im Falle von Nachtdreharbeiten beginnt kein neuer Arbeitstag am 2. Kalendertag, soweit an diesem die
+      Arbeit um 4 Uhr beendet ist." A separate entry after midnight ending by 04:00 joins the previous day's
+      night shoot (worked until 22:00 or later, TZ 5.5.1): one day for day N, AZV, daily maximum and rest
+      time. Past 04:00 the text is silent: a single entry stays one working day (PA FAQ: no second day),
+      with a warning (`night_cutoff`); a separate entry ending past 04:00 stays its own day. Surcharges of a
+      day past midnight split by calendar day (TZ 5.6.1, 5.6.3 S. 3): Sunday/holiday part over 4 h = whole
+      day, else pro rata; Saturday always pro rata; night surcharge by clock as before. PA FAQ differs
+      (no Sunday surcharge 00:00-04:00); the plugin follows the text.
+- [ ] Ausgleichstage (TV FFS TZ 5.6.2) — not modelled (PO decision D-6, 2026-09-25); users note them in the
+      day note for now. One paid rest day per worked Sunday (> 4 h on the Sunday for a shift over midnight)
+      and per worked Christmas, Easter, Whit holiday, 3 Oct, 1 May; not for other holidays. ArbZG § 11:
+      within 2 weeks (Sunday) / 8 weeks (weekday holiday). Weitere Recherche nötig (Anspruch, Einheit,
+      Frist, Abgeltung), see the research file.
+- [x] 6th/7th day: only the TV FFS rule, n-th working day of the calendar week (TZ 5.4.3.1/5.4.3.4;
+      PO decision 2026-09-25, replaces D-1..D-5). A `consecutive` streak mode was built and removed before
+      release. `productionDay` ("Zuschlagstag", 1-7) overrides the day number of its own day only; badge
+      "Tag N der Woche" from day 6 or when overridden, also in the PDF. Travel days are no working days
+      (TZ 12.1 "wie normale Arbeitszeit ohne Zuschläge"; PA FAQ: "Auch die Reisezeit gehört nicht zur
+      Arbeitszeit"): they do not advance the day number and do not feed weekly overtime.
+- [x] Travel days option (D-11, 2026-09-25): ruleset field `travelDays`, `excluded` (default, TZ 12.1) or
+      `counted` (earlier answer D-3a). Counted, a travel day advances day N and feeds weekly overtime, its
+      own surcharges stay off. Rules page and engagement rules page, API `GET /v1/engagements` key
+      `travelDays`, ping feature `travelDays`. Stored in the ruleset JSON (template and engagement
+      snapshot), so no schema migration: a missing key reads as `excluded`.
+- [x] Working and rest time warnings on net working time (PO decision 2026-09-25, replaces D-7/D-8): daily
+      maximum 12 h (TZ 5.2.5) and the begun 12th hour that extends rest to 11.5 h (TZ 5.9.1) exclude breaks up
+      to the free break (TZ 5.8.2) and travel days. Warnings only.
 
 ### Phase 6 — Kimai form integration and external API
 
@@ -165,6 +224,30 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       (Plasmai-local only, no equivalent in `FilmDay`). Until these are added, an external client
       can sync `breakMinutes`/`catering`/`category`/`note` through the API but must keep day
       type, production-day count and extra pay local-only.
+      **Closed 2026-09-25** for `dayType`/`productionDay`: both are in `GET`/`PUT` now, and `PUT` is a
+      partial update (only sent keys change) with 400 on invalid values. **Closed 2026-09-25** for
+      `extraPayCents` too, see "Plasmai API additions" below. No field gap left.
+- [x] Plasmai API additions (2026-09-25), documented in `README.md#api`; clients discover them via
+      ping's `features`:
+      - `GET /v1/engagements?date=&user=`: active engagements of a user on a date.
+      - Film day `GET`/`PUT` also return `defaultBreakMinutes` (ruleset snapshot) and
+        `effectiveCategory` (`DayInputBuilder::categoryFor()`, now public: weekday or public holiday).
+      - Ping adds `permissions {view, manage}` and `features`.
+      - Errors are `{error, code}`. Missing/malformed `project`, `user` or date is 400 (was 404);
+        unknown ids and "no engagement" stay 404 (`no_engagement`); `engagement-status` keeps
+        answering `active: false`. Another user's data without `drehzettel_manage` is 403 on
+        film-days too (was 404 when that user had no engagement).
+      - `extraPayCents` (Zusatzgage/Spesen, reference app "Tag-Erfassung"): column
+        `extra_pay_cents` (migration `Version20260925000000`), added to the day's pay after the
+        catering deduction, no surcharges. Week grid, timesheet form, PDF (below the day's pay), API.
+      - `GET /v1/days/{date}/summary`: the day out of its calculated week, incl. `payCents`.
+      - Two day numbers (product-owner decision D7, 2026-09-25; closes the former "Open" item on
+        diverging `productionDay` meanings): `productionDay` stays the shooting day of the week
+        (1-7, "Drehtag der Woche", drives the 6th/7th-day surcharge). New `shootingDayNumber`
+        (1-999 or null, "Drehtag der Produktion", Plasmai's "Drehtag Nr. 37"): column
+        `shooting_day_number` (migration `Version20260926000000`), informational only, no
+        auto-computation. Week grid (badge next to the date), timesheet form, PDF (below the
+        date), film day API, day summary, ping feature `shootingDayNumber`.
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".

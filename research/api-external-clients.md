@@ -15,7 +15,23 @@ Token, den der Nutzer für den Kimai-Login/API-Zugriff anlegt). Verbindungstest 
 `GET /api/version`. Das ist das Muster, an das sich neue Plugin-Endpunkte anschließen sollten — kein
 separates Auth-System, keine eigene Basis-URL, einfach `/api/drehzettel/...` auf demselben Host.
 
-## Geplante Endpunkte (Entwurf, nicht implementiert)
+## Geplante Endpunkte (Entwurf von 2026-09-23)
+
+Umgesetzt und erweitert; aktueller Stand mit Beispielen in `README.md#api` (u. a. `engagements`,
+`days/{date}/summary`, `extraPayCents`, Fehlercodes).
+
+Zwei Tagesnummern (Entscheidung D7, 2026-09-25): `productionDay` (1–7, „Drehtag der Woche“) steuert
+den Zuschlag für den 6./7. Tag; `shootingDayNumber` (1–999 oder null, „Drehtag der Produktion“,
+„Drehtag 37“) ist ein reiner Zähler über die ganze Produktion ohne Einfluss auf Berechnungen.
+Plasmais „Drehtag Nr.“ gehört auf `shootingDayNumber`, nicht auf `productionDay`.
+
+Nachtrag 2026-09-25: `productionDay` heißt „Zuschlagstag“ (1–7) und überschreibt nur für seinen Tag
+die Nummer des Arbeitstags in der Kalenderwoche (TV FFS TZ 5.4.3.4). Die kurz gebaute Zählung „Tage in
+Folge“ (`streakMode`, `consecutiveDay*`) wurde vor dem Release wieder entfernt.
+
+Nachtrag 2026-09-25 (AZV, TV FFS TZ 6): `GET /v1/engagements/{id}/azv?date=` liefert das AZV-Guthaben bis
+einschließlich `date`; Day-Summary ergänzt `azvMinutesToDate`, die Engagement-Liste `azvEligible`; Ping-Feature
+`azv`. Nur Gutschrift, genommene AZV-Tage werden noch nicht abgezogen.
 
 Alle unter `/api/drehzettel/...`, authentifiziert wie Kimais eigene API (derselbe Firewall-Bereich,
 kein Zusatzaufwand für den Client).
