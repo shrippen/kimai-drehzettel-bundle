@@ -7,6 +7,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
+use KimaiPlugin\DrehzettelBundle\Enum\TravelDays;
 
 /**
  * Ruleset <-> flat form data in the units people think in:
@@ -41,6 +42,7 @@ final class RulesetFormMapper
             'nightPercent' => self::percent($rules->nightBasisPoints),
             'sixthDayPercent' => $rules->sixthDayBasisPoints === null ? null : self::percent($rules->sixthDayBasisPoints),
             'seventhDayPercent' => $rules->seventhDayBasisPoints === null ? null : self::percent($rules->seventhDayBasisPoints),
+            'travelDays' => $rules->travelDays->value,
         ];
 
         foreach (self::slots($rules->dailyTiers, self::DAILY_TIER_SLOTS) as $i => $tier) {
@@ -96,6 +98,7 @@ final class RulesetFormMapper
             sixthDayBasisPoints: self::optionalBasisPoints($data['sixthDayPercent'] ?? null),
             seventhDayBasisPoints: self::optionalBasisPoints($data['seventhDayPercent'] ?? null),
             minDayMinutes: self::minutes($data['minDayHours'] ?? 8),
+            travelDays: TravelDays::from($data['travelDays'] ?? TravelDays::EXCLUDED->value),
         );
     }
 

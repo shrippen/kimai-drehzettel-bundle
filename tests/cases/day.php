@@ -43,8 +43,8 @@ check('pay 9:00 h', 28458, $r->amountCents);
 $r = dayCalc()->calc(shift('2025-05-21', '11:15', '17:00', 45), $app, $terms);
 check('pay 5:00 h weekly gage', 15810, $r->amountCents);
 
-// Sunday surcharge sits on the day rate: 1581 / 5 = 316.20, +75 % = 237.15.
-$r = dayCalc()->calc(shift('2025-05-25', '08:00', '16:45', 45, category: DayCategory::SUNDAY), $tv, $terms);
+// Sunday surcharge sits on the day rate: 1581 / 5 = 316.20, +75 % = 237.15. Day 7 of the week: no staggered shoot.
+$r = dayCalc()->calc(shift('2025-05-25', '08:00', '16:45', 45, category: DayCategory::SUNDAY), $tv, $terms, 7);
 check('sunday work 8:00', 480, $r->workMinutes);
 check('sunday pay', 25296 + 23715, $r->amountCents);
 

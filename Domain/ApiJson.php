@@ -15,10 +15,11 @@ final class ApiJson
 
     /**
      * One entry of GET /v1/engagements. No pay: the list is for picking a project.
+     * travelDays: "excluded" (tariff, TZ 12.1) or "counted", see Enum\TravelDays.
      *
      * @return array<string, mixed>
      */
-    public static function engagement(Engagement $engagement): array
+    public static function engagement(Engagement $engagement, Ruleset $rules): array
     {
         $project = $engagement->getProject();
 
@@ -33,14 +34,15 @@ final class ApiJson
             'validTo' => $engagement->getValidTo()?->format(self::DATE_FORMAT),
             'toggleDefault' => true,
             'azvEligible' => Azv::eligible($engagement),
+            'travelDays' => $rules->travelDays->value,
         ];
     }
 
     /**
      * GET /v1/engagements/{id}/azv: AZV credit earned up to a date (TV FFS TZ 6), not taken.
      *
-     *   {"eligible": true, "countsFrom": "2026-01-05", "date": "2026-02-08", "shootingDays": 25,
-     *    "minutes": 750, "days": 1, "openMinutes": 150, "dayMinutes": 600, "blockDays": 20}
+     *   {"eligible": true, "countsFrom": "2026-01-05", "date": "2026-02-09", "shootingDays": 26,
+     *    "minutes": 780, "days": 1, "openMinutes": 180, "dayMinutes": 600, "blockDays": 20}
      *
      * @return array<string, mixed>
      */

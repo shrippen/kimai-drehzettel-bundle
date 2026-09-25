@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\DayInput;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
+use KimaiPlugin\DrehzettelBundle\Domain\NightShoot;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
@@ -17,7 +18,8 @@ use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
  * Kimai timesheet entries + film day data -> calculator input.
  *
  * One shooting day is one continuous span: earliest begin to latest end
- * of all entries that start on that date.
+ * of all entries that start on that date, plus an entry after midnight that
+ * ends a night shoot by 04:00 (TZ 5.2.4, NightShoot).
  */
 class DayInputBuilder
 {
@@ -44,10 +46,11 @@ class DayInputBuilder
         $inputs = [];
         foreach ($spans as $key => [$begin, $end]) {
             $extra = isset($drafts[$key]) ? $this->fromDraft($drafts[$key]) : ($film[$key] ?? null);
+            $override = $extra?->getCategory();
             $inputs[] = new DayInput(
                 begin: $begin,
                 end: $end,
-                category: $extra?->getCategory() ?? $this->categoryFor($engagement, $begin),
+                category: $override ?? $this->categoryFor($engagement, $begin),
                 type: $extra?->getDayType() ?? DayType::WORKDAY,
                 catering: $extra?->getCatering() ?? Catering::NO,
                 breakMinutes: $extra?->getBreakMinutes(),
@@ -55,6 +58,7 @@ class DayInputBuilder
                 note: $extra?->getNote(),
                 extraPayCents: $extra?->getExtraPayCents() ?? 0,
                 shootingDayNumber: $extra?->getShootingDayNumber(),
+                nextCategory: $override === null ? $this->nextCategory($engagement, $begin, $end) : null,
             );
         }
 
@@ -110,21 +114,18 @@ class DayInputBuilder
         $fromKey = $from->format(self::DATE_FORMAT);
         $toKey = $to->format(self::DATE_FORMAT);
 
-        $spans = [];
+        $valid = [];
         foreach ($entries as $entry) {
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
-            $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
-            $key = $begin->format(self::DATE_FORMAT);
-            if ($key < $fromKey || $key >= $toKey || !$this->isValid($engagement, $key)) {
-                continue;
+            if ($this->isValid($engagement, $begin->format(self::DATE_FORMAT))) {
+                $valid[] = [$begin, \DateTimeImmutable::createFromInterface($entry->getEnd())];
             }
-
-            $known = $spans[$key] ?? [$begin, $end];
-            $spans[$key] = [min($known[0], $begin), max($known[1], $end)];
         }
-        ksort($spans);
 
-        return $spans;
+        // Group before cutting to the range: a Sunday night shoot may end in Monday's week.
+        $spans = NightShoot::byWorkingDay($valid);
+
+        return array_filter($spans, static fn (string $key): bool => $key >= $fromKey && $key < $toKey, ARRAY_FILTER_USE_KEY);
     }
 
     private function isValid(Engagement $engagement, string $dateKey): bool
@@ -146,6 +147,14 @@ class DayInputBuilder
         }
 
         return $byDate;
+    }
+
+    // Category of the calendar day after begin, for a day that works past midnight (TZ 5.6.1).
+    private function nextCategory(Engagement $engagement, \DateTimeImmutable $begin, \DateTimeImmutable $end): ?DayCategory
+    {
+        $next = $begin->setTime(0, 0)->modify('+1 day');
+
+        return $end > $next ? $this->categoryFor($engagement, $next) : null;
     }
 
     // A film day override always wins (checked by the caller); this is only the fallback.

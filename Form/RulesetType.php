@@ -8,6 +8,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
+use KimaiPlugin\DrehzettelBundle\Enum\TravelDays;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -116,6 +117,11 @@ final class RulesetType extends AbstractType
         // 6th and 7th day: empty pools the day into weekly overtime
         $builder->add('sixthDayPercent', NumberType::class, $this->percent('drehzettel.rules.sixth_day', false));
         $builder->add('seventhDayPercent', NumberType::class, $this->percent('drehzettel.rules.seventh_day', false));
+        $builder->add('travelDays', ChoiceType::class, [
+            'label' => 'drehzettel.rules.travel_days',
+            'help' => 'drehzettel.rules.travel_days_help',
+            'choices' => $this->enumChoices(TravelDays::cases(), 'drehzettel.rules.travel_days.'),
+        ]);
 
         $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
             $this->checkTierOrder($event->getForm());

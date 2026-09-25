@@ -9,12 +9,15 @@ use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
  *
  * TZ 6.1: 2.5 h after 5 full shooting days in a row, 0.5 h for each further one.
  * TZ 6.3/6.4: counted per block of 20 shooting days, 10 h = one AZV day.
+ * TZ 6.4: "ab dem 26. Drehtag (bzw. 46. Drehtag etc.) weitere 2,5 Stunden für
+ * die Drehtage 21 bis 25": in later blocks the 2.5 h arrive one day later.
  *
- *   shooting day   1-4  5    6-20        | 21-24  25   26-40       | ...
- *   credit         0    2.5  +0.5 each   | 0      2.5  +0.5 each   |
- *   total after    0    2.5  10 (day 20) | 10     12.5 20 (day 40) |
+ *   shooting day   1-4  5    6-20        | 21-25  26        27-40       | ...
+ *   credit         0    2.5  +0.5 each   | 0      2.5+0.5   +0.5 each   |
+ *   total after    0    2.5  10 (day 20) | 10     13        20 (day 40) |
  *
- * PA FAQ: 24 days -> 10 h, 26 days -> 10 h + 3 h.
+ * The PA FAQ credits the 2.5 h with day 25 ("Erst ab 25 Drehtagen"); the
+ * tariff text wins. Both give 13 h after 26 days.
  *
  * "Zusammenhängend" is read from footnote 2 of TZ 6.1: "an mindestens 5
  * aufeinanderfolgenden Drehtagen", i.e. consecutive shooting days of the
@@ -32,15 +35,19 @@ final class Azv
     public const BLOCK_DAYS = 20;
 
     private const THRESHOLD_DAYS = 5;
+
+    // TZ 6.4: later blocks credit their first 5 days only from the 6th day on (26, 46, ...).
+    private const LATER_BLOCK_THRESHOLD_DAYS = 6;
     private const THRESHOLD_MINUTES = 150;
     private const PER_DAY_MINUTES = 30;
 
-    // Credit after n shooting days: 5 -> 150, 20 -> 600, 24 -> 600, 26 -> 780.
+    // Credit after n shooting days: 5 -> 150, 20 -> 600, 25 -> 600, 26 -> 780.
     public static function minutes(int $shootingDays): int
     {
         $blocks = intdiv($shootingDays, self::BLOCK_DAYS);
         $rest = $shootingDays % self::BLOCK_DAYS;
-        $partial = $rest < self::THRESHOLD_DAYS ? 0 : self::THRESHOLD_MINUTES + ($rest - self::THRESHOLD_DAYS) * self::PER_DAY_MINUTES;
+        $threshold = $blocks === 0 ? self::THRESHOLD_DAYS : self::LATER_BLOCK_THRESHOLD_DAYS;
+        $partial = $rest < $threshold ? 0 : self::THRESHOLD_MINUTES + ($rest - self::THRESHOLD_DAYS) * self::PER_DAY_MINUTES;
 
         return $blocks * self::DAY_MINUTES + $partial;
     }

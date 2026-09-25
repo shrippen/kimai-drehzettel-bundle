@@ -17,6 +17,8 @@ final class DayResult
      * @param ?int $shootingDayNumber running day of the production, informational
      * @param int $dayNumber n-th working day of the calendar week, counted or overridden
      * @param ?int $productionDay the override of $dayNumber as entered, null when counted
+     * @param list<Share> $categoryShares pro-rata Saturday/Sunday/holiday minutes of a day past midnight
+     * @param ?DayCategory $waivedCategory Sunday or holiday whose surcharge a staggered shoot waived (TZ 5.6.3)
      */
     public function __construct(
         public readonly \DateTimeImmutable $begin,
@@ -39,6 +41,8 @@ final class DayResult
         public readonly int $extraPayCents = 0,
         public readonly ?int $shootingDayNumber = null,
         public readonly ?int $productionDay = null,
+        public readonly array $categoryShares = [],
+        public readonly ?DayCategory $waivedCategory = null,
     ) {
     }
 

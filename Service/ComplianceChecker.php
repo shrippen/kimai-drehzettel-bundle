@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Domain\ComplianceWarning;
 use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
+use KimaiPlugin\DrehzettelBundle\Domain\NightShoot;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
 use KimaiPlugin\DrehzettelBundle\Enum\ComplianceIssue;
@@ -27,6 +28,11 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayType;
  * Rest time also covers the gap across a week boundary (last day of the
  * previous week to the first day of this one) when the caller passes that
  * day in as $previousDay (see FilmWeekService::lastDayBefore()).
+ *
+ * Two tariff readings worth a second look, also advisory only:
+ * a staggered shoot waived a Sunday/holiday surcharge (TZ 5.6.3, literal
+ * reading), and a night shoot ran past 04:00 of the next day (TZ 5.2.4 is
+ * silent on that case; calculated as one working day).
  */
 class ComplianceChecker
 {
@@ -55,7 +61,28 @@ class ComplianceChecker
             $warnings[] = new ComplianceWarning(ComplianceIssue::WEEKLY_MAX, $week->days[0]->begin, $weekly, self::WEEKLY_MAX_MINUTES);
         }
 
-        return [...$warnings, ...$this->restTimeWarnings($week->days, $previousDay)];
+        return [...$warnings, ...$this->restTimeWarnings($week->days, $previousDay), ...$this->tariffNotes($week->days)];
+    }
+
+    /**
+     * @param list<DayResult> $days
+     * @return list<ComplianceWarning>
+     */
+    private function tariffNotes(array $days): array
+    {
+        $notes = [];
+        foreach ($days as $day) {
+            if ($day->waivedCategory !== null) {
+                $notes[] = new ComplianceWarning(ComplianceIssue::STAGGERED_SHOOT, $day->begin, 0, 0);
+            }
+
+            $pastCutoff = $day->dayType === DayType::WORKDAY ? NightShoot::minutesPastCutoff($day->begin, $day->end) : 0;
+            if ($pastCutoff > 0) {
+                $notes[] = new ComplianceWarning(ComplianceIssue::NIGHT_CUTOFF, $day->begin, $pastCutoff, NightShoot::CUTOFF_MINUTES);
+            }
+        }
+
+        return $notes;
     }
 
     /**

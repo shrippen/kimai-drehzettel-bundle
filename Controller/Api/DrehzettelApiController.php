@@ -98,7 +98,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/engagements', name: 'drehzettel_api_engagements')]
-    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible}]. azvEligible: the engagement earns AZV credit (TV FFS TZ 6), see /v1/engagements/{id}/azv.')]
+    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible, travelDays}]. azvEligible: the engagement earns AZV credit (TV FFS TZ 6), see /v1/engagements/{id}/azv. travelDays: excluded (tariff, TZ 12.1) or counted, whether travel days count for the 6th/7th day and weekly overtime (ruleset option).')]
     #[OA\Response(response: 400, description: 'code invalid_user or invalid_date.')]
     #[OA\Response(response: 403, description: 'code forbidden: another user without drehzettel_manage.')]
     #[OA\Response(response: 404, description: 'code unknown_user.')]
@@ -112,7 +112,7 @@ final class DrehzettelApiController extends AbstractController
             // Own engagements still need the "drehzettel" permission, as in the web UI.
             $visible = array_filter($this->engagements->activeOn($user, $date), $this->access->canView(...));
 
-            return array_values(array_map(ApiJson::engagement(...), $visible));
+            return array_values(array_map(fn (Engagement $e): array => ApiJson::engagement($e, $this->engagements->ruleset($e)), $visible));
         });
     }
 
@@ -172,7 +172,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/days/{date}/summary', name: 'drehzettel_api_day_summary', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), azvMinutesToDate (AZV credit up to and including the date, TV FFS TZ 6; null when the engagement earns none). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
+    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge (categoryPercent whole day; categoryShares [{percent, minutes}] pro rata for a day past midnight, TV FFS TZ 5.6.3; waivedCategory: sunday/holiday surcharge waived by a staggered shoot, TZ 5.6.3), week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), azvMinutesToDate (AZV credit up to and including the date, TV FFS TZ 6; null when the engagement earns none). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function daySummary(Request $request, string $date): JsonResponse
     {

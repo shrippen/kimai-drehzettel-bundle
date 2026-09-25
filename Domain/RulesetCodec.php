@@ -6,6 +6,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
+use KimaiPlugin\DrehzettelBundle\Enum\TravelDays;
 
 /**
  * Ruleset <-> plain array, stored as JSON on the engagement (snapshot).
@@ -49,6 +50,7 @@ final class RulesetCodec
             'sixthDayBp' => $rules->sixthDayBasisPoints,
             'seventhDayBp' => $rules->seventhDayBasisPoints,
             'minDayMinutes' => $rules->minDayMinutes,
+            'travelDays' => $rules->travelDays->value,
         ];
     }
 
@@ -99,6 +101,8 @@ final class RulesetCodec
             sixthDayBasisPoints: $data['sixthDayBp'],
             seventhDayBasisPoints: $data['seventhDayBp'],
             minDayMinutes: $data['minDayMinutes'] ?? 480,
+            // Stored before the option existed: the tariff reading.
+            travelDays: TravelDays::from($data['travelDays'] ?? TravelDays::EXCLUDED->value),
         );
     }
 

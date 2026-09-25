@@ -137,24 +137,32 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       Drehtag", whatever its length (TZ 5.2.4 counts a begun working day as 8 h); prep and post days cannot
       be told apart from shooting days yet (PA FAQ: they do not count). Days before 2025-05-01 never count,
       also when the flag is set by hand for a running production (TZ 6.7). The 2.5 h for days 21-25 are
-      credited with day 25 (PA FAQ: "ab 25 Drehtagen"), TZ 6.4 says "ab dem 26. Drehtag".
-- [ ] Taking AZV days — not modelled. TZ 6.3: a "freien und bezahlten Tag (in der Zeit von Montag bis
+      credited with day 26 per TZ 6.4 "ab dem 26. Drehtag" (D-14, 2026-09-25); the PA FAQ says "ab 25
+      Drehtagen" (one day earlier, same total from day 26).
+- [ ] Taking AZV days (D-17: later) — not modelled. TZ 6.3: a "freien und bezahlten Tag (in der Zeit von Montag bis
       Freitag) zwischen dem 2. und 16. Drehtag", announced at least 5 days ahead by the employer; TZ 6.6:
       travel productions may give it at the end; TZ 10.4/10.5: AZV days can be appended after the contract
       end. Needs a day type "AZV-Tag" (no timesheet entry or a 0 h entry?), how it is paid under a weekly
       gage (the week's gage keeps paying it, TZ 6.3 "bezahlt") and deduction of 600 min from the balance.
       Leftover credit (< 10 h) is paid through the time account (PA FAQ), which does not exist yet either.
-- [ ] Staggered shoot, TZ 5.6.3 — not implemented: "Sofern es sich um einen Sonntag oder die Feiertage
-      Heilige Drei Könige, Fronleichnam, Mariä Himmelfahrt oder Allerheiligen innerhalb der Phase des 1. bis
-      5. Produktionstages einer Kalenderwoche handelt (versetzter Dreh), wird kein Zuschlag gezahlt,
-      unbeschadet bleibt der Anspruch auf einen bezahlten Ruhetag gem. 5.6.2." Needs a ruleset option (TV FFS
-      only), the holiday's identity (Fronleichnam = Easter + 60 days) and a PO answer: read literally, a
-      week with a single Sunday shoot (day 1) loses the Sunday surcharge.
-- [ ] Night shoot day boundary, TZ 5.2.4 — not implemented: "Im Falle von Nachtdreharbeiten beginnt kein
-      neuer Arbeitstag am 2. Kalendertag, soweit an diesem die Arbeit um 4 Uhr beendet ist." An entry is one
-      working day by its begin date, however late it ends; the PA FAQ says a night shoot past 04:00 still
-      makes no second day ("redaktionell"). Also TZ 5.6.2/5.6.3: > 4 h on a Sunday/holiday decides the
-      whole-day surcharge and rest day.
+- [x] Staggered shoot, TZ 5.6.3 S. 2 (D-15, 2026-09-25): `Domain/StaggeredShoot`. "Sofern es sich um einen
+      Sonntag oder die Feiertage Heilige Drei Könige, Fronleichnam, Mariä Himmelfahrt oder Allerheiligen
+      innerhalb der Phase des 1. bis 5. Produktionstages einer Kalenderwoche handelt (versetzter Dreh), wird
+      kein Zuschlag gezahlt, unbeschadet bleibt der Anspruch auf einen bezahlten Ruhetag gem. 5.6.2."
+      Day N as for the 6th/7th day (`productionDay` wins). Holiday or not comes from the holiday plugin or
+      the film day category; which holiday from the date (6 Jan, Easter + 60, 15 Aug, 1 Nov), so no holiday
+      plugin names are needed. Literal reading: a week with a single Sunday shoot (day 1) loses the Sunday
+      surcharge; every waived day gets a warning (`staggered_shoot`). Other holidays on a Sunday keep their
+      holiday surcharge (the list is exhaustive) — interpretation. Applies to every ruleset.
+- [x] Night shoot day boundary, TZ 5.2.4 S. 2 (D-16, 2026-09-25): `Domain/NightShoot`, `DayInputBuilder`.
+      "Im Falle von Nachtdreharbeiten beginnt kein neuer Arbeitstag am 2. Kalendertag, soweit an diesem die
+      Arbeit um 4 Uhr beendet ist." A separate entry after midnight ending by 04:00 joins the previous day's
+      night shoot (worked until 22:00 or later, TZ 5.5.1): one day for day N, AZV, daily maximum and rest
+      time. Past 04:00 the text is silent: a single entry stays one working day (PA FAQ: no second day),
+      with a warning (`night_cutoff`); a separate entry ending past 04:00 stays its own day. Surcharges of a
+      day past midnight split by calendar day (TZ 5.6.1, 5.6.3 S. 3): Sunday/holiday part over 4 h = whole
+      day, else pro rata; Saturday always pro rata; night surcharge by clock as before. PA FAQ differs
+      (no Sunday surcharge 00:00-04:00); the plugin follows the text.
 - [ ] Ausgleichstage (TV FFS TZ 5.6.2) — not modelled (PO decision D-6, 2026-09-25); users note them in the
       day note for now. One paid rest day per worked Sunday (> 4 h on the Sunday for a shift over midnight)
       and per worked Christmas, Easter, Whit holiday, 3 Oct, 1 May; not for other holidays. ArbZG § 11:
@@ -166,6 +174,11 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       "Tag N der Woche" from day 6 or when overridden, also in the PDF. Travel days are no working days
       (TZ 12.1 "wie normale Arbeitszeit ohne Zuschläge"; PA FAQ: "Auch die Reisezeit gehört nicht zur
       Arbeitszeit"): they do not advance the day number and do not feed weekly overtime.
+- [x] Travel days option (D-11, 2026-09-25): ruleset field `travelDays`, `excluded` (default, TZ 12.1) or
+      `counted` (earlier answer D-3a). Counted, a travel day advances day N and feeds weekly overtime, its
+      own surcharges stay off. Rules page and engagement rules page, API `GET /v1/engagements` key
+      `travelDays`, ping feature `travelDays`. Stored in the ruleset JSON (template and engagement
+      snapshot), so no schema migration: a missing key reads as `excluded`.
 - [x] Working and rest time warnings on net working time (PO decision 2026-09-25, replaces D-7/D-8): daily
       maximum 12 h (TZ 5.2.5) and the begun 12th hour that extends rest to 11.5 h (TZ 5.9.1) exclude breaks up
       to the free break (TZ 5.8.2) and travel days. Warnings only.
