@@ -63,3 +63,14 @@ $meta = new TimesheetMeta('X', 'Y', 'Z', 'de', true);
 $period = Period::week(2026, 25, new DateTimeZone('Europe/Berlin'));
 $view = $builder->build($meta, $period, [$seven], $app, new PdfOptions([]));
 check('view: day number label from day 6', ['', 'drehzettel.production_day.label(%number%=6)'], [$view['weeks'][0]['rows'][4]['day_number'], $view['weeks'][0]['rows'][5]['day_number']]);
+
+// Travel is paid like work time without surcharges and is no working time (TZ 12.1; PA FAQ S. 9):
+// a travel day is no working day. Mon travel, Tue-Sun shooting makes Sunday day 6, not 7.
+$travelMonday = weekDays([['2026-06-15', null, DayType::TRAVEL], '2026-06-16', '2026-06-17', '2026-06-18', '2026-06-19', '2026-06-20', '2026-06-21']);
+$travelWeek = weekCalc()->calc($travelMonday, $app, null);
+check('travel day not counted', [5, 6], [$travelWeek->days[5]->dayNumber, $travelWeek->days[6]->dayNumber]);
+check('travel day no badge', false, $travelWeek->days[0]->showsDayNumber());
+
+// A travel day after five working days is no 6th day: no weekly pool from travel time.
+$travelSaturday = weekDays(['2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18', '2026-06-19', ['2026-06-20', null, DayType::TRAVEL]]);
+check('travel day not pooled (tv)', 0, weekCalc()->calc($travelSaturday, $tv, null)->weeklyPoolMinutes);

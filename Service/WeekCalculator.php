@@ -10,6 +10,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\Share;
 use KimaiPlugin\DrehzettelBundle\Domain\Tiers;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
+use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 
 /**
  * One calendar week: days plus weekly overtime.
@@ -19,6 +20,12 @@ use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
  * regular: counted minutes of days 1-5 (daily overtime excluded)
  * base:    first weekly tier, TV FFS 50 h
  * pooled:  6th and 7th day when the rules give them no fixed surcharge
+ *
+ * Day N counts working days only. Travel time is paid like work time without
+ * surcharges and is no working time (TV FFS 12.1), so a travel day neither
+ * advances N nor feeds the pool:
+ *
+ *   Mon travel, Tue-Sun shooting -> Tue = day 1 ... Sun = day 6
  *
  * The pool runs through the weekly tiers: TV FFS 25 % for 5 h, then 50 %.
  */
@@ -42,9 +49,11 @@ class WeekCalculator
         $this->validate($inputs);
 
         $days = [];
-        foreach ($inputs as $index => $input) {
-            $number = $input->productionDay ?? $index + 1;
-            $days[] = $this->days->calc($input, $rules, $terms, $number);
+        $worked = 0;
+        foreach ($inputs as $input) {
+            // A travel day shows the number the next working day gets.
+            $counted = $input->type === DayType::WORKDAY ? ++$worked : $worked + 1;
+            $days[] = $this->days->calc($input, $rules, $terms, $input->productionDay ?? $counted);
         }
 
         $pool = $this->poolMinutes($days, $rules);
@@ -94,6 +103,9 @@ class WeekCalculator
         $regular = 0;
         $pooled = 0;
         foreach ($days as $day) {
+            if ($day->dayType !== DayType::WORKDAY) {
+                continue;
+            }
             if ($day->dayNumber <= Units::WEEK_WORKDAYS) {
                 $regular += $day->countedMinutes;
                 continue;

@@ -31,7 +31,7 @@ Until the interface exists, engagements are created in code. `bin/console drehze
 
 ## 6th and 7th day
 
-Day N is the n-th working day of the ISO calendar week (TV FFS TZ 5.4.3.1/5.4.3.4: "Arbeit am 6. und 7. Tag der Kalenderwoche"), 1-7. A day off does not reset the count, and weeks never carry over: Mon, Tue, (Wed off), Thu-Sun makes Sunday day 6; Wed-Tue worked makes Monday and Tuesday day 1 and 2 of the new week. A day is the local date an entry begins on.
+Day N is the n-th working day of the ISO calendar week (TV FFS TZ 5.4.3.1/5.4.3.4: "Arbeit am 6. und 7. Tag der Kalenderwoche"), 1-7. A day off does not reset the count, and weeks never carry over: Mon, Tue, (Wed off), Thu-Sun makes Sunday day 6; Wed-Tue worked makes Monday and Tuesday day 1 and 2 of the new week. A day is the local date an entry begins on. Travel days are no working days: travel time is paid "wie normale Arbeitszeit ohne Zuschläge" (TZ 12.1) and is no working time (Produktionsallianz FAQ), so a travel day neither advances N nor counts toward weekly overtime. Mon travel, Tue-Sun shooting makes Sunday day 6.
 
 `productionDay` ("Zuschlagstag", surcharge day) overrides N for that day only, 1-7. The week page shows "Tag N der Woche" next to the date from day 6 or when overridden; the override field shows the counted N as placeholder.
 
