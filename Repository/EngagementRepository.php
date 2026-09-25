@@ -42,6 +42,23 @@ class EngagementRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<Engagement> active on $date, by project name
+     */
+    public function findActiveForUser(User $user, \DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.project', 'p')
+            ->where('e.user = :user')
+            ->andWhere('e.validFrom <= :date')
+            ->andWhere('e.validTo IS NULL OR e.validTo >= :date')
+            ->setParameter('user', $user)
+            ->setParameter('date', $date, 'date_immutable')
+            ->orderBy('p.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * @return list<Engagement>
      */
     public function findForUser(User $user): array

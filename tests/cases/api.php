@@ -46,3 +46,19 @@ check('api ping keys', ['installed', 'pluginVersion', 'apiVersions', 'permission
 check('api ping permissions', ['view' => true, 'manage' => false], $ping['permissions']);
 check('api ping v1', true, in_array('v1', $ping['apiVersions'], true));
 check('api ping error codes', true, in_array('errorCodes', $ping['features'], true));
+
+// Engagement list entry. Kimai's Project/Customer are stubbed: tests run without Kimai.
+if (!class_exists('App\Entity\Project')) {
+    eval('namespace App\Entity; class Customer { public function getName(): string { return "ACME"; } }
+        class Project { public function getId(): int { return 7; } public function getName(): string { return "Musterfilm"; } public function getCustomer(): Customer { return new Customer(); } }');
+}
+$engagement = new KimaiPlugin\DrehzettelBundle\Entity\Engagement();
+$engagement->setProject(new App\Entity\Project());
+$engagement->setRole('Oberbeleuchterin');
+$engagement->setRulesetName('TV FFS 2024');
+$engagement->setValidFrom(new DateTimeImmutable('2026-03-01'));
+check('api engagement json', [
+    'engagementId' => null, 'projectId' => 7, 'projectName' => 'Musterfilm', 'customerName' => 'ACME',
+    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true,
+], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement));
+check('api ping engagements', true, in_array('engagements', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));

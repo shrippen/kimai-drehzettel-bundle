@@ -6,6 +6,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use KimaiPlugin\DrehzettelBundle\Domain\ApiError;
 use KimaiPlugin\DrehzettelBundle\Domain\ApiInfo;
+use KimaiPlugin\DrehzettelBundle\Domain\ApiJson;
 use KimaiPlugin\DrehzettelBundle\Domain\ApiQuery;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
@@ -89,6 +90,25 @@ final class DrehzettelApiController extends AbstractController
                 'toggleDefault' => $engagement !== null,
                 'rulesetName' => $engagement?->getRulesetName(),
             ];
+        });
+    }
+
+    #[Route(methods: ['GET'], path: '/v1/engagements', name: 'drehzettel_api_engagements')]
+    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault}].')]
+    #[OA\Response(response: 400, description: 'code invalid_user or invalid_date.')]
+    #[OA\Response(response: 403, description: 'code forbidden: another user without drehzettel_manage.')]
+    #[OA\Response(response: 404, description: 'code unknown_user.')]
+    public function engagementList(Request $request): JsonResponse
+    {
+        return $this->respond(function () use ($request): array {
+            $user = $this->requireUser($request);
+            $date = ApiQuery::date($request->query->get('date'), new \DateTimeImmutable('today'));
+            $this->assertCanQuery($user);
+
+            // Own engagements still need the "drehzettel" permission, as in the web UI.
+            $visible = array_filter($this->engagements->activeOn($user, $date), $this->access->canView(...));
+
+            return array_values(array_map(ApiJson::engagement(...), $visible));
         });
     }
 
