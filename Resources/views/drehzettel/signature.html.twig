@@ -1,15 +1,6 @@
 {# Own signature for timesheet PDFs: upload (replaces the stored one), remove via header action. #}
 {% extends 'base.html.twig' %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-    document.addEventListener('kimai.initialized', function () {
-        document.addEventListener('kimai.drehzettelSignatureDelete', () => document.location.reload());
-    });
-    </script>
-{% endblock %}
-
 {% block main %}
     {% embed 'default/_form.html.twig' with {
         title: 'drehzettel.signature'|trans,

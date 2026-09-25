@@ -93,9 +93,6 @@
             }
         });
         drawAll();
-
-        // Deleting from this page (header action) leads back to the list.
-        document.addEventListener('kimai.drehzettelRulesetDelete', () => { document.location = form.dataset.backUrl; });
     });
     </script>
 {% endblock %}
@@ -111,7 +108,6 @@
         form: form,
         back: back,
         reset: false,
-        formStartOptions: {attr: {'data-back-url': back}},
     } %}
         {% block form_body %}
             {% import '@Drehzettel/drehzettel/_ruleset_parts.html.twig' as parts %}

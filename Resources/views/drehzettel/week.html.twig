@@ -90,13 +90,15 @@
             }
         });
 
-        // Modal results: mail sent -> reload shows nothing new, so confirm with a toast;
-        // engagement changed -> reload; engagement deleted -> back to the overview.
-        document.addEventListener('kimai.drehzettelMailSent', () => KimaiPluginUi.toast(form.dataset.msgMailSent, 'success'));
-        document.addEventListener('kimai.drehzettelEngagementUpdate', () => document.location.reload());
-        document.addEventListener('kimai.drehzettelEngagementDelete', () => { document.location = form.dataset.overviewUrl; });
+        // Modals (mail, engagement edit/delete) answer per kimai-plugin-ui GUIDELINES 3.6:
+        // kpu.reload (kit.js) or 201 + x-modal-redirect (Kimai), no own listeners needed.
     });
     </script>
+{% endblock %}
+
+{% block page_content_start %}
+    {{ kit.result_callouts() }}
+    {{ parent() }}
 {% endblock %}
 
 {% block page_intro %}
@@ -119,9 +121,7 @@
 {% block main %}
     <form method="post" id="drehzettel-form"
           action="{{ path('drehzettel_week_save', {id: e.id, year: v.year, week: v.week}) }}"
-          data-preview-url="{{ path('drehzettel_week_preview', {id: e.id, year: v.year, week: v.week}) }}"
-          data-overview-url="{{ path('drehzettel_overview') }}"
-          data-msg-mail-sent="{{ 'drehzettel.mail.sent'|trans }}">
+          data-preview-url="{{ path('drehzettel_week_preview', {id: e.id, year: v.year, week: v.week}) }}">
         <input type="hidden" name="_token" value="{{ csrf_token('drehzettel_week') }}">
         <div id="dz-preview-error" class="alert alert-danger d-none" role="alert" aria-live="polite">
             {{ 'drehzettel.week.preview_failed'|trans }}

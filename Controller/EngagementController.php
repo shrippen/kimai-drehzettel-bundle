@@ -27,9 +27,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('drehzettel_manage')]
 class EngagementController extends AbstractController
 {
+    use KpuFormSuccessTrait;
+
     private const FORM_ACTIONS = 'drehzettel_form';
-    private const EVENT_UPDATE = 'kimai.drehzettelEngagementUpdate';
-    private const EVENT_DELETE = 'kimai.drehzettelEngagementDelete';
 
     public function __construct(
         private readonly EngagementRepository $engagements,
@@ -49,7 +49,6 @@ class EngagementController extends AbstractController
         $form = $this->createForm(EngagementType::class, $data, [
             'action' => $this->generateUrl('drehzettel_engagement_new'),
             'rulesets' => $this->rulesetChoices(),
-            'attr' => ['data-form-event' => self::EVENT_UPDATE],
         ]);
         $form->handleRequest($request);
 
@@ -58,7 +57,8 @@ class EngagementController extends AbstractController
                 $engagement = $this->service->open($data->user, $data->project, (string) $data->role, $data->terms(), $data->validFrom, $data->validTo, (string) $data->ruleset);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
+                // New engagement: open its week page.
+                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $engagement->getId()]);
             } catch (\DomainException) {
                 $this->overlapError($form);
             }
@@ -76,7 +76,7 @@ class EngagementController extends AbstractController
         $form = $this->createForm(EngagementType::class, $data, [
             'action' => $this->generateUrl('drehzettel_engagement_edit', ['id' => $id]),
             'currency' => $engagement->getProject()?->getCustomer()?->getCurrency(),
-            'attr' => ['data-form-event' => self::EVENT_UPDATE],
+            'attr' => ['data-form-event' => 'kpu.reload'],
         ]);
         $form->handleRequest($request);
 
@@ -86,7 +86,8 @@ class EngagementController extends AbstractController
                 $this->service->save($engagement);
                 $this->flashSuccess('action.update.success');
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $engagement->getId()]);
+                // Opened from the overview or a week: reload that page, keeping its week.
+                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $engagement->getId()], true);
             } catch (\DomainException) {
                 $this->overlapError($form);
             }
@@ -134,10 +135,7 @@ class EngagementController extends AbstractController
     public function delete(Request $request, int $id): Response
     {
         $engagement = $this->find($id);
-        $form = $this->createFormBuilder(null, [
-            'csrf_token_id' => 'drehzettel_engagement',
-            'attr' => ['data-form-event' => self::EVENT_DELETE],
-        ])
+        $form = $this->createFormBuilder(null, ['csrf_token_id' => 'drehzettel_engagement'])
             ->setAction($this->generateUrl('drehzettel_engagement_delete', ['id' => $id]))
             ->setMethod('POST')
             ->getForm();
@@ -147,7 +145,8 @@ class EngagementController extends AbstractController
             $this->service->remove($engagement);
             $this->flashSuccess('action.delete.success');
 
-            return $this->redirectToRoute('drehzettel_overview');
+            // Also from the week page of this engagement, which no longer exists.
+            return $this->kpuFormSuccess($request, 'drehzettel_overview');
         }
 
         return $this->render('@Drehzettel/drehzettel/delete.html.twig', [

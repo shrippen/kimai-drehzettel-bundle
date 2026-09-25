@@ -26,6 +26,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('drehzettel')]
 class WeekController extends AbstractController
 {
+    use KpuFormSuccessTrait;
+
     private const CSRF_ID = 'drehzettel_week';
     public const ACTIONS = 'drehzettel_week';
     private const WEEK_KEY = 'stats.workingTimeWeekShort';
@@ -131,7 +133,7 @@ class WeekController extends AbstractController
         $url = $this->generateUrl('drehzettel_week_mail', ['id' => $id, 'year' => $year, 'week' => $week]);
         $form = $this->createForm(MailType::class, [MailType::FIELD => $this->mailRecipients->findForEngagement($engagement)?->getEmail()], [
             'action' => $url,
-            'attr' => ['data-form-event' => 'kimai.drehzettelMailSent'],
+            'attr' => ['data-form-event' => 'kpu.reload'],
         ]);
         $form->handleRequest($request);
 
@@ -144,9 +146,9 @@ class WeekController extends AbstractController
             try {
                 $this->mailer->send($address, $subject, $subject, $document);
                 $this->mailRecipients->remember($engagement, $address);
-                $this->flashSuccess('action.update.success');
+                $this->addFlash('kpu_result', $this->pages->trans('drehzettel.mail.sent', ['%address%' => $address]));
 
-                return $this->redirectToRoute('drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week]);
+                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week], true);
             } catch (\Throwable $e) {
                 // Transport errors can name hosts or accounts: log them, show only a generic error.
                 $this->logException($e);

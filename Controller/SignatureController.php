@@ -17,6 +17,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('drehzettel')]
 class SignatureController extends AbstractController
 {
+    use KpuFormSuccessTrait;
+
     private const CSRF_ID = 'drehzettel_signature';
 
     public function __construct(
@@ -61,7 +63,7 @@ class SignatureController extends AbstractController
     #[Route(path: '/delete', name: 'drehzettel_signature_delete', methods: ['GET', 'POST'])]
     public function delete(Request $request): Response
     {
-        $form = $this->createFormBuilder(null, ['csrf_token_id' => self::CSRF_ID, 'attr' => ['data-form-event' => 'kimai.drehzettelSignatureDelete']])
+        $form = $this->createFormBuilder(null, ['csrf_token_id' => self::CSRF_ID])
             ->setAction($this->generateUrl('drehzettel_signature_delete'))
             ->setMethod('POST')
             ->getForm();
@@ -71,7 +73,7 @@ class SignatureController extends AbstractController
             $this->signatures->delete($this->getUser());
             $this->flashSuccess('action.delete.success');
 
-            return $this->redirectToRoute('drehzettel_signature');
+            return $this->kpuFormSuccess($request, 'drehzettel_signature');
         }
 
         return $this->render('@Drehzettel/drehzettel/delete.html.twig', [

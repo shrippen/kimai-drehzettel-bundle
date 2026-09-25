@@ -11,20 +11,12 @@
 {% block javascripts %}
     {{ parent() }}
     {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'js'} %}
-    <script>
-    document.addEventListener('kimai.initialized', function () {
-        // Engagement created, changed or deleted in the modal: show the new list.
-        ['kimai.drehzettelEngagementUpdate', 'kimai.drehzettelEngagementDelete'].forEach(
-            (name) => document.addEventListener(name, () => document.location.reload())
-        );
-    });
-    </script>
 {% endblock %}
 
 {% block main %}
     {% if engagements is empty %}
         {% if manages %}
-            {{ kit.empty_state('drehzettel.overview.empty'|trans, path('drehzettel_engagement_new'), 'drehzettel.engagement.new'|trans) }}
+            {{ kit.empty_state('drehzettel.overview.empty'|trans, path('drehzettel_engagement_new'), 'drehzettel.engagement.new'|trans, 'modal-ajax-form') }}
         {% else %}
             {{ kit.empty_state('drehzettel.overview.empty_own'|trans) }}
         {% endif %}

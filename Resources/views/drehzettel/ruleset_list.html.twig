@@ -11,11 +11,6 @@
 {% block javascripts %}
     {{ parent() }}
     {% include '@Drehzettel/_kit/assets.html.twig' with {kpu_part: 'js'} %}
-    <script>
-    document.addEventListener('kimai.initialized', function () {
-        document.addEventListener('kimai.drehzettelRulesetDelete', () => document.location.reload());
-    });
-    </script>
 {% endblock %}
 
 {% block main %}

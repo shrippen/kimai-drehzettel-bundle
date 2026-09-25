@@ -25,6 +25,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('drehzettel_manage')]
 class RulesetController extends AbstractController
 {
+    use KpuFormSuccessTrait;
+
     private const CSRF_ID = 'drehzettel_ruleset';
     private const FORM_ACTIONS = 'drehzettel_form';
     private const BUILTIN = [RulesetCatalog::TV_FFS_2024, RulesetCatalog::QUARTER_HOUR];
@@ -106,7 +108,7 @@ class RulesetController extends AbstractController
     public function delete(Request $request, int $id): Response
     {
         $ruleset = $this->find($id);
-        $form = $this->createFormBuilder(null, ['csrf_token_id' => self::CSRF_ID, 'attr' => ['data-form-event' => 'kimai.drehzettelRulesetDelete']])
+        $form = $this->createFormBuilder(null, ['csrf_token_id' => self::CSRF_ID])
             ->setAction($this->generateUrl('drehzettel_ruleset_delete', ['id' => $id]))
             ->setMethod('POST')
             ->getForm();
@@ -116,7 +118,8 @@ class RulesetController extends AbstractController
             $this->custom->remove($ruleset);
             $this->flashSuccess('action.delete.success');
 
-            return $this->redirectToRoute('drehzettel_ruleset_list');
+            // From the list or from the editor of the deleted ruleset: show the list.
+            return $this->kpuFormSuccess($request, 'drehzettel_ruleset_list');
         }
 
         return $this->render('@Drehzettel/drehzettel/delete.html.twig', [
