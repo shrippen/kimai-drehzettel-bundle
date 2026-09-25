@@ -180,3 +180,32 @@ als Wochentage und nicht Folgetage über Wochengrenzen.
    denn Pausen bis 45 min sind keine Arbeitszeit (TZ 5.8.2) — **[Interpretation]**, mit PO klären.
 6. Ausgleichstage (TZ 5.6.2) als eigener Saldo: +1 je gearbeitetem Sonntag (> 4 h bei Nachtdreh) und je gearbeitetem
    Weihnachts-, Oster-, Pfingstfeiertag, 3.10., 1.5.; nicht für andere Feiertage; Hinweis auf 2-/8-Wochen-Frist (ArbZG § 11).
+
+## Nachtrag 2026-09-25: PO-Entscheidung und Nachprüfung am Tariftext
+
+PO: „Only the tariff rule.“ Punkt 1 (Folgetage) und die Ruhezeit-Messung nach Präsenz sind damit erledigt;
+umgesetzt ist nur noch die Kalenderwochen-Zählung, Ruhezeit/Tageshöchstzeit netto, AZV-Guthaben nach TZ 6.
+Neu geprüft (Q1, Q3 erneut gelesen):
+
+- **[Fakt]** TZ 12.1: Reisezeit „wird wie normale Arbeitszeit ohne Zuschläge vergütet. Dies gilt auch für
+  Dienstreisen an Sonnabenden, Sonn- und Feiertagen.“ **[PA-Auslegung]** Q3 S. 9: „Auch die Reisezeit gehört
+  nicht zur Arbeitszeit … Wege- und Reisezeiten [werden] nicht in die Ermittlung der Tagesarbeitszeiten
+  einbezogen und somit bei der erlaubten Tageshöchstarbeitszeit nicht berücksichtigt.“
+  **[Interpretation]** Ein reiner Reisetag ist kein Arbeitstag i. S. v. TZ 5.4.3.4 → zählt nicht als 6./7. Tag,
+  speist keine wöchentliche Mehrarbeit, zählt nicht für Tageshöchstzeit und 11,5-h-Auslöser. Beantwortet die
+  oben offene Frage „Ob ein Reisetag als Tag zählt“; PO-Bestätigung empfohlen.
+- **[Fakt]** TZ 5.9.1: „Zwischen dem Ende und dem Beginn der Arbeitszeit von zwei Arbeitstagen“ – Ruhezeit
+  wird von Arbeitsende bis Arbeitsbeginn gemessen; Plugin: Ende des Eintrags bis Beginn des nächsten.
+- **[Fakt]** TZ 6.1 Fußnote 2: „Gemeint ist die ganztägige Beschäftigung an mindestens 5 aufeinanderfolgenden
+  Drehtagen.“ **[Interpretation]** „zusammenhängend“ bezieht sich auf die Folge der *Drehtage*, nicht auf
+  Kalendertage: drehfreie Tage liegen zwischen zwei aufeinanderfolgenden Drehtagen und unterbrechen nicht.
+  Unterbrechung nur durch Ende der Beschäftigung (Engagement). Ein Mindestumfang für „voll/ganztägig“ ist
+  nicht definiert.
+- **[Fakt]** TZ 6.4 „ab dem 26. Drehtag … weitere 2,5 Stunden für die Drehtage 21 bis 25“ vs. Q3 S. 8 „Erst ab
+  25 Drehtagen entsteht wieder ein Anspruch auf 2,5 Stunden“ – Stichtag der Gutschrift um einen Tag
+  verschieden, Summe gleich. Plugin folgt TZ 6.1/Q3 (Gutschrift mit dem 5./25. Drehtag).
+- **[Fakt]** TZ 6.3: AZV-Tag „frei und bezahlt“, Mo–Fr, zwischen 2. und 16. Drehtag, 5 Tage Vorlauf;
+  TZ 6.6: bei Reiseproduktionen am Ende; TZ 10.4/10.5: AZV-Tage können angehängt werden.
+  **[PA-Auslegung]** Q3 S. 8: AZV-Tag ist „Ruhezeit“, auf einem Feiertag kein Zuschlag. Nehmen/Abziehen ist
+  im Plugin noch nicht modelliert (roadmap).
+- **[Fakt]** TZ 5.6.3 (versetzter Dreh) bleibt offen, Wortlaut und Grund in `roadmap.md`.

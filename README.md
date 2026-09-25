@@ -37,6 +37,21 @@ Day N is the n-th working day of the ISO calendar week (TV FFS TZ 5.4.3.1/5.4.3.
 
 What day 6 and 7 pay comes from the ruleset: TV FFS pools them into weekly overtime, the quarter-hour preset adds 25 % / 50 %. Either comes on top of Saturday, Sunday and holiday surcharges.
 
+## AZV credit
+
+Arbeitszeitverkürzung per TV FFS TZ 6, credit only (taking AZV days is not modelled yet):
+
+| Shooting days | Credit |
+|---|---|
+| 1-4 | 0 |
+| 5 | 2.5 h (TZ 6.1) |
+| each further one up to 20 | + 0.5 h, 10 h after 20 days = one AZV day (TZ 6.2/6.3) |
+| 21-24, 25, 26-40, ... | the same per block of 20 (TZ 6.4): 24 days = 10 h, 25 = 12.5 h, 26 = 13 h |
+
+- A shooting day is a working-day entry of the engagement, any length. Travel days and days off do not count and do not break the row (TZ 6.1 footnote 2: "an mindestens 5 aufeinanderfolgenden Drehtagen"). The row ends with the engagement.
+- Applies to crew behind the camera, not to high-frequency series (TZ 6.1, 6.5), for shoots from 2025-05-01 (TZ 6.7). Default: on for engagements with the TV FFS 2024 ruleset starting on or after 2025-05-01; the engagement form changes it (e.g. a production running before May 2025 with fewer than 5 shooting days). Days before 2025-05-01 never count.
+- Shown on the week page (work time tile, up to the end of the week), in the PDF (up to the end of the period) and on the overview (up to today or the engagement end).
+
 ## Working and rest time warnings
 
 Warnings only, they never change a figure (the tariff attaches no consequence).
@@ -55,8 +70,9 @@ Under Kimai's own `/api`, same `Authorization: Bearer <token>`, listed in `/api/
 
 | Request | Answer |
 |---|---|
-| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber"]}` |
-| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault}]` |
+| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber", "azv"]}` |
+| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible}]` |
+| `GET /api/drehzettel/v1/engagements/{id}/azv?date=` | AZV credit up to and including `date` (default today), see below |
 | `GET /api/drehzettel/v1/engagement-status?project=&date=&user=` | `{active, engagementId, toggleDefault, rulesetName}`; no engagement is `active: false`, not 404 |
 | `GET /api/drehzettel/v1/film-days/{date}?project=&user=` | stored fields, see below |
 | `PUT /api/drehzettel/v1/film-days/{date}?project=&user=` | partial update: only sent keys change; answers like `GET` |
@@ -79,7 +95,9 @@ Film day (`GET`/`PUT`):
 - `extraPayCents` 0-10,000,000: Zusatzgage/Spesen, added to the day's pay as is; null resets to 0
 - `note` up to 500 characters
 
-Day summary: `{date, engagementId, hasEntry, begin, end, workMinutes, breakMinutes, overtime: [{percent, minutes}], nightMinutes, underMinutes, category, categoryPercent, dayNumber, shootingDayNumber, weeklyOvertimeMinutes, warnings: [{issue, minutes, limitMinutes}], payCents, extraPayCents, currency}`. `dayNumber` is the day of the calendar week behind the 6th/7th-day surcharge (counted or `productionDay`). `payCents` is the day's pay including extra pay and excluding weekly overtime; null without a gage.
+Day summary: `{date, engagementId, hasEntry, begin, end, workMinutes, breakMinutes, overtime: [{percent, minutes}], nightMinutes, underMinutes, category, categoryPercent, dayNumber, shootingDayNumber, weeklyOvertimeMinutes, warnings: [{issue, minutes, limitMinutes}], payCents, extraPayCents, currency, azvMinutesToDate}`. `dayNumber` is the day of the calendar week behind the 6th/7th-day surcharge (counted or `productionDay`). `payCents` is the day's pay including extra pay and excluding weekly overtime; null without a gage. `azvMinutesToDate` is the AZV credit up to and including the date, null when the engagement earns none.
+
+AZV: `{engagementId, eligible, countsFrom, date, shootingDays, minutes, days, openMinutes, dayMinutes: 600, blockDays: 20}`; `days` = whole AZV days (`minutes` / 600), `openMinutes` the rest. Not eligible: `eligible: false`, `countsFrom: null`, zeros. Another user's engagement needs `drehzettel_manage` (403); unknown id is 404 `unknown_engagement`. See [AZV credit](#azv-credit).
 
 Errors are `{"error": "...", "code": "..."}`:
 
@@ -87,7 +105,7 @@ Errors are `{"error": "...", "code": "..."}`:
 |---|---|
 | 400 | `missing_project`, `invalid_project`, `invalid_user`, `invalid_date`, `invalid_json`, `invalid_value` |
 | 403 | `forbidden` |
-| 404 | `unknown_project`, `unknown_user`, `no_engagement` |
+| 404 | `unknown_project`, `unknown_user`, `no_engagement`, `unknown_engagement` |
 
 Malformed JSON never reaches the plugin: Kimai answers it with its own `{"code": 400, "message": "Bad Request"}`.
 

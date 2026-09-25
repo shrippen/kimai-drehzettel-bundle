@@ -20,12 +20,14 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] 390 px ohne waagrechtes Scrollen, Dunkelmodus geprüft
 
 ## Übersicht `/drehzettel/`
+- [x] Spalte „AZV“ (ab `lg`): Guthaben bis heute bzw. Engagement-Ende, „12:30 · 1 AZV-Tag“, sonst „–“
 - [x] Tabelle über `macros/datatables.html.twig`, Spaltenklassen, Zeilenaktionen im „…“-Menü
 - [x] Aktionen: Neues Engagement (Modal), Regelwerke, Unterschrift
 - [x] Datum `date_short`, Leerzustand `kit.empty_state` mit nächstem Schritt; „Neues Engagement“ öffnet dort das Kimai-Modal (`modal-ajax-form`, Kit 0.2)
 - [x] Engagement löschen im „…“ mit Kimai-Löschmodal
 
 ## Woche `/drehzettel/{id}/week/{y}/{w}`
+- [x] AZV-Guthaben bis Wochenende als Detail der Kachel „Arbeitszeit“ (KPI-Leiste hat max. 4 Kacheln), live mit der Vorschau
 - [x] Titel „Drehzettel · KW 21“, Kontextzeile Projekt · Funktion · Benutzer · Zeitraum
 - [x] Zeitraum über `kit.period_nav` (nur Woche; Monat nur als Monats-PDF, keine eigene Monatsansicht)
 - [x] Aktionen: Speichern, Wochen-PDF, Monats-PDF, Mailen (Modal), „…“: Engagement bearbeiten, Regeln, Löschen
@@ -37,6 +39,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] Zuschlagstag „Tag N der Woche“ als Badge neben dem Datum (`badge bg-secondary-lt` wie der Drehtag, Kit hat kein neutrales Badge-Makro), live aktualisiert; nur ab Tag 6 oder bei Override; Eingabefeld zeigt das gezählte N als Platzhalter
 
 ## Engagement anlegen/bearbeiten
+- [x] AZV-Checkbox „AZV nach TZ 6 (Crew hinter der Kamera, keine High-Frequency-Serie)“ nur im Bearbeiten, mit Hilfetext zur Voreinstellung; neue Engagements folgen der Regel (TV FFS 2024, Beginn ab 01.05.2025)
 - [x] `EngagementType` (UserType, ProjectType, DatePickerType, MoneyType mit Kundenwährung) im Kimai-Modal
 - [x] Löschen: Bestätigungsseite/-modal `default/_form_delete*.html.twig`
 
@@ -55,6 +58,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] CSS nur mit `var(--tblr-…)`
 
 ## PDF
+- [x] AZV-Zeile unter der Tabelle (Guthaben bis Zeitraumende, Drehtage, AZV-Tage à 10 h)
 - [x] Wochentage/Monate über `IntlDateFormatter`, Geld mit Kundenwährung (Layout bleibt)
 
 ## Offen / bewusste Abweichungen
