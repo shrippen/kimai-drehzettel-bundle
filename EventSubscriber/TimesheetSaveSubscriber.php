@@ -56,7 +56,7 @@ class TimesheetSaveSubscriber implements EventSubscriberInterface
         }
 
         [$user, $project, $begin] = $stored;
-        $date = EngagementService::dayOf($user, $begin);
+        $date = EngagementService::dayOf($begin);
         $engagement = $this->engagements->active($user, $project, $date);
         if ($engagement !== null) {
             $this->before[$timesheet] = [$engagement, $date];
@@ -82,7 +82,7 @@ class TimesheetSaveSubscriber implements EventSubscriberInterface
 
         // Still on the same engagement and date: nothing left behind.
         [$oldEngagement, $oldDate] = $before;
-        if ($oldEngagement->getId() === $engagement?->getId() && $oldDate == $date) {
+        if ($oldEngagement->getId() === $engagement?->getId() && $oldDate->format('Y-m-d') === $date?->format('Y-m-d')) {
             return;
         }
         $this->filmDays->deleteIfOrphaned($oldEngagement, $oldDate);

@@ -78,14 +78,19 @@ class DayInputBuilder
      */
     private function spans(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
-        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from, $to);
+        // Days are keyed by the entry's own local date, as Kimai shows it. That zone can differ
+        // from the user's zone of [from, to) (Berlin 00:30 Monday = UTC 22:30 Sunday), so query
+        // a day wider and filter by key: otherwise such an entry lands in the wrong week.
+        $entries = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $from->modify('-1 day'), $to->modify('+1 day'));
+        $fromKey = $from->format(self::DATE_FORMAT);
+        $toKey = $to->format(self::DATE_FORMAT);
 
         $spans = [];
         foreach ($entries as $entry) {
             $begin = \DateTimeImmutable::createFromInterface($entry->getBegin());
             $end = \DateTimeImmutable::createFromInterface($entry->getEnd());
             $key = $begin->format(self::DATE_FORMAT);
-            if (!$this->isValid($engagement, $key)) {
+            if ($key < $fromKey || $key >= $toKey || !$this->isValid($engagement, $key)) {
                 continue;
             }
 

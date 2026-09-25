@@ -44,8 +44,9 @@ class TimesheetRangeRepository extends ServiceEntityRepository
 
     /**
      * User, project and begin as last loaded from the database, before unsaved changes.
+     * Begin is in the entry's stored timezone, like Timesheet::getBegin().
      *
-     * @return array{User, Project, \DateTimeInterface}|null null for a new entry
+     * @return array{User, Project, \DateTimeImmutable}|null null for a new entry
      */
     public function stored(Timesheet $timesheet): ?array
     {
@@ -53,10 +54,11 @@ class TimesheetRangeRepository extends ServiceEntityRepository
         $user = $data['user'] ?? null;
         $project = $data['project'] ?? null;
         $begin = $data['begin'] ?? null;
-        if (!$user instanceof User || !$project instanceof Project || !$begin instanceof \DateTimeInterface) {
+        $zone = $data['timezone'] ?? null;
+        if (!$user instanceof User || !$project instanceof Project || !$begin instanceof \DateTimeInterface || !\is_string($zone)) {
             return null;
         }
 
-        return [$user, $project, $begin];
+        return [$user, $project, \DateTimeImmutable::createFromInterface($begin)->setTimezone(new \DateTimeZone($zone))];
     }
 }

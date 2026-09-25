@@ -73,9 +73,10 @@ class FilmDayService
             return;
         }
 
-        $entriesOfDay = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $date, $date->modify('+1 day'));
-        foreach ($entriesOfDay as $entry) {
-            if (!\in_array($entry->getId(), $excludedTimesheetIds, true)) {
+        // A day wider, then matched by local date: see DayInputBuilder::spans().
+        $entriesAround = $this->timesheets->findClosed($engagement->getUser(), $engagement->getProject(), $date->modify('-1 day'), $date->modify('+2 days'));
+        foreach ($entriesAround as $entry) {
+            if (EngagementService::dateOf($entry)->format('Y-m-d') === $date->format('Y-m-d') && !\in_array($entry->getId(), $excludedTimesheetIds, true)) {
                 return;
             }
         }

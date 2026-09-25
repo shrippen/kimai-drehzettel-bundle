@@ -105,11 +105,11 @@ class EngagementService
         $begin = $timesheet->getBegin();
         \assert($begin !== null);
 
-        return self::dayOf($timesheet->getUser(), $begin);
+        return self::dayOf($begin);
     }
 
-    // Calendar date a timesheet begin belongs to.
-    public static function dayOf(User $user, \DateTimeInterface $begin): \DateTimeImmutable
+    // Calendar date of a begin, in the zone it carries (the timesheet's own, as Kimai shows it).
+    public static function dayOf(\DateTimeInterface $begin): \DateTimeImmutable
     {
         return \DateTimeImmutable::createFromInterface($begin)->setTime(0, 0);
     }
