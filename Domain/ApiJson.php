@@ -58,7 +58,6 @@ final class ApiJson
             'shootingDayNumber' => $day?->getShootingDayNumber(),
             'defaultBreakMinutes' => $rules->defaultBreakMinutes,
             'effectiveCategory' => ($day?->getCategory() ?? $autoCategory)->value,
-            'streakMode' => $rules->streakMode->value,
         ];
     }
 }

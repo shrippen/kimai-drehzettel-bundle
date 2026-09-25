@@ -6,13 +6,11 @@ use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayDraft;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
 use KimaiPlugin\DrehzettelBundle\Domain\Share;
-use KimaiPlugin\DrehzettelBundle\Domain\Streak;
 use KimaiPlugin\DrehzettelBundle\Domain\Tier;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
-use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\MailRecipientRepository;
 
@@ -68,9 +66,7 @@ class WeekPageBuilder
             'currency' => $engagement->getProject()?->getCustomer()?->getCurrency() ?? self::DEFAULT_CURRENCY,
             'tiers' => array_map(static fn (Tier $t): float => self::percent($t->basisPoints), $rules->dailyTiers),
             'night_percent' => self::percent($rules->nightBasisPoints),
-            'rows' => $this->rows($result, $period, count($rules->dailyTiers), $hasPay, $rules->streakMode),
-            'streak_mode' => $rules->streakMode->value,
-            'max_production_day' => $rules->streakMode->maxDay(),
+            'rows' => $this->rows($result, $period, count($rules->dailyTiers), $hasPay),
             'film' => $this->filmValues($engagement, $period, $drafts),
             'sums' => $this->sums($result, count($rules->dailyTiers), $hasPay),
             'weekly' => $rules->weeklyTiers === [] ? null : $this->weekly($result, $rules->weeklyTiers),
@@ -86,7 +82,7 @@ class WeekPageBuilder
      *
      * @return list<array<string, mixed>>
      */
-    private function rows(WeekResult $result, Period $period, int $tierCount, bool $hasPay, StreakMode $mode): array
+    private function rows(WeekResult $result, Period $period, int $tierCount, bool $hasPay): array
     {
         $byDate = [];
         foreach ($result->days as $day) {
@@ -98,7 +94,7 @@ class WeekPageBuilder
             $date = $period->from->modify("+$i days");
             $key = $date->format(self::DATE_KEY);
             $day = $byDate[$key] ?? null;
-            $rows[] = $day === null ? ['empty' => true, 'key' => $key, 'date' => $date] : $this->row($day, $key, $date, $tierCount, $hasPay, $mode);
+            $rows[] = $day === null ? ['empty' => true, 'key' => $key, 'date' => $date] : $this->row($day, $key, $date, $tierCount, $hasPay);
         }
 
         return $rows;
@@ -106,11 +102,11 @@ class WeekPageBuilder
 
     /**
      * Days without tier shares (travel days) still get one zero per tier column.
-     * streak: day number behind the 6th/7th-day surcharge, the override field's placeholder.
+     * day_number: n-th working day of the week, the override field's placeholder.
      *
      * @return array<string, mixed>
      */
-    private function row(DayResult $day, string $key, \DateTimeImmutable $date, int $tierCount, bool $hasPay, StreakMode $mode): array
+    private function row(DayResult $day, string $key, \DateTimeImmutable $date, int $tierCount, bool $hasPay): array
     {
         return [
             'empty' => false,
@@ -123,8 +119,8 @@ class WeekPageBuilder
             'night' => self::seconds($day->nightMinutes),
             'under' => self::seconds($day->underMinutes),
             'pay' => $hasPay && $day->amountCents !== null ? $day->amountCents / self::CENTS : null,
-            'streak' => $day->dayNumber,
-            'streak_shown' => Streak::shown($day, $mode),
+            'day_number' => $day->dayNumber,
+            'day_number_shown' => $day->showsDayNumber(),
         ];
     }
 

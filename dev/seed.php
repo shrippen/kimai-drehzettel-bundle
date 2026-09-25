@@ -76,7 +76,7 @@ $engagement = $service->open(
     RulesetCatalog::QUARTER_HOUR,
 );
 
-$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry), $service);
+$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry));
 $isFirstDay = true;
 foreach ($fixtures['weekly_gage']['weeks'] as $week) {
     foreach ($week['rows'] as $row) {

@@ -34,7 +34,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] Tag ohne Eintrag `kit.status_badge('open')`; Verstöße (Tageshöchstzeit, Ruhezeit) und Unterstunden als `kit.status_badge('warning', Grund)` mit Kurzgrund daneben, Wochenliste als Kimai-Hinweis; Spalte Unterstunden nur noch Zahl
 - [x] Live-Vorschau zeigt Fehler, ersetzt nur berechnete Zellen (Eingaben behalten den Fokus)
 - [x] Mail als FormType im Kimai-Modal; Erfolg als Ergebnis-Hinweis „Wochen-PDF an … gesendet“ (`kpu_result`) statt Toast
-- [x] Zuschlagstag „Tag N in Folge“ / „Tag N der Woche“ als Badge neben dem Datum (`badge bg-secondary-lt` wie der Drehtag, Kit hat kein neutrales Badge-Makro), live aktualisiert; Kalenderwoche nur ab Tag 6 oder bei Override
+- [x] Zuschlagstag „Tag N der Woche“ als Badge neben dem Datum (`badge bg-secondary-lt` wie der Drehtag, Kit hat kein neutrales Badge-Makro), live aktualisiert; nur ab Tag 6 oder bei Override; Eingabefeld zeigt das gezählte N als Platzhalter
 
 ## Engagement anlegen/bearbeiten
 - [x] `EngagementType` (UserType, ProjectType, DatePickerType, MoneyType mit Kundenwährung) im Kimai-Modal
@@ -45,7 +45,6 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] Editor als Seite mit `RulesetType` und Kimai-`_form`-Karte
 - [x] Fünf deutsche Kartenbeschreibungen und JS-Validierungstexte → Keys bzw. Symfony-Constraint (`validators`)
 - [x] Stufenleiste mit Tabler-Farbklassen
-- [x] Zählung 6./7. Tag (`streakMode`) als Auswahl mit Hilfetext in der Karte „6. und 7. Tag“
 
 ## Unterschrift
 - [x] `SignatureType` (FileType + File-Constraint), Kimai-`_form`-Karte

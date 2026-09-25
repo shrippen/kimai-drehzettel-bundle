@@ -6,7 +6,6 @@ use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
-use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 /**
  * Partial update of one film day from an API body. Only sent keys change:
@@ -20,6 +19,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 final class FilmDayPatch
 {
     public const MAX_BREAK_MINUTES = 720;
+    public const MAX_PRODUCTION_DAY = 7;
     public const MAX_NOTE_LENGTH = 500;
     public const MAX_EXTRA_PAY_CENTS = 10_000_000;
     public const MAX_SHOOTING_DAY = 999;
@@ -33,10 +33,9 @@ final class FilmDayPatch
 
     /**
      * @param array<mixed> $body decoded JSON; unknown keys are ignored
-     * @param StreakMode $mode of the engagement's ruleset: productionDay up to 7 or 999
      * @throws \InvalidArgumentException naming the first invalid field
      */
-    public static function fromArray(array $body, StreakMode $mode): self
+    public static function fromArray(array $body): self
     {
         $values = [];
         if (array_key_exists('breakMinutes', $body)) {
@@ -52,7 +51,7 @@ final class FilmDayPatch
             $values['dayType'] = self::dayType($body['dayType']);
         }
         if (array_key_exists('productionDay', $body)) {
-            $values['productionDay'] = self::intOrNull($body['productionDay'], 1, $mode->maxDay(), 'productionDay');
+            $values['productionDay'] = self::intOrNull($body['productionDay'], 1, self::MAX_PRODUCTION_DAY, 'productionDay');
         }
         if (array_key_exists('note', $body)) {
             $values['note'] = self::note($body['note']);

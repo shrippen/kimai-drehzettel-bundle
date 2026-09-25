@@ -8,15 +8,13 @@ use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 
 /**
  * One day's figures for external clients. The whole ISO week is calculated,
- * as on the week page: weekly overtime and the 6th/7th day need it
- * (in consecutive mode, FilmWeekService also looks back into earlier weeks).
+ * as on the week page: weekly overtime and the 6th/7th day need it.
  */
 class DaySummaryService
 {
     public function __construct(
         private readonly FilmWeekService $weeks,
         private readonly ComplianceChecker $compliance,
-        private readonly EngagementService $engagements,
     ) {
     }
 
@@ -32,8 +30,6 @@ class DaySummaryService
         $week = $this->weeks->week($engagement, $isoYear, $isoWeek);
         $warnings = $this->compliance->check($week, $this->weeks->lastDayBefore($engagement, $period->from));
 
-        $mode = $this->engagements->ruleset($engagement)->streakMode;
-
-        return DaySummary::of($week, $date->format('Y-m-d'), $warnings, $engagement, $mode);
+        return DaySummary::of($week, $date->format('Y-m-d'), $warnings, $engagement);
     }
 }

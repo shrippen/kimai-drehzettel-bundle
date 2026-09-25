@@ -8,7 +8,6 @@ use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
 use KimaiPlugin\DrehzettelBundle\Domain\Ruleset;
 use KimaiPlugin\DrehzettelBundle\Domain\Share;
-use KimaiPlugin\DrehzettelBundle\Domain\Streak;
 use KimaiPlugin\DrehzettelBundle\Domain\TimesheetMeta;
 use KimaiPlugin\DrehzettelBundle\Domain\Units;
 use KimaiPlugin\DrehzettelBundle\Domain\WeekResult;
@@ -147,7 +146,7 @@ class TimesheetViewBuilder
             'key' => $day->begin->format(self::DATE_KEY),
             'date' => $this->dateLabel($day->begin, $locale),
             'shooting_day' => $day->shootingDayNumber === null ? '' : $this->labels->t('drehzettel.shooting_day.label', $locale, ['%number%' => $day->shootingDayNumber]),
-            'streak' => Streak::shown($day, $rules->streakMode) ? $this->labels->t('drehzettel.streak.' . $rules->streakMode->value, $locale, ['%number%' => $day->dayNumber]) : '',
+            'day_number' => $day->showsDayNumber() ? $this->labels->t('drehzettel.production_day.label', $locale, ['%number%' => $day->dayNumber]) : '',
             'begin' => $day->begin->format('H:i'),
             'end' => $day->end->format('H:i'),
             'break' => Format::hm($day->breakMinutes),

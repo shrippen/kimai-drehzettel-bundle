@@ -7,7 +7,6 @@ use KimaiPlugin\DrehzettelBundle\Domain\RulesetFormMapper;
 use KimaiPlugin\DrehzettelBundle\Enum\BreakRule;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingMode;
 use KimaiPlugin\DrehzettelBundle\Enum\RoundingUnit;
-use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
@@ -117,11 +116,6 @@ final class RulesetType extends AbstractType
         // 6th and 7th day: empty pools the day into weekly overtime
         $builder->add('sixthDayPercent', NumberType::class, $this->percent('drehzettel.rules.sixth_day', false));
         $builder->add('seventhDayPercent', NumberType::class, $this->percent('drehzettel.rules.seventh_day', false));
-        $builder->add('streakMode', ChoiceType::class, [
-            'label' => 'drehzettel.rules.streak_mode',
-            'choices' => $this->enumChoices(StreakMode::cases(), 'drehzettel.rules.streak_mode.'),
-            'help' => 'drehzettel.rules.streak_mode.help',
-        ]);
 
         $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
             $this->checkTierOrder($event->getForm());

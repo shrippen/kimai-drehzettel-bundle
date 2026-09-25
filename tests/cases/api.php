@@ -93,17 +93,17 @@ $summaryWeek = weekCalc()->calc([
     new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-03', '08:00'), at('2026-03-03', '16:45'), breakMinutes: 45, extraPayCents: 5000),
 ], $rules, new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100, 950));
 $summaryWarnings = (new KimaiPlugin\DrehzettelBundle\Service\ComplianceChecker())->check($summaryWeek);
-$monday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-02', $summaryWarnings, $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK);
+$monday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-02', $summaryWarnings, $engagement);
 check('summary long day', [true, 735, 45, [['percent' => 25.0, 'minutes' => 60], ['percent' => 50.0, 'minutes' => 120]], 'workday', null, 1], [$monday['hasEntry'], $monday['workMinutes'], $monday['breakMinutes'], $monday['overtime'], $monday['category'], $monday['categoryPercent'], $monday['dayNumber']]);
 check('summary long day warning', [['issue' => 'daily_max', 'minutes' => 780, 'limitMinutes' => 720]], $monday['warnings']);
 check('summary pay is the day amount', $summaryWeek->days[0]->amountCents, $monday['payCents']);
-$tuesday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK);
+$tuesday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement);
 // Tuesday starts 11 h after a 13 h day: 11.5 h rest were due.
 check('summary extra pay', [5000, $summaryWeek->days[1]->amountCents, [['issue' => 'rest_time', 'minutes' => 660, 'limitMinutes' => 690]], 'EUR'], [$tuesday['extraPayCents'], $tuesday['payCents'], $tuesday['warnings'], $tuesday['currency']]);
-$empty = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-04', $summaryWarnings, $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK);
+$empty = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-04', $summaryWarnings, $engagement);
 check('summary no entry', [false, 0, [], null, null], [$empty['hasEntry'], $empty['workMinutes'], $empty['overtime'], $empty['payCents'], $empty['dayNumber']]);
 $engagement->setGageCents(0);
-check('summary no gage no pay', null, KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK)['payCents']);
+check('summary no gage no pay', null, KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement)['payCents']);
 check('api ping day summary', true, in_array('daySummary', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
 
 // Shooting day of the production: in film day, summary and ping; no effect on figures.
@@ -117,28 +117,10 @@ $engagement->setGageCents(158100);
 $shootTerms = new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100, 950);
 $plainWeek = weekCalc()->calc([shift('2026-03-02', '08:00', '18:00', 45)], $rules, $shootTerms);
 $shootWeek = weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '18:00'), breakMinutes: 45, shootingDayNumber: 37)], $rules, $shootTerms);
-$shootSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($shootWeek, '2026-03-02', [], $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK);
-$plainSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($plainWeek, '2026-03-02', [], $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CALENDAR_WEEK);
+$shootSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($shootWeek, '2026-03-02', [], $engagement);
+$plainSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($plainWeek, '2026-03-02', [], $engagement);
 check('summary shooting day', [37, null, 1], [$shootSummary['shootingDayNumber'], $plainSummary['shootingDayNumber'], $shootSummary['dayNumber']]);
 unset($shootSummary['shootingDayNumber'], $plainSummary['shootingDayNumber']);
 check('summary shooting day changes nothing else', $plainSummary, $shootSummary);
 $engagement->setGageCents(0);
 check('api ping shooting day', true, in_array('shootingDayNumber', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
-
-// Day number behind the 6th/7th-day surcharge: new keys at the end, dayNumber kept.
-$consecutive = withMode($rules, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CONSECUTIVE);
-$streakWeek = weekCalc()->calc([
-    shift('2026-03-02', '08:00', '16:00'),
-    new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-03', '08:00'), at('2026-03-03', '16:00'), productionDay: 9),
-], $consecutive, null, 5);
-$streakMonday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($streakWeek, '2026-03-02', [], $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CONSECUTIVE);
-$streakTuesday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($streakWeek, '2026-03-03', [], $engagement, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CONSECUTIVE);
-check('summary keys kept, streak keys appended', ['currency', 'consecutiveDay', 'consecutiveDayOverridden', 'streakMode'], array_slice(array_keys($streakMonday), -4));
-check('summary consecutive day', [6, 6, false, 'consecutive'], [$streakMonday['dayNumber'], $streakMonday['consecutiveDay'], $streakMonday['consecutiveDayOverridden'], $streakMonday['streakMode']]);
-check('summary consecutive day overridden', [9, true], [$streakTuesday['consecutiveDay'], $streakTuesday['consecutiveDayOverridden']]);
-check('summary no entry streak', [null, false, 'calendarWeek'], [$empty['consecutiveDay'], $empty['consecutiveDayOverridden'], $empty['streakMode']]);
-check('api film day streak mode', ['calendarWeek', 'consecutive'], [
-    KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['streakMode'],
-    KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $consecutive, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['streakMode'],
-]);
-check('api ping consecutive days', true, in_array('consecutiveDays', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));

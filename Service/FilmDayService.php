@@ -18,7 +18,6 @@ class FilmDayService
     public function __construct(
         private readonly FilmDayRepository $days,
         private readonly TimesheetRangeRepository $timesheets,
-        private readonly EngagementService $engagements,
     ) {
     }
 
@@ -59,9 +58,7 @@ class FilmDayService
      */
     public function draft(Engagement $engagement, \DateTimeImmutable $date, array $fields): FilmDayDraft
     {
-        $mode = $this->engagements->ruleset($engagement)->streakMode;
-
-        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date), $mode);
+        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date));
     }
 
     // Changes only the patched fields; a new day starts from the entity defaults.

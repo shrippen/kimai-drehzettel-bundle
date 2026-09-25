@@ -9,7 +9,6 @@ use KimaiPlugin\DrehzettelBundle\Domain\Rulesets;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
-use KimaiPlugin\DrehzettelBundle\Enum\StreakMode;
 
 // Ruleset -> form -> ruleset changes nothing, for both presets.
 foreach ([Rulesets::tvFfs2024(), Rulesets::quarterHour()] as $rules) {
@@ -22,7 +21,6 @@ $form = RulesetFormMapper::toForm(Rulesets::tvFfs2024());
 check('form shows hours and percent', [10.0, 25.0, 11.0, 50.0, null], [$form['dailyTier1After'], $form['dailyTier1Percent'], $form['dailyTier2After'], $form['dailyTier2Percent'], $form['dailyTier3After']]);
 check('form clock', ['22:00', '06:00'], [$form['nightFrom'], $form['nightTo']]);
 check('form no fixed 6th day', null, $form['sixthDayPercent']);
-check('form streak mode', ['calendarWeek', StreakMode::CONSECUTIVE, StreakMode::CALENDAR_WEEK], [$form['streakMode'], RulesetFormMapper::fromForm(['streakMode' => 'consecutive'] + $form)->streakMode, RulesetFormMapper::fromForm(['streakMode' => 'bogus'] + $form)->streakMode]);
 
 // Emptying a tier slot removes the tier, clearing a category removes its surcharge.
 $form['dailyTier2After'] = null;
@@ -48,7 +46,6 @@ $bad = FilmDayDraftReader::read(['break' => '99999', 'category' => 'bogus', 'typ
 check('draft clamps and ignores junk', [720, null, DayType::WORKDAY, 7, 500], [$bad->breakMinutes, $bad->category, $bad->type, $bad->productionDay, mb_strlen($bad->note)]);
 $neg = FilmDayDraftReader::read(['break' => '-5', 'production_day' => 'abc']);
 check('draft negative and non numeric', [0, null], [$neg->breakMinutes, $neg->productionDay]);
-check('draft production day by mode', [42, 999], [FilmDayDraftReader::read(['production_day' => '42'], null, StreakMode::CONSECUTIVE)->productionDay, FilmDayDraftReader::read(['production_day' => '5000'], null, StreakMode::CONSECUTIVE)->productionDay]);
 
 // Extra pay is typed in currency units: comma or dot, clamped to 0..100,000.00.
 check('draft extra pay comma', 1250, FilmDayDraftReader::read(['extra_pay' => '12,50'])->extraPayCents);

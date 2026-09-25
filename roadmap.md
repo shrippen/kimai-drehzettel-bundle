@@ -133,21 +133,10 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       and per worked Christmas, Easter, Whit holiday, 3 Oct, 1 May; not for other holidays. ArbZG § 11:
       within 2 weeks (Sunday) / 8 weeks (weekday holiday). Weitere Recherche nötig (Anspruch, Einheit,
       Frist, Abgeltung), see the research file.
-- [x] 6th/7th day by consecutive days (PO decisions D-1..D-5, 2026-09-25), built as ruleset option
-      `streakMode` (`Enum/StreakMode`): `calendarWeek` (n-th entry of the ISO week, the former behaviour)
-      or `consecutive` (days in a row across weeks, reset by a calendar day without entry, travel days
-      count, day 8+ like day 7; `Service/ConsecutiveDayCounter` looks back in 14-day windows).
-      `productionDay` is the override ("Zuschlagstag"): 1-7 / 1-999, in `consecutive` the following
-      days continue from it. Badge next to the date, PDF label, day summary `consecutiveDay`,
-      `consecutiveDayOverridden`, `streakMode`, ping feature `consecutiveDays`.
-      **PO decision pending:** TV FFS TZ 5.4.3.1/5.4.3.4 count the 6th/7th day *of the calendar week*
-      (`research/tv-ffs-zeitkonto-und-folgetage.md`), and `consecutive` can underpay: Mon, Tue, (Wed off),
-      Thu-Sun makes Sunday day 6 by tariff but day 4 in a row. Until the PO confirms, `calendarWeek`
-      stays the default for presets and stored rulesets; switching is the one line
-      `StreakMode::DEFAULT`. Engagement snapshots and custom rulesets saved after this change carry
-      their mode explicitly and do not follow a changed default.
-      Rest time < 11 h stays a warning (D-7); the 11.5 h trigger stays measured on presence incl. break
-      (D-8), although the employers' FAQ reads it as net work time.
+- [x] 6th/7th day: only the TV FFS rule, n-th working day of the calendar week (TZ 5.4.3.1/5.4.3.4;
+      PO decision 2026-09-25, replaces D-1..D-5). A `consecutive` streak mode was built and removed before
+      release. `productionDay` ("Zuschlagstag", 1-7) overrides the day number of its own day only; badge
+      "Tag N der Woche" from day 6 or when overridden, also in the PDF.
 
 ### Phase 6 — Kimai form integration and external API
 

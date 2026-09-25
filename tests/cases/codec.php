@@ -38,3 +38,7 @@ try {
 } catch (InvalidArgumentException) {
     check('codec rejects missing key', true, true);
 }
+
+// A ruleset stored with the removed streakMode key still loads; the key is ignored.
+$withStreak = ['streakMode' => 'consecutive'] + RulesetCodec::toArray(Rulesets::tvFfs2024());
+check('codec ignores streakMode', RulesetCodec::toArray(Rulesets::tvFfs2024()), RulesetCodec::toArray(RulesetCodec::fromArray($withStreak)));

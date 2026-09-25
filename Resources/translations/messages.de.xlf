@@ -564,11 +564,11 @@
       </trans-unit>
       <trans-unit id="dz.rules.sixth_day" resname="drehzettel.rules.sixth_day">
         <source>drehzettel.rules.sixth_day</source>
-        <target>6. Tag</target>
+        <target>6. Tag der Woche</target>
       </trans-unit>
       <trans-unit id="dz.rules.seventh_day" resname="drehzettel.rules.seventh_day">
         <source>drehzettel.rules.seventh_day</source>
-        <target>7. Tag (und folgende)</target>
+        <target>7. Tag der Woche</target>
       </trans-unit>
       <trans-unit id="dz.rules.break_help" resname="drehzettel.rules.break_help">
         <source>drehzettel.rules.break_help</source>
@@ -628,7 +628,7 @@
       </trans-unit>
       <trans-unit id="dz.production_day.title" resname="drehzettel.production_day.title">
         <source>drehzettel.production_day.title</source>
-        <target>Zuschlagstag (leer = automatisch)</target>
+        <target>Zuschlagstag (1–7, leer = automatisch)</target>
       </trans-unit>
       <trans-unit id="dz.shooting_day.title" resname="drehzettel.shooting_day.title">
         <source>drehzettel.shooting_day.title</source>
@@ -638,29 +638,9 @@
         <source>drehzettel.shooting_day.label</source>
         <target>Drehtag %number%</target>
       </trans-unit>
-      <trans-unit id="dz.rules.streak_mode" resname="drehzettel.rules.streak_mode">
-        <source>drehzettel.rules.streak_mode</source>
-        <target>Zählung</target>
-      </trans-unit>
-      <trans-unit id="dz.rules.streak_mode.calendarWeek" resname="drehzettel.rules.streak_mode.calendarWeek">
-        <source>drehzettel.rules.streak_mode.calendarWeek</source>
-        <target>Arbeitstage der Kalenderwoche (TV FFS)</target>
-      </trans-unit>
-      <trans-unit id="dz.rules.streak_mode.consecutive" resname="drehzettel.rules.streak_mode.consecutive">
-        <source>drehzettel.rules.streak_mode.consecutive</source>
-        <target>Tage in Folge, über Wochengrenzen</target>
-      </trans-unit>
-      <trans-unit id="dz.rules.streak_mode.help" resname="drehzettel.rules.streak_mode.help">
-        <source>drehzettel.rules.streak_mode.help</source>
-        <target>Kalenderwoche: n-ter Tag mit Eintrag in der KW (TV FFS TZ 5.4.3.4). In Folge: ein Tag ohne Eintrag setzt zurück, Reisetage zählen, ab Tag 8 wie Tag 7.</target>
-      </trans-unit>
-      <trans-unit id="dz.streak.calendarWeek" resname="drehzettel.streak.calendarWeek">
-        <source>drehzettel.streak.calendarWeek</source>
+      <trans-unit id="dz.production_day.label" resname="drehzettel.production_day.label">
+        <source>drehzettel.production_day.label</source>
         <target>Tag %number% der Woche</target>
-      </trans-unit>
-      <trans-unit id="dz.streak.consecutive" resname="drehzettel.streak.consecutive">
-        <source>drehzettel.streak.consecutive</source>
-        <target>Tag %number% in Folge</target>
       </trans-unit>
     </body>
   </file>
