@@ -4,8 +4,8 @@
 
 ## P0
 - [x] ✅ Sonntag beim Wochen-Speichern: '!Y-m-d' mit User-Zeitzone + Test (WeekController.php:67)
-- [ ] ✅ API-PUT als Partial-Update (nur übergebene Felder), dayType/productionDay in GET/PUT (DrehzettelApiController.php:130)
-- [ ] ✅ API-Validierung: breakMinutes 0–720, note ≤500, unbekannte category/dayType → 400 (DrehzettelApiController.php:312); negative Pause in der Berechnung abfangen
+- [x] ✅ API-PUT als Partial-Update (nur übergebene Felder), dayType/productionDay in GET/PUT (DrehzettelApiController.php:130)
+- [x] ✅ API-Validierung: breakMinutes 0–720, note ≤500, unbekannte category/dayType → 400 (DrehzettelApiController.php:312); negative Pause in der Berechnung abfangen
 
 ## P1
 - [ ] 📖 Timesheet-Form: existierenden Drehtag immer vorbefüllen, auch bei Duplicate/Neuanlage (TimesheetFormExtension.php:87)

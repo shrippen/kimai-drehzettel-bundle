@@ -51,3 +51,7 @@ check('sunday pay', 25296 + 23715, $r->amountCents);
 // Saturday surcharge sits on the hourly rate: 8 h * 31.62 * 25 % = 63.24.
 $r = dayCalc()->calc(shift('2025-05-24', '08:00', '16:45', 45, category: DayCategory::SATURDAY), $tv, $terms);
 check('saturday pay', 25296 + 6324, $r->amountCents);
+
+// A negative stored break must never add work time: 08:30-20:15, break -300 -> work 11:45, break 0.
+$r = dayCalc()->calc(shift('2025-05-20', '08:30', '20:15', -300), $app, null);
+check('negative break adds nothing', [0, 705], [$r->breakMinutes, $r->workMinutes]);

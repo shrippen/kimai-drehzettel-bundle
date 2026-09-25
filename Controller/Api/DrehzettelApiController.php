@@ -4,9 +4,10 @@ namespace KimaiPlugin\DrehzettelBundle\Controller\Api;
 
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
+use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
-use KimaiPlugin\DrehzettelBundle\Enum\DayCategory;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
@@ -17,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -93,53 +95,45 @@ final class DrehzettelApiController extends AbstractController
         $engagement = $this->requireEngagement($request, $date);
         $day = $this->filmDays->findOne($engagement, $this->parseDate($date));
 
-        return new JsonResponse([
-            'date' => $date,
-            'engagementId' => $engagement->getId(),
-            'breakMinutes' => $day?->getBreakMinutes(),
-            'catering' => ($day?->getCatering() ?? Catering::NO) === Catering::YES,
-            'category' => $day?->getCategory()?->value,
-            'note' => $day?->getNote(),
-        ]);
+        return new JsonResponse($this->filmDayJson($date, $engagement, $day));
     }
 
     #[Route(methods: ['PUT'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_put', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert).')]
+    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default.')]
+    #[OA\Response(response: 400, description: 'Invalid JSON or field value: breakMinutes 0-720, productionDay 1-7, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
     public function filmDayPut(Request $request, string $date): JsonResponse
     {
         $engagement = $this->requireEngagement($request, $date);
 
         $body = json_decode($request->getContent(), true);
         if (!is_array($body)) {
-            return new JsonResponse(['error' => 'Invalid JSON body.'], 400);
+            return new JsonResponse(['error' => 'Invalid JSON body.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $breakMinutes = isset($body['breakMinutes']) && is_numeric($body['breakMinutes']) ? (int) $body['breakMinutes'] : null;
-        $catering = !empty($body['catering']) ? Catering::YES : Catering::NO;
-        $category = isset($body['category']) && $body['category'] !== null && $body['category'] !== ''
-            ? DayCategory::tryFrom((string) $body['category'])
-            : null;
-        $note = isset($body['note']) && trim((string) $body['note']) !== '' ? (string) $body['note'] : null;
+        try {
+            $patch = FilmDayPatch::fromArray($body);
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
 
-        $day = $this->filmDayService->save(
-            $engagement,
-            $this->parseDate($date),
-            $breakMinutes,
-            $catering,
-            $category,
-            DayType::WORKDAY,
-            null,
-            $note,
-        );
+        $day = $this->filmDayService->patch($engagement, $this->parseDate($date), $patch);
 
-        return new JsonResponse([
+        return new JsonResponse($this->filmDayJson($date, $engagement, $day));
+    }
+
+    // Shared GET/PUT shape. dayType/productionDay were added later: clients must ignore unknown keys.
+    private function filmDayJson(string $date, Engagement $engagement, ?FilmDay $day): array
+    {
+        return [
             'date' => $date,
             'engagementId' => $engagement->getId(),
-            'breakMinutes' => $day->getBreakMinutes(),
-            'catering' => $day->getCatering() === Catering::YES,
-            'category' => $day->getCategory()?->value,
-            'note' => $day->getNote(),
-        ]);
+            'breakMinutes' => $day?->getBreakMinutes(),
+            'catering' => ($day?->getCatering() ?? Catering::NO) === Catering::YES,
+            'category' => $day?->getCategory()?->value,
+            'note' => $day?->getNote(),
+            'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
+            'productionDay' => $day?->getProductionDay(),
+        ];
     }
 
     // engagement-status may legitimately answer "false" for a user/project with no
@@ -210,11 +204,12 @@ final class DrehzettelApiController extends AbstractController
 
     private function parseDate(string $date): \DateTimeImmutable
     {
-        $parsed = \DateTimeImmutable::createFromFormat('Y-m-d', $date);
-        if ($parsed === false) {
+        // '!' zeroes the time; the round trip rejects overflow dates like 2025-02-30.
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        if ($parsed === false || $parsed->format('Y-m-d') !== $date) {
             throw $this->createNotFoundException('Invalid date, expected YYYY-MM-DD.');
         }
 
-        return $parsed->setTime(0, 0);
+        return $parsed;
     }
 }

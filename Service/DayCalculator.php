@@ -83,7 +83,8 @@ class DayCalculator
             $break = min($break, $rules->freeBreakMinutes);
         }
 
-        return min($break, $gross);
+        // A negative stored break (bad import, old API) must never add work time.
+        return max(0, min($break, $gross));
     }
 
     /**

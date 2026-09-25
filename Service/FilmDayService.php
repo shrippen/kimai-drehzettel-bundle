@@ -2,6 +2,7 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
+use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\Catering;
@@ -38,6 +39,19 @@ class FilmDayService
         $day->setDayType($type);
         $day->setProductionDay($productionDay);
         $day->setNote($note);
+
+        $this->days->save($day);
+
+        return $day;
+    }
+
+    // Changes only the patched fields; a new day starts from the entity defaults.
+    public function patch(Engagement $engagement, \DateTimeImmutable $date, FilmDayPatch $patch): FilmDay
+    {
+        $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
+        $day->setEngagement($engagement);
+        $day->setDate($date);
+        $patch->applyTo($day);
 
         $this->days->save($day);
 

@@ -157,6 +157,8 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       (Plasmai-local only, no equivalent in `FilmDay`). Until these are added, an external client
       can sync `breakMinutes`/`catering`/`category`/`note` through the API but must keep day
       type, production-day count and extra pay local-only.
+      **Closed 2026-09-25** for `dayType`/`productionDay`: both are in `GET`/`PUT` now, and `PUT` is a
+      partial update (only sent keys change) with 400 on invalid values. `extraPayCents` stays open.
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".
