@@ -75,7 +75,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td class="date">{{ row.date }}{% if row.shooting_day %}<br><span class="extra">{{ row.shooting_day }}</span>{% endif %}</td>
+                    <td class="date">{{ row.date }}{% if row.shooting_day or row.streak %}<br><span class="extra">{{ row.shooting_day }}{% if row.shooting_day and row.streak %} · {% endif %}{{ row.streak }}</span>{% endif %}</td>
                     <td>{{ row.begin }}</td>
                     <td>{{ row.end }}</td>
                     {% if c.break %}<td>{{ row.break }}</td>{% endif %}

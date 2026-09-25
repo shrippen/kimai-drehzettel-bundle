@@ -102,7 +102,8 @@
                             </button>
                         </td>
                         <td class="text-nowrap">
-                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}</div>
+                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}
+                                <span data-dz-live="streak-{{ row.key }}">{% if row.streak_shown %}<span class="badge bg-secondary-lt" title="{{ 'drehzettel.production_day.title'|trans }}">{{ ('drehzettel.streak.' ~ v.streak_mode)|trans({'%number%': row.streak}) }}</span>{% endif %}</span></div>
                             <div class="small text-secondary">
                                 {{ row.begin|time }}–{{ row.end|time }} ·
                                 <span class="dz-view">{{ 'drehzettel.pdf.break'|trans }} {{ ((film.break ?? v.default_break) * 60)|duration }}{% if film.break is null %} ({{ 'drehzettel.week.break_default'|trans }}){% endif %}</span>
@@ -154,7 +155,7 @@
                                 </select>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.production_day.title'|trans }}</span>
-                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][production_day]" min="1" max="7" step="1" inputmode="numeric" placeholder="–" title="{{ 'drehzettel.category.auto_short'|trans }}" value="{{ film.production_day ?? '' }}">
+                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][production_day]" min="1" max="{{ v.max_production_day }}" step="1" inputmode="numeric" placeholder="{{ row.streak }}" title="{{ 'drehzettel.category.auto_short'|trans }}" value="{{ film.production_day ?? '' }}">
                                 </label>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.shooting_day.title'|trans }}</span>

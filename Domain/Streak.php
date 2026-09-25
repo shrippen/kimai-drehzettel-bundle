@@ -70,6 +70,12 @@ final class Streak
         return $numbers;
     }
 
+    // Worth a badge: every day in a row; in the calendar week only surcharge days and overrides.
+    public static function shown(DayResult $day, StreakMode $mode): bool
+    {
+        return $mode === StreakMode::CONSECUTIVE || $day->dayNumber > Units::WEEK_WORKDAYS || $day->productionDay !== null;
+    }
+
     // N carried from the last day of one week into the first day of the next, 0 after a gap.
     public static function carry(DayResult $last, DayInput $next): int
     {

@@ -125,3 +125,11 @@ check('view: extra pay hidden without pay', '', $extraHidden['weeks'][0]['rows']
 $shootView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), shootingDayNumber: 37)], $rules, null)], $rules, new PdfOptions([]));
 check('view: shooting day label', 'drehzettel.shooting_day.label(%number%=37)', $shootView['weeks'][0]['rows'][0]['shooting_day']);
 check('view: no shooting day', '', $withPay['weeks'][0]['rows'][0]['shooting_day']);
+
+// Day behind the 6th/7th-day surcharge below the date: every day in a row, in the calendar week from day 6 or when overridden.
+$consecutive = withMode($rules, KimaiPlugin\DrehzettelBundle\Enum\StreakMode::CONSECUTIVE);
+$streakView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [weekCalc()->calc([shift('2026-03-02', '08:00', '16:00')], $consecutive, null, 5)], $consecutive, new PdfOptions([]));
+check('view: streak label', 'drehzettel.streak.consecutive(%number%=6)', $streakView['weeks'][0]['rows'][0]['streak']);
+check('view: calendar week day 1 no streak label', '', $v['weeks'][0]['rows'][0]['streak']);
+$overrideView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), productionDay: 3)], $rules, null)], $rules, new PdfOptions([]));
+check('view: calendar week override label', 'drehzettel.streak.calendarWeek(%number%=3)', $overrideView['weeks'][0]['rows'][0]['streak']);
