@@ -54,6 +54,7 @@ class DayInputBuilder
                 productionDay: $extra?->getProductionDay(),
                 note: $extra?->getNote(),
                 extraPayCents: $extra?->getExtraPayCents() ?? 0,
+                shootingDayNumber: $extra?->getShootingDayNumber(),
             );
         }
 
@@ -71,6 +72,7 @@ class DayInputBuilder
         $day->setProductionDay($draft->productionDay);
         $day->setNote($draft->note);
         $day->setExtraPayCents($draft->extraPayCents);
+        $day->setShootingDayNumber($draft->shootingDayNumber);
 
         return $day;
     }

@@ -174,6 +174,13 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
         `extra_pay_cents` (migration `Version20260925000000`), added to the day's pay after the
         catering deduction, no surcharges. Week grid, timesheet form, PDF (below the day's pay), API.
       - `GET /v1/days/{date}/summary`: the day out of its calculated week, incl. `payCents`.
+      - Two day numbers (product-owner decision D7, 2026-09-25; closes the former "Open" item on
+        diverging `productionDay` meanings): `productionDay` stays the shooting day of the week
+        (1-7, "Drehtag der Woche", drives the 6th/7th-day surcharge). New `shootingDayNumber`
+        (1-999 or null, "Drehtag der Produktion", Plasmai's "Drehtag Nr. 37"): column
+        `shooting_day_number` (migration `Version20260926000000`), informational only, no
+        auto-computation. Week grid (badge next to the date), timesheet form, PDF (below the
+        date), film day API, day summary, ping feature `shootingDayNumber`.
 - [ ] Week view filter on the toggle state (still filters by engagement presence only) and an edit
       mode for the week view (Variante C's other half) — not part of this pass, see
       `research/ux-flows-film-day-data.md` "offen für die Umsetzung".
@@ -245,10 +252,6 @@ session, and `php tests/run.php` (261 checks, unaffected) — not just `php -l`.
   own timesheet entry form (one save for `Timesheet` + `FilmDay`, form concept A), not only in the week
   view's inline dropdowns. Still open: the new-entry limitation where the toggle needs a project already
   picked to appear.
-- `productionDay` meanings differ: the plugin's is the day within the shooting week (1-7, drives the
-  6th/7th-day surcharge), Plasmai's FilmDayView treats it as a running shooting-day counter (0-999,
-  "Drehtag Nr. 37"). Semantics unchanged until the product owner decides; the API docs state the
-  plugin's meaning.
 - New-engagement view: the User, Project and Ruleset fields should be searchable (select with
   filter-as-you-type) instead of plain dropdowns — noted while testing in production, where the user
   and project lists are long enough that scrolling a plain `<select>` is impractical.

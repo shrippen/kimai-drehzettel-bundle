@@ -14,6 +14,7 @@ final class DayResult
      * @param ?int $amountCents null without pay terms; excludes weekly surcharges
      * @param int $underMinutes work time missing to the minimum day of the ruleset
      * @param int $extraPayCents Zusatzgage/Spesen, already included in $amountCents
+     * @param ?int $shootingDayNumber running day of the production, informational
      */
     public function __construct(
         public readonly \DateTimeImmutable $begin,
@@ -34,6 +35,7 @@ final class DayResult
         public readonly ?string $note = null,
         public readonly int $underMinutes = 0,
         public readonly int $extraPayCents = 0,
+        public readonly ?int $shootingDayNumber = null,
     ) {
     }
 }

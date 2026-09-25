@@ -47,6 +47,7 @@ final class DaySummary
             'category' => $day?->category->value,
             'categoryPercent' => $day?->categorySurcharge === null ? null : self::percent($day->categorySurcharge->basisPoints),
             'dayNumber' => $day?->dayNumber,
+            'shootingDayNumber' => $day?->shootingDayNumber,
             'weeklyOvertimeMinutes' => $week->weeklyPoolMinutes,
             'warnings' => $day === null ? [] : self::warnings($warnings, $dateKey),
             'payCents' => $hasPay ? $day?->amountCents : null,

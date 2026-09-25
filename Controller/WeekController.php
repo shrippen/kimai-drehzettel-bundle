@@ -77,7 +77,7 @@ class WeekController extends AbstractController
                 continue; // only accept dates of this week
             }
             $draft = FilmDayDraftReader::read((array) $fields);
-            $this->filmDays->save($engagement, $date, $draft->breakMinutes, $draft->catering, $draft->category, $draft->type, $draft->productionDay, $draft->note, $draft->extraPayCents);
+            $this->filmDays->save($engagement, $date, $draft->breakMinutes, $draft->catering, $draft->category, $draft->type, $draft->productionDay, $draft->note, $draft->extraPayCents, $draft->shootingDayNumber);
         }
 
         $this->flashSuccess('action.update.success');

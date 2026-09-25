@@ -20,6 +20,11 @@ separates Auth-System, keine eigene Basis-URL, einfach `/api/drehzettel/...` auf
 Umgesetzt und erweitert; aktueller Stand mit Beispielen in `README.md#api` (u. a. `engagements`,
 `days/{date}/summary`, `extraPayCents`, Fehlercodes).
 
+Zwei Tagesnummern (Entscheidung D7, 2026-09-25): `productionDay` (1–7, „Drehtag der Woche“) steuert
+den Zuschlag für den 6./7. Tag; `shootingDayNumber` (1–999 oder null, „Drehtag der Produktion“,
+„Drehtag 37“) ist ein reiner Zähler über die ganze Produktion ohne Einfluss auf Berechnungen.
+Plasmais „Drehtag Nr.“ gehört auf `shootingDayNumber`, nicht auf `productionDay`.
+
 Alle unter `/api/drehzettel/...`, authentifiziert wie Kimais eigene API (derselbe Firewall-Bereich,
 kein Zusatzaufwand für den Client).
 

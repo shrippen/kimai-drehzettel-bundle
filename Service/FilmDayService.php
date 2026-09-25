@@ -30,6 +30,7 @@ class FilmDayService
         ?int $productionDay = null,
         ?string $note = null,
         int $extraPayCents = 0,
+        ?int $shootingDayNumber = null,
     ): FilmDay {
         $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
         $day->setEngagement($engagement);
@@ -41,6 +42,7 @@ class FilmDayService
         $day->setProductionDay($productionDay);
         $day->setNote($note);
         $day->setExtraPayCents($extraPayCents);
+        $day->setShootingDayNumber($shootingDayNumber);
 
         $this->days->save($day);
 

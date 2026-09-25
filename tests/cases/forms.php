@@ -53,3 +53,8 @@ check('draft extra pay dot', 5000, FilmDayDraftReader::read(['extra_pay' => ' 50
 check('draft extra pay blank', 0, FilmDayDraftReader::read(['extra_pay' => ''])->extraPayCents);
 check('draft extra pay junk', 0, FilmDayDraftReader::read(['extra_pay' => '12€'])->extraPayCents);
 check('draft extra pay clamp', [0, 10000000], [FilmDayDraftReader::read(['extra_pay' => '-3'])->extraPayCents, FilmDayDraftReader::read(['extra_pay' => '999999'])->extraPayCents]);
+
+// Shooting day of the production: 1..999, blank or junk is none.
+check('draft shooting day', 37, FilmDayDraftReader::read(['shooting_day' => '37'])->shootingDayNumber);
+check('draft shooting day blank', [null, null], [FilmDayDraftReader::read(['shooting_day' => ''])->shootingDayNumber, FilmDayDraftReader::read(['shooting_day' => 'x'])->shootingDayNumber]);
+check('draft shooting day clamp', [1, 999], [FilmDayDraftReader::read(['shooting_day' => '0'])->shootingDayNumber, FilmDayDraftReader::read(['shooting_day' => '5000'])->shootingDayNumber]);

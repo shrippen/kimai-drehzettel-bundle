@@ -105,3 +105,22 @@ check('summary no entry', [false, 0, [], null, null], [$empty['hasEntry'], $empt
 $engagement->setGageCents(0);
 check('summary no gage no pay', null, KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement)['payCents']);
 check('api ping day summary', true, in_array('daySummary', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
+
+// Shooting day of the production: in film day, summary and ping; no effect on figures.
+$shootDay = new KimaiPlugin\DrehzettelBundle\Entity\FilmDay();
+$shootDay->setShootingDayNumber(37);
+check('api film day shooting day', [37, null], [
+    KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, $shootDay, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['shootingDayNumber'],
+    KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, $rules, KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['shootingDayNumber'],
+]);
+$engagement->setGageCents(158100);
+$shootTerms = new KimaiPlugin\DrehzettelBundle\Domain\PayTerms(KimaiPlugin\DrehzettelBundle\Enum\PayKind::WEEKLY, 158100, 950);
+$plainWeek = weekCalc()->calc([shift('2026-03-02', '08:00', '18:00', 45)], $rules, $shootTerms);
+$shootWeek = weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '18:00'), breakMinutes: 45, shootingDayNumber: 37)], $rules, $shootTerms);
+$shootSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($shootWeek, '2026-03-02', [], $engagement);
+$plainSummary = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($plainWeek, '2026-03-02', [], $engagement);
+check('summary shooting day', [37, null, 1], [$shootSummary['shootingDayNumber'], $plainSummary['shootingDayNumber'], $shootSummary['dayNumber']]);
+unset($shootSummary['shootingDayNumber'], $plainSummary['shootingDayNumber']);
+check('summary shooting day changes nothing else', $plainSummary, $shootSummary);
+$engagement->setGageCents(0);
+check('api ping shooting day', true, in_array('shootingDayNumber', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));

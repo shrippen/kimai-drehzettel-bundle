@@ -145,6 +145,7 @@ class TimesheetViewBuilder
             'empty' => false,
             'key' => $day->begin->format(self::DATE_KEY),
             'date' => $this->dateLabel($day->begin, $locale),
+            'shooting_day' => $day->shootingDayNumber === null ? '' : $this->labels->t('drehzettel.shooting_day.label', $locale, ['%number%' => $day->shootingDayNumber]),
             'begin' => $day->begin->format('H:i'),
             'end' => $day->end->format('H:i'),
             'break' => Format::hm($day->breakMinutes),

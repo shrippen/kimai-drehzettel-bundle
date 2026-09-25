@@ -52,6 +52,10 @@ class FilmDay
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $extraPayCents = 0;
 
+    // Running shooting-day counter of the production ("Drehtag 37"), informational only.
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $shootingDayNumber = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -146,5 +150,15 @@ class FilmDay
     public function setExtraPayCents(int $cents): void
     {
         $this->extraPayCents = $cents;
+    }
+
+    public function getShootingDayNumber(): ?int
+    {
+        return $this->shootingDayNumber;
+    }
+
+    public function setShootingDayNumber(?int $number): void
+    {
+        $this->shootingDayNumber = $number;
     }
 }

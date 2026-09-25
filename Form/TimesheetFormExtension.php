@@ -48,6 +48,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public const FIELD_CATEGORY = 'drehzettelCategory';
     public const FIELD_NOTE = 'drehzettelNote';
     public const FIELD_EXTRA_PAY = 'drehzettelExtraPay';
+    public const FIELD_SHOOTING_DAY = 'drehzettelShootingDay';
 
     private const MAX_BREAK_MINUTES = 720;
     private const MAX_NOTE_LENGTH = 500;
@@ -137,6 +138,17 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'row_attr' => ['class' => 'dz-form-row'],
         ]);
 
+        // Running shooting day of the production ("Drehtag 37"), optional, no effect on pay.
+        $builder->add(self::FIELD_SHOOTING_DAY, IntegerType::class, [
+            'mapped' => false,
+            'required' => false,
+            'label' => 'drehzettel.shooting_day.title',
+            'data' => $existing?->getShootingDayNumber(),
+            'attr' => ['min' => 1, 'max' => FilmDayPatch::MAX_SHOOTING_DAY],
+            'constraints' => [new Range(min: 1, max: FilmDayPatch::MAX_SHOOTING_DAY)],
+            'row_attr' => ['class' => 'dz-form-row'],
+        ]);
+
         // Model value in cents (divisor), shown as 12.50 in the customer's currency.
         $builder->add(self::FIELD_EXTRA_PAY, MoneyType::class, [
             'mapped' => false,
@@ -182,6 +194,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
 
         $breakMinutes = $form->get(self::FIELD_BREAK)->getData();
         $extraPay = $form->get(self::FIELD_EXTRA_PAY)->getData();
+        $shootingDay = $form->get(self::FIELD_SHOOTING_DAY)->getData();
         $note = $form->get(self::FIELD_NOTE)->getData();
         $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
@@ -193,6 +206,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
                 'category' => $form->get(self::FIELD_CATEGORY)->getData(),
                 'note' => $note,
                 'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
+                'shootingDayNumber' => $shootingDay !== null ? (int) $shootingDay : null,
             ]);
         } catch (\InvalidArgumentException) {
             return; // out of range: the break field's own constraint reports it

@@ -18,7 +18,7 @@ final class FilmDayDraftReader
     private const CENTS = 100;
 
     /**
-     * @param array<string, mixed> $data fields of one day: break, catering, category, type, production_day, note, extra_pay (currency units)
+     * @param array<string, mixed> $data fields of one day: break, catering, category, type, production_day, note, extra_pay (currency units), shooting_day
      */
     public static function read(array $data): FilmDayDraft
     {
@@ -30,6 +30,7 @@ final class FilmDayDraftReader
             productionDay: self::intOrNull($data['production_day'] ?? null, 1, self::MAX_PRODUCTION_DAY),
             note: self::note($data['note'] ?? null),
             extraPayCents: self::cents($data['extra_pay'] ?? null),
+            shootingDayNumber: self::intOrNull($data['shooting_day'] ?? null, 1, FilmDayPatch::MAX_SHOOTING_DAY),
         );
     }
 

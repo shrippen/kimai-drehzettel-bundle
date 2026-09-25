@@ -55,6 +55,7 @@ final class ApiJson
             'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
             'productionDay' => $day?->getProductionDay(),
             'extraPayCents' => $day?->getExtraPayCents() ?? 0,
+            'shootingDayNumber' => $day?->getShootingDayNumber(),
             'defaultBreakMinutes' => $rules->defaultBreakMinutes,
             'effectiveCategory' => ($day?->getCategory() ?? $autoCategory)->value,
         ];

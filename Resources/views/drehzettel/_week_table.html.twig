@@ -6,7 +6,7 @@
 
     The day grid is the one table the UI kit leaves to the plugin (kimai-plugin-ui GUIDELINES 3.2):
     Tabler table in .kpu-table-wrap, so at 390 px only the table scrolls, never the page.
-    Editable fields (break, catering, day type, category, extra pay, note) show a short summary; the pencil
+    Editable fields (break, catering, day type, category, shooting day, extra pay, note) show a short summary; the pencil
     switches one row into edit mode (.dz-editing, see week.html.twig).
 #}
 {% import '@Drehzettel/_kit/macros.html.twig' as kit %}
@@ -93,6 +93,7 @@
                     {% set cat_val = film.category ?? '' %}
                     {% set note_val = film.note ?? '' %}
                     {% set extra_val = film.extra_pay ?? 0 %}
+                    {% set shoot_val = film.shooting_day ?? null %}
                     <tr class="dz-day" data-key="{{ row.key }}">
                         <td class="w-min">
                             <button type="button" class="btn btn-icon btn-sm btn-ghost-secondary dz-edit-toggle" aria-label="{{ 'action.edit'|trans }}" title="{{ 'action.edit'|trans }}">
@@ -101,7 +102,7 @@
                             </button>
                         </td>
                         <td class="text-nowrap">
-                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}</div>
+                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}</div>
                             <div class="small text-secondary">
                                 {{ row.begin|time }}–{{ row.end|time }} ·
                                 <span class="dz-view">{{ 'drehzettel.pdf.break'|trans }} {{ ((film.break ?? v.default_break) * 60)|duration }}{% if film.break is null %} ({{ 'drehzettel.week.break_default'|trans }}){% endif %}</span>
@@ -149,6 +150,10 @@
                                         <option value="{{ c }}" {% if cat_val == c %}selected{% endif %}>{{ ('drehzettel.category.' ~ c)|trans }}</option>
                                     {% endfor %}
                                 </select>
+                                <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
+                                    <span class="small text-secondary">{{ 'drehzettel.shooting_day.title'|trans }}</span>
+                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][shooting_day]" min="1" max="999" step="1" inputmode="numeric" value="{{ shoot_val ?? '' }}">
+                                </label>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.extra_pay.title'|trans }}</span>
                                     <input type="number" class="form-control form-control-sm dz-extra-pay-input dz-field" name="day[{{ row.key }}][extra_pay]" min="0" max="100000" step="0.01" inputmode="decimal" placeholder="0.00" value="{{ extra_val > 0 ? extra_val|number_format(2, '.', '') : '' }}">

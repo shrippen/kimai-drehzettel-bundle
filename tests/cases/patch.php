@@ -79,3 +79,18 @@ check('patch extra pay too high', 'extraPayCents must be an integer from 0 to 10
 check('patch extra pay negative', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => -1]));
 check('patch extra pay fraction', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => 12.5]));
 check('patch extra pay bool', 'extraPayCents must be an integer from 0 to 10000000.', patchError(['extraPayCents' => true]));
+
+// Shooting day of the production: integer 1..999 or null, informational only.
+$day = travelDay();
+FilmDayPatch::fromArray(['shootingDayNumber' => 37])->applyTo($day);
+check('patch shooting day', [37, 6, 'Reise'], [$day->getShootingDayNumber(), $day->getProductionDay(), $day->getNote()]);
+FilmDayPatch::fromArray(['note' => 'x'])->applyTo($day);
+check('patch keeps shooting day', 37, $day->getShootingDayNumber());
+FilmDayPatch::fromArray(['shootingDayNumber' => '38'])->applyTo($day);
+check('patch shooting day digit string', 38, $day->getShootingDayNumber());
+FilmDayPatch::fromArray(['shootingDayNumber' => null])->applyTo($day);
+check('patch shooting day null clears', null, $day->getShootingDayNumber());
+check('patch shooting day bounds ok', [null, null], [patchError(['shootingDayNumber' => 1]), patchError(['shootingDayNumber' => 999])]);
+foreach (['zero' => 0, 'too high' => 1000, 'negative' => -1, 'fraction' => 1.5, 'bool' => true, 'text' => 'abc'] as $name => $bad) {
+    check('patch shooting day ' . $name, 'shootingDayNumber must be an integer from 1 to 999.', patchError(['shootingDayNumber' => $bad]));
+}

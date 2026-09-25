@@ -187,6 +187,7 @@ class WeekPageBuilder
                 'production_day' => $day->getProductionDay(),
                 'note' => (string) $day->getNote(),
                 'extra_pay' => $day->getExtraPayCents() / self::CENTS,
+                'shooting_day' => $day->getShootingDayNumber(),
             ];
         }
 
@@ -199,6 +200,7 @@ class WeekPageBuilder
                 'production_day' => $draft->productionDay,
                 'note' => (string) $draft->note,
                 'extra_pay' => $draft->extraPayCents / self::CENTS,
+                'shooting_day' => $draft->shootingDayNumber,
             ];
         }
 

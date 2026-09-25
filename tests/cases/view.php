@@ -120,3 +120,8 @@ check('view: extra pay in day pay', Format::money($extraWeek->days[0]->amountCen
 check('view: no extra pay line', '', $withPay['weeks'][0]['rows'][0]['extra_pay']);
 $extraHidden = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [$extraWeek], $rules, new PdfOptions([]));
 check('view: extra pay hidden without pay', '', $extraHidden['weeks'][0]['rows'][0]['extra_pay']);
+
+// Shooting day of the production: labelled below the date in the PDF.
+$shootView = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true), $period, [weekCalc()->calc([new KimaiPlugin\DrehzettelBundle\Domain\DayInput(at('2026-03-02', '08:00'), at('2026-03-02', '16:00'), shootingDayNumber: 37)], $rules, null)], $rules, new PdfOptions([]));
+check('view: shooting day label', 'drehzettel.shooting_day.label(%number%=37)', $shootView['weeks'][0]['rows'][0]['shooting_day']);
+check('view: no shooting day', '', $withPay['weeks'][0]['rows'][0]['shooting_day']);

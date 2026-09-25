@@ -15,7 +15,7 @@ final class ApiInfo
     public const API_VERSIONS = ['v1'];
 
     // Additions to v1 since its first release, in the order they were added.
-    public const FEATURES = ['errorCodes', 'engagements', 'defaults', 'extraPay', 'daySummary'];
+    public const FEATURES = ['errorCodes', 'engagements', 'defaults', 'extraPay', 'daySummary', 'shootingDayNumber'];
 
     /**
      * @param array{view: bool, manage: bool} $permissions of the token owner
