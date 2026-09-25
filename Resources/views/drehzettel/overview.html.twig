@@ -28,6 +28,7 @@
             'ruleset': {class: 'd-none d-lg-table-cell', orderBy: false, title: 'drehzettel.ruleset'},
             'valid_from': {class: 'd-none d-md-table-cell w-min text-nowrap', orderBy: false, title: 'drehzettel.valid_from'},
             'valid_to': {class: 'd-none d-md-table-cell w-min text-nowrap', orderBy: false, title: 'drehzettel.valid_to'},
+            'azv': {class: 'd-none d-lg-table-cell w-min text-nowrap', orderBy: false, title: 'drehzettel.azv.short'},
             'actions': {class: 'actions alwaysVisible', orderBy: false},
         } %}
         {{ tables.datatable_header('drehzettel_engagements', columns, null, {boxClass: 'card', columnConfig: false, sticky: false}) }}
@@ -43,6 +44,8 @@
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'ruleset') }}">{{ e.rulesetName }}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_from') }}">{{ e.validFrom|date_short }}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_to') }}">{{ e.validTo ? e.validTo|date_short : '–' }}</td>
+                    {% set balance = azv[e.id] ?? null %}
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'azv') }}" title="{{ 'drehzettel.azv.title'|trans }}">{% if balance %}{{ (balance.minutes * 60)|duration }} · {{ 'drehzettel.azv.days'|trans({'%count%': balance.days}) }}{% else %}–{% endif %}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'actions') }}">
                         {% set event = actions(app.user, 'drehzettel_engagement', 'index', {engagement: e}) %}
                         {{ widgets.table_actions(event.actions) }}

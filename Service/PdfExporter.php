@@ -38,6 +38,7 @@ class PdfExporter
         private readonly SignatureService $signatures,
         private readonly Environment $twig,
         private readonly HtmlToPdfConverter $converter,
+        private readonly AzvService $azv,
     ) {
     }
 
@@ -71,7 +72,7 @@ class PdfExporter
             currency: $engagement->getProject()?->getCustomer()?->getCurrency() ?? Format::CURRENCY,
         );
 
-        return $this->views->build($meta, $period, $weeks, $rules, $options);
+        return $this->views->build($meta, $period, $weeks, $rules, $options, $this->azv->balance($engagement, $period->endExclusive()));
     }
 
     // Timesheet_Surname_Project_20260615-20260618.pdf

@@ -61,6 +61,27 @@ class DayInputBuilder
         return $inputs;
     }
 
+    /**
+     * Days in [from, to) with an entry that is no travel day, for the AZV count.
+     * Lighter than build(): no holiday lookup, no calculator input.
+     *
+     * @param array<string, FilmDayDraft> $drafts unsaved film day data by date, wins over stored data
+     */
+    public function shootingDays(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to, array $drafts = []): int
+    {
+        $film = $this->filmDaysByDate($engagement, $from, $to);
+
+        $count = 0;
+        foreach (array_keys($this->spans($engagement, $from, $to)) as $key) {
+            $type = isset($drafts[$key]) ? $drafts[$key]->type : ($film[$key] ?? null)?->getDayType();
+            if (($type ?? DayType::WORKDAY) === DayType::WORKDAY) {
+                ++$count;
+            }
+        }
+
+        return $count;
+    }
+
     // A draft is applied through a throw-away FilmDay, so both sources read alike.
     private function fromDraft(FilmDayDraft $draft): FilmDay
     {

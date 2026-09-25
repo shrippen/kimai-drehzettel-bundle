@@ -21,6 +21,7 @@ final class ApiError extends \RuntimeException
     public const UNKNOWN_USER = 'unknown_user';
     public const INVALID_DATE = 'invalid_date';
     public const NO_ENGAGEMENT = 'no_engagement';
+    public const UNKNOWN_ENGAGEMENT = 'unknown_engagement';
     public const INVALID_JSON = 'invalid_json';
     public const INVALID_VALUE = 'invalid_value';
     public const FORBIDDEN = 'forbidden';

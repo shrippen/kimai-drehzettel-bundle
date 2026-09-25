@@ -7,6 +7,7 @@ use App\Form\Type\ProjectType;
 use App\Form\Type\UserType;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
@@ -60,6 +61,15 @@ final class EngagementType extends AbstractType
             'required' => false,
             'help' => 'drehzettel.valid_to_help',
         ]);
+
+        // A new engagement gets AZV by default rule (TV FFS 2024, start from 2025-05-01); edit overrides it.
+        if (!$create) {
+            $builder->add('azv', CheckboxType::class, [
+                'label' => 'drehzettel.azv.eligible',
+                'help' => 'drehzettel.azv.eligible_help',
+                'required' => false,
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -13,6 +13,9 @@ use KimaiPlugin\DrehzettelBundle\Enum\ComplianceIssue;
  *
  * payCents is the day's pay including extra pay, excluding weekly overtime
  * (that belongs to the week, see weeklyOvertimeMinutes). Null without a gage.
+ *
+ * azvMinutesToDate: AZV credit earned up to and including the date (TV FFS TZ 6),
+ * null when the engagement earns none.
  */
 final class DaySummary
 {
@@ -21,9 +24,10 @@ final class DaySummary
 
     /**
      * @param list<ComplianceWarning> $warnings of the whole week
+     * @param ?AzvBalance $azv up to and including the date
      * @return array<string, mixed>
      */
-    public static function of(WeekResult $week, string $dateKey, array $warnings, Engagement $engagement): array
+    public static function of(WeekResult $week, string $dateKey, array $warnings, Engagement $engagement, ?AzvBalance $azv = null): array
     {
         $hasPay = $engagement->getGageCents() > 0;
         $day = null;
@@ -53,6 +57,7 @@ final class DaySummary
             'payCents' => $hasPay ? $day?->amountCents : null,
             'extraPayCents' => $day?->extraPayCents ?? 0,
             'currency' => $engagement->getProject()?->getCustomer()?->getCurrency() ?? self::DEFAULT_CURRENCY,
+            'azvMinutesToDate' => $azv !== null && $azv->eligible ? $azv->minutes() : null,
         ];
     }
 

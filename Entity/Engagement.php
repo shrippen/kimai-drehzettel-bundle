@@ -57,6 +57,10 @@ class Engagement
     #[ORM\Column(type: Types::JSON)]
     private array $rules = [];
 
+    // AZV credit per TV FFS TZ 6; null follows Azv::byDefault() (ruleset and start date).
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $azv = null;
+
     /** @var list<string>|null null means the defaults */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $pdfOptions = null;
@@ -154,6 +158,16 @@ class Engagement
     public function setRulesetName(string $name): void
     {
         $this->rulesetName = $name;
+    }
+
+    public function getAzv(): ?bool
+    {
+        return $this->azv;
+    }
+
+    public function setAzv(?bool $azv): void
+    {
+        $this->azv = $azv;
     }
 
     public function getPdfOptions(): PdfOptions

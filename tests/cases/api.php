@@ -59,7 +59,7 @@ $engagement->setRulesetName('TV FFS 2024');
 $engagement->setValidFrom(new DateTimeImmutable('2026-03-01'));
 check('api engagement json', [
     'engagementId' => null, 'projectId' => 7, 'projectName' => 'Musterfilm', 'customerName' => 'ACME',
-    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true,
+    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true, 'azvEligible' => true,
 ], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement));
 check('api ping engagements', true, in_array('engagements', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
 
@@ -95,7 +95,7 @@ $summaryWeek = weekCalc()->calc([
 $summaryWarnings = (new KimaiPlugin\DrehzettelBundle\Service\ComplianceChecker())->check($summaryWeek);
 $monday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-02', $summaryWarnings, $engagement);
 check('summary long day', [true, 735, 45, [['percent' => 25.0, 'minutes' => 60], ['percent' => 50.0, 'minutes' => 120]], 'workday', null, 1], [$monday['hasEntry'], $monday['workMinutes'], $monday['breakMinutes'], $monday['overtime'], $monday['category'], $monday['categoryPercent'], $monday['dayNumber']]);
-check('summary long day warning', [['issue' => 'daily_max', 'minutes' => 780, 'limitMinutes' => 720]], $monday['warnings']);
+check('summary long day warning (net)', [['issue' => 'daily_max', 'minutes' => 735, 'limitMinutes' => 720]], $monday['warnings']);
 check('summary pay is the day amount', $summaryWeek->days[0]->amountCents, $monday['payCents']);
 $tuesday = KimaiPlugin\DrehzettelBundle\Domain\DaySummary::of($summaryWeek, '2026-03-03', $summaryWarnings, $engagement);
 // Tuesday starts 11 h after a 13 h day: 11.5 h rest were due.

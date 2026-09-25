@@ -121,8 +121,54 @@ Exported reference timesheets were the source. The PDFs stay local (`reference/`
       Not covered by `php tests/run.php` (needs Kimai entities); checked manually with `kimai:reload` +
       `dev/check.php` + `drehzettel:pdf` on the dev instance without the holiday plugin installed. Still
       needs a manual check with the holiday plugin actually installed once that's convenient to set up.
-- [ ] Time account (AZV day) — deferred. A real accrual ledger (2.5 h + 30 min per consecutive shooting day,
-      TV FFS §6), not a one-line addition; out of scope for this pass.
+- [ ] Overtime time account, TV FFS Anlage Zeitkonto A.1.1 (hours > 50/week plus overtime surcharges as
+      time; dissolved after production in 8 h days at 1/50 weekly fee, A.1.3) — deferred.
+      Source `research/tv-ffs-zeitkonto-und-folgetage.md`.
+- [x] AZV credit, TV FFS TZ 6.1-6.7 (D-9, PO decision 2026-09-25): `Domain/Azv`, `Service/AzvService`.
+      2.5 h after 5 shooting days, 0.5 h per further one, per block of 20 (= 10 h = one AZV day); credit
+      only, separate from the time account (TZ 6.2). Engagement flag `azv` (null = TV FFS 2024 and start
+      from 2025-05-01), editable in the engagement form. Week page (work tile), month PDF, overview, API
+      `GET /v1/engagements/{id}/azv`, `azvMinutesToDate`, `azvEligible`, ping `azv`.
+      Assumptions (tariff text is silent, PO/production to confirm):
+      "zusammenhängend" = consecutive *shooting days* of the engagement (TZ 6.1 fn. 2: "an mindestens 5
+      aufeinanderfolgenden Drehtagen"); days off, weekends and travel days neither count nor break the row;
+      the row ends with the engagement (a new engagement starts at 0, although TZ 6.4 speaks of the
+      "Drehtage des Filmschaffenden in der Produktion"). Every working-day entry counts as a "voller
+      Drehtag", whatever its length (TZ 5.2.4 counts a begun working day as 8 h); prep and post days cannot
+      be told apart from shooting days yet (PA FAQ: they do not count). Days before 2025-05-01 never count,
+      also when the flag is set by hand for a running production (TZ 6.7). The 2.5 h for days 21-25 are
+      credited with day 25 (PA FAQ: "ab 25 Drehtagen"), TZ 6.4 says "ab dem 26. Drehtag".
+- [ ] Taking AZV days — not modelled. TZ 6.3: a "freien und bezahlten Tag (in der Zeit von Montag bis
+      Freitag) zwischen dem 2. und 16. Drehtag", announced at least 5 days ahead by the employer; TZ 6.6:
+      travel productions may give it at the end; TZ 10.4/10.5: AZV days can be appended after the contract
+      end. Needs a day type "AZV-Tag" (no timesheet entry or a 0 h entry?), how it is paid under a weekly
+      gage (the week's gage keeps paying it, TZ 6.3 "bezahlt") and deduction of 600 min from the balance.
+      Leftover credit (< 10 h) is paid through the time account (PA FAQ), which does not exist yet either.
+- [ ] Staggered shoot, TZ 5.6.3 — not implemented: "Sofern es sich um einen Sonntag oder die Feiertage
+      Heilige Drei Könige, Fronleichnam, Mariä Himmelfahrt oder Allerheiligen innerhalb der Phase des 1. bis
+      5. Produktionstages einer Kalenderwoche handelt (versetzter Dreh), wird kein Zuschlag gezahlt,
+      unbeschadet bleibt der Anspruch auf einen bezahlten Ruhetag gem. 5.6.2." Needs a ruleset option (TV FFS
+      only), the holiday's identity (Fronleichnam = Easter + 60 days) and a PO answer: read literally, a
+      week with a single Sunday shoot (day 1) loses the Sunday surcharge.
+- [ ] Night shoot day boundary, TZ 5.2.4 — not implemented: "Im Falle von Nachtdreharbeiten beginnt kein
+      neuer Arbeitstag am 2. Kalendertag, soweit an diesem die Arbeit um 4 Uhr beendet ist." An entry is one
+      working day by its begin date, however late it ends; the PA FAQ says a night shoot past 04:00 still
+      makes no second day ("redaktionell"). Also TZ 5.6.2/5.6.3: > 4 h on a Sunday/holiday decides the
+      whole-day surcharge and rest day.
+- [ ] Ausgleichstage (TV FFS TZ 5.6.2) — not modelled (PO decision D-6, 2026-09-25); users note them in the
+      day note for now. One paid rest day per worked Sunday (> 4 h on the Sunday for a shift over midnight)
+      and per worked Christmas, Easter, Whit holiday, 3 Oct, 1 May; not for other holidays. ArbZG § 11:
+      within 2 weeks (Sunday) / 8 weeks (weekday holiday). Weitere Recherche nötig (Anspruch, Einheit,
+      Frist, Abgeltung), see the research file.
+- [x] 6th/7th day: only the TV FFS rule, n-th working day of the calendar week (TZ 5.4.3.1/5.4.3.4;
+      PO decision 2026-09-25, replaces D-1..D-5). A `consecutive` streak mode was built and removed before
+      release. `productionDay` ("Zuschlagstag", 1-7) overrides the day number of its own day only; badge
+      "Tag N der Woche" from day 6 or when overridden, also in the PDF. Travel days are no working days
+      (TZ 12.1 "wie normale Arbeitszeit ohne Zuschläge"; PA FAQ: "Auch die Reisezeit gehört nicht zur
+      Arbeitszeit"): they do not advance the day number and do not feed weekly overtime.
+- [x] Working and rest time warnings on net working time (PO decision 2026-09-25, replaces D-7/D-8): daily
+      maximum 12 h (TZ 5.2.5) and the begun 12th hour that extends rest to 11.5 h (TZ 5.9.1) exclude breaks up
+      to the free break (TZ 5.8.2) and travel days. Warnings only.
 
 ### Phase 6 — Kimai form integration and external API
 

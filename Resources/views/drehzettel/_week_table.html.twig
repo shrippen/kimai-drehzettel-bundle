@@ -45,8 +45,12 @@
     {% for seconds in v.sums.tiers %}
         {% set surcharge_details = surcharge_details|merge([{label: _self.percent(v.tiers[loop.index0]), value: seconds|duration}]) %}
     {% endfor %}
+    {# AZV credit up to this week (TV FFS TZ 6), as details of the work time tile. #}
+    {% set work_details = v.azv is null ? [] : [
+        {label: 'drehzettel.azv.short'|trans, value: v.azv.seconds|duration ~ ' · ' ~ 'drehzettel.azv.days'|trans({'%count%': v.azv.days})},
+    ] %}
     {% set tiles = [
-        {label: 'drehzettel.pdf.work'|trans, value: v.sums.work|duration, highlight: not v.has_pay},
+        {label: 'drehzettel.pdf.work'|trans, value: v.sums.work|duration, highlight: not v.has_pay, details: work_details},
         {label: 'drehzettel.rules.surcharge_rounding'|trans, value: v.sums.surcharges|duration, details: surcharge_details},
         {label: 'drehzettel.pdf.night'|trans, value: v.sums.night|duration, hint: _self.percent(v.night_percent)},
     ] %}
@@ -102,7 +106,8 @@
                             </button>
                         </td>
                         <td class="text-nowrap">
-                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}</div>
+                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}
+                                <span data-dz-live="day-number-{{ row.key }}">{% if row.day_number_shown %}<span class="badge bg-secondary-lt" title="{{ 'drehzettel.production_day.title'|trans }}">{{ 'drehzettel.production_day.label'|trans({'%number%': row.day_number}) }}</span>{% endif %}</span></div>
                             <div class="small text-secondary">
                                 {{ row.begin|time }}–{{ row.end|time }} ·
                                 <span class="dz-view">{{ 'drehzettel.pdf.break'|trans }} {{ ((film.break ?? v.default_break) * 60)|duration }}{% if film.break is null %} ({{ 'drehzettel.week.break_default'|trans }}){% endif %}</span>
@@ -154,7 +159,7 @@
                                 </select>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.production_day.title'|trans }}</span>
-                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][production_day]" min="1" max="7" step="1" inputmode="numeric" placeholder="–" title="{{ 'drehzettel.category.auto_short'|trans }}" value="{{ film.production_day ?? '' }}">
+                                    <input type="number" class="form-control form-control-sm dz-shooting-day-input dz-field" name="day[{{ row.key }}][production_day]" min="1" max="7" step="1" inputmode="numeric" placeholder="{{ row.day_number }}" title="{{ 'drehzettel.category.auto_short'|trans }}" value="{{ film.production_day ?? '' }}">
                                 </label>
                                 <label class="d-inline-flex align-items-center gap-1 mb-0 text-nowrap">
                                     <span class="small text-secondary">{{ 'drehzettel.shooting_day.title'|trans }}</span>

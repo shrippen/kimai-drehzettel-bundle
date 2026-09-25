@@ -26,6 +26,7 @@
                 <div class="col-md-6">{{ form_row(form.validFrom) }}</div>
                 <div class="col-md-6">{{ form_row(form.validTo) }}</div>
             </div>
+            {% if form.azv is defined %}{{ form_row(form.azv) }}{% endif %}
             {{ form_rest(form) }}
         {% endblock %}
     {% endembed %}

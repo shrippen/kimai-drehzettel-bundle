@@ -29,6 +29,7 @@
     .extra { font-size: 7pt; }
     .note i { font-style: italic; }
     .rounding { font-size: 7pt; color: #555555; margin-top: 4mm; }
+    .azv { font-size: 8pt; margin-top: 4mm; }
     .sign { margin-top: 14mm; width: 100%; }
     .sign td { text-align: center; vertical-align: bottom; font-size: 8pt; }
     .sign .line { border-top: 0.3mm solid #111111; padding-top: 1mm; }
@@ -75,7 +76,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td class="date">{{ row.date }}{% if row.shooting_day %}<br><span class="extra">{{ row.shooting_day }}</span>{% endif %}</td>
+                    <td class="date">{{ row.date }}{% if row.shooting_day or row.day_number %}<br><span class="extra">{{ row.shooting_day }}{% if row.shooting_day and row.day_number %} · {% endif %}{{ row.day_number }}</span>{% endif %}</td>
                     <td>{{ row.begin }}</td>
                     <td>{{ row.end }}</td>
                     {% if c.break %}<td>{{ row.break }}</td>{% endif %}
@@ -125,6 +126,8 @@
         <p class="note"><i>{{ n.date }}:</i> {{ n.text }}</p>
     {% endfor %}
 {% endif %}
+
+{% if v.azv %}<p class="azv">{{ v.azv }}</p>{% endif %}
 
 {% if v.rounding %}<p class="rounding">{{ v.rounding }}</p>{% endif %}
 

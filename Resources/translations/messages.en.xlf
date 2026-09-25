@@ -628,7 +628,7 @@
       </trans-unit>
       <trans-unit id="dz.production_day.title" resname="drehzettel.production_day.title">
         <source>drehzettel.production_day.title</source>
-        <target>Shooting day of week (1–7)</target>
+        <target>Surcharge day (1–7, empty = automatic)</target>
       </trans-unit>
       <trans-unit id="dz.shooting_day.title" resname="drehzettel.shooting_day.title">
         <source>drehzettel.shooting_day.title</source>
@@ -637,6 +637,34 @@
       <trans-unit id="dz.shooting_day.label" resname="drehzettel.shooting_day.label">
         <source>drehzettel.shooting_day.label</source>
         <target>Shooting day %number%</target>
+      </trans-unit>
+      <trans-unit id="dz.production_day.label" resname="drehzettel.production_day.label">
+        <source>drehzettel.production_day.label</source>
+        <target>Day %number% of the week</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.short" resname="drehzettel.azv.short">
+        <source>drehzettel.azv.short</source>
+        <target>AZV</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.title" resname="drehzettel.azv.title">
+        <source>drehzettel.azv.title</source>
+        <target>AZV credit per TV FFS TZ 6 up to today: earned, AZV days taken not deducted</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.days" resname="drehzettel.azv.days">
+        <source>drehzettel.azv.days</source>
+        <target>{0}no AZV day|{1}1 AZV day|]1,Inf[%count% AZV days</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible" resname="drehzettel.azv.eligible">
+        <source>drehzettel.azv.eligible</source>
+        <target>AZV per TZ 6 (crew behind the camera, no high-frequency series)</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible_help" resname="drehzettel.azv.eligible_help">
+        <source>drehzettel.azv.eligible_help</source>
+        <target>Default: on for TV FFS 2024 starting from 2025-05-01 (TZ 6.7). 2.5 h after 5 shooting days, then 0.5 h per shooting day, per 20 shooting days; 10 h = one AZV day. Travel days do not count.</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.pdf_line" resname="drehzettel.azv.pdf_line">
+        <source>drehzettel.azv.pdf_line</source>
+        <target>AZV credit (TV FFS TZ 6) up to %date%: %hours% h from %shooting% shooting day(s), i.e. %days% of 10 h. AZV days taken are not deducted.</target>
       </trans-unit>
     </body>
   </file>
