@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="de" datatype="plaintext" original="DrehzettelBundle">
+    <body>
+      <trans-unit id="dzv.engagement.ends_before_start" resname="drehzettel.engagement.ends_before_start">
+        <source>drehzettel.engagement.ends_before_start</source>
+        <target>Das Ende darf nicht vor dem Beginn liegen.</target>
+      </trans-unit>
+      <trans-unit id="dzv.rules.tier_order" resname="drehzettel.rules.tier_order">
+        <source>drehzettel.rules.tier_order</source>
+        <target>Muss später beginnen als Stufe %tier% (ab %after% Std.).</target>
+      </trans-unit>
+      <trans-unit id="dzv.signature.too_large" resname="drehzettel.signature.too_large">
+        <source>drehzettel.signature.too_large</source>
+        <target>Die Datei ist größer als {{ limit }} {{ suffix }}. Kleineres Bild wählen.</target>
+      </trans-unit>
+      <trans-unit id="dzv.signature.invalid" resname="drehzettel.signature.invalid">
+        <source>drehzettel.signature.invalid</source>
+        <target>Nur PNG- oder JPEG-Bilder sind erlaubt.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
