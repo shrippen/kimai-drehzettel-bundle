@@ -105,3 +105,9 @@ check('options default hides pay', false, PdfOptions::defaults()->has(PdfOption:
 check('money de', '1.234,50 €', Format::money(123450, 'de'));
 check('money en', '€1,234.50', Format::money(123450, 'en'));
 check('hours', '31:30 h', Format::hours(1890));
+check('money currency', '1.234,50 CHF', Format::money(123450, 'de', 'CHF'));
+check('money negative en', '-€12.00', Format::money(-1200, 'en'));
+
+// The PDF uses the customer currency of the project.
+$chf = $builder->build(new TimesheetMeta('X', 'Y', 'Z', 'de', true, currency: 'CHF'), $period, [$noteWeek], $rules, new PdfOptions([PdfOption::PAY]));
+check('view: pay in customer currency', true, str_ends_with($chf['weeks'][0]['sums']['pay'], ' CHF'));

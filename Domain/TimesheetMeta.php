@@ -12,6 +12,7 @@ final class TimesheetMeta
         public readonly string $locale,
         public readonly bool $hasPay,
         public readonly ?string $signatureDataUri = null,
+        public readonly string $currency = Format::CURRENCY,
     ) {
     }
 }

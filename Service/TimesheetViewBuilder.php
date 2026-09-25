@@ -31,15 +31,14 @@ class TimesheetViewBuilder
 {
     private const DATE_KEY = 'Y-m-d';
 
-    private const WEEKDAYS = [
-        'de' => ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'],
-        'en' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    // Intl patterns of the long date: "Montag, 15. Juni 2026" / "Monday, 15 June 2026"
+    private const DATE_PATTERNS = [
+        'de' => 'EEEE, d. MMMM y',
+        'en' => 'EEEE, d MMMM y',
     ];
 
-    private const MONTHS = [
-        'de' => ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-        'en' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    ];
+    // Currency of the timesheet being built, set by build() for the money columns.
+    private string $currency = Format::CURRENCY;
 
     public function __construct(private readonly Labels $labels)
     {
@@ -52,6 +51,7 @@ class TimesheetViewBuilder
     public function build(TimesheetMeta $meta, Period $period, array $weeks, Ruleset $rules, PdfOptions $options): array
     {
         $locale = $meta->locale === 'de' ? 'de' : 'en';
+        $this->currency = $meta->currency;
         $showPay = $meta->hasPay && $options->has(PdfOption::PAY);
 
         $blocks = [];
@@ -154,7 +154,7 @@ class TimesheetViewBuilder
             'under' => Format::hours($day->underMinutes),
             'catering' => $this->labels->t($day->catering === Catering::YES ? 'drehzettel.pdf.yes' : 'drehzettel.pdf.no', $locale),
             'day_type' => $this->labels->t('drehzettel.day_type.' . $day->dayType->value, $locale),
-            'pay' => $showPay && $day->amountCents !== null ? Format::money($day->amountCents, $locale) : '',
+            'pay' => $showPay && $day->amountCents !== null ? Format::money($day->amountCents, $locale, $this->currency) : '',
         ];
     }
 
@@ -195,7 +195,7 @@ class TimesheetViewBuilder
             'night' => Format::hours($sums['night']),
             'under' => Format::hours($sums['under']),
             'catering' => $sums['catering'] . 'x',
-            'pay' => $showPay ? Format::money($sums['pay'], $locale) : '',
+            'pay' => $showPay ? Format::money($sums['pay'], $locale, $this->currency) : '',
         ];
     }
 
@@ -320,12 +320,9 @@ class TimesheetViewBuilder
     // "Montag, 15. Juni 2026" / "Monday, 15 June 2026"
     public function dateLabel(\DateTimeImmutable $date, string $locale): string
     {
-        $weekday = self::WEEKDAYS[$locale][(int) $date->format('N') - 1];
-        $month = self::MONTHS[$locale][(int) $date->format('n') - 1];
-        $day = (int) $date->format('j');
-        $year = $date->format('Y');
+        $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $date->getTimezone(), \IntlDateFormatter::GREGORIAN, self::DATE_PATTERNS[$locale]);
 
-        return $locale === 'de' ? "$weekday, $day. $month $year" : "$weekday, $day $month $year";
+        return (string) $formatter->format($date);
     }
 
     private function periodLabel(\DateTimeImmutable $from, \DateTimeImmutable $to, string $locale): string
