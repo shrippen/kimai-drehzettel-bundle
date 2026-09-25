@@ -15,6 +15,7 @@ class DaySummaryService
     public function __construct(
         private readonly FilmWeekService $weeks,
         private readonly ComplianceChecker $compliance,
+        private readonly AzvService $azv,
     ) {
     }
 
@@ -30,6 +31,8 @@ class DaySummaryService
         $week = $this->weeks->week($engagement, $isoYear, $isoWeek);
         $warnings = $this->compliance->check($week, $this->weeks->lastDayBefore($engagement, $period->from));
 
-        return DaySummary::of($week, $date->format('Y-m-d'), $warnings, $engagement);
+        $azv = $this->azv->balance($engagement, $date->modify('+1 day'));
+
+        return DaySummary::of($week, $date->format('Y-m-d'), $warnings, $engagement, $azv);
     }
 }

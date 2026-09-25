@@ -2,6 +2,7 @@
 
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
+use KimaiPlugin\DrehzettelBundle\Domain\AzvBalance;
 use KimaiPlugin\DrehzettelBundle\Domain\DayResult;
 use KimaiPlugin\DrehzettelBundle\Domain\Format;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
@@ -37,6 +38,8 @@ class TimesheetViewBuilder
         'en' => 'EEEE, d MMMM y',
     ];
 
+    private const SHORT_DATES = ['de' => 'd.m.Y', 'en' => 'j M Y'];
+
     // Currency of the timesheet being built, set by build() for the money columns.
     private string $currency = Format::CURRENCY;
 
@@ -48,7 +51,7 @@ class TimesheetViewBuilder
      * @param list<WeekResult> $weeks
      * @return array<string, mixed>
      */
-    public function build(TimesheetMeta $meta, Period $period, array $weeks, Ruleset $rules, PdfOptions $options): array
+    public function build(TimesheetMeta $meta, Period $period, array $weeks, Ruleset $rules, PdfOptions $options, ?AzvBalance $azv = null): array
     {
         $locale = $meta->locale === 'de' ? 'de' : 'en';
         $this->currency = $meta->currency;
@@ -83,7 +86,19 @@ class TimesheetViewBuilder
             'rounding' => $options->has(PdfOption::ROUNDING_NOTE) ? $this->roundingNote($rules, $locale) : null,
             'signature_lines' => $options->has(PdfOption::SIGNATURE_LINES),
             'signature_image' => $options->has(PdfOption::SIGNATURE_IMAGE) ? $meta->signatureDataUri : null,
+            'azv' => $azv !== null && $azv->eligible ? $this->azvLine($azv, $locale) : null,
         ];
+    }
+
+    // "AZV-Guthaben (TV FFS TZ 6) bis 30.06.2026: 12:30 h aus 25 Drehtagen, davon 1 AZV-Tag (10 h)."
+    private function azvLine(AzvBalance $azv, string $locale): string
+    {
+        return $this->labels->t('drehzettel.azv.pdf_line', $locale, [
+            '%date%' => $azv->until->format(self::SHORT_DATES[$locale]),
+            '%hours%' => Format::hm($azv->minutes()),
+            '%shooting%' => $azv->shootingDays,
+            '%days%' => $this->labels->t('drehzettel.azv.days', $locale, ['%count%' => $azv->days()]),
+        ]);
     }
 
     /**

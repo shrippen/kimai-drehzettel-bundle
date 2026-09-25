@@ -32,6 +32,31 @@ final class ApiJson
             'validFrom' => $engagement->getValidFrom()?->format(self::DATE_FORMAT),
             'validTo' => $engagement->getValidTo()?->format(self::DATE_FORMAT),
             'toggleDefault' => true,
+            'azvEligible' => Azv::eligible($engagement),
+        ];
+    }
+
+    /**
+     * GET /v1/engagements/{id}/azv: AZV credit earned up to a date (TV FFS TZ 6), not taken.
+     *
+     *   {"eligible": true, "countsFrom": "2026-01-05", "date": "2026-02-08", "shootingDays": 25,
+     *    "minutes": 750, "days": 1, "openMinutes": 150, "dayMinutes": 600, "blockDays": 20}
+     *
+     * @return array<string, mixed>
+     */
+    public static function azv(Engagement $engagement, AzvBalance $balance): array
+    {
+        return [
+            'engagementId' => $engagement->getId(),
+            'eligible' => $balance->eligible,
+            'countsFrom' => $balance->countsFrom?->format(self::DATE_FORMAT),
+            'date' => $balance->until->format(self::DATE_FORMAT),
+            'shootingDays' => $balance->shootingDays,
+            'minutes' => $balance->minutes(),
+            'days' => $balance->days(),
+            'openMinutes' => $balance->openMinutes(),
+            'dayMinutes' => Azv::DAY_MINUTES,
+            'blockDays' => Azv::BLOCK_DAYS,
         ];
     }
 

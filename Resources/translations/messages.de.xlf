@@ -642,6 +642,30 @@
         <source>drehzettel.production_day.label</source>
         <target>Tag %number% der Woche</target>
       </trans-unit>
+      <trans-unit id="dz.azv.short" resname="drehzettel.azv.short">
+        <source>drehzettel.azv.short</source>
+        <target>AZV</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.title" resname="drehzettel.azv.title">
+        <source>drehzettel.azv.title</source>
+        <target>AZV-Guthaben nach TV FFS TZ 6 bis heute: verdient, genommene AZV-Tage nicht abgezogen</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.days" resname="drehzettel.azv.days">
+        <source>drehzettel.azv.days</source>
+        <target>{0}kein AZV-Tag|{1}1 AZV-Tag|]1,Inf[%count% AZV-Tage</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible" resname="drehzettel.azv.eligible">
+        <source>drehzettel.azv.eligible</source>
+        <target>AZV nach TZ 6 (Crew hinter der Kamera, keine High-Frequency-Serie)</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.eligible_help" resname="drehzettel.azv.eligible_help">
+        <source>drehzettel.azv.eligible_help</source>
+        <target>Voreinstellung: an bei TV FFS 2024 mit Beginn ab 01.05.2025 (TZ 6.7). 2,5 h nach 5 Drehtagen, dann 0,5 h je Drehtag, je 20 Drehtage; 10 h = ein AZV-Tag. Reisetage zählen nicht.</target>
+      </trans-unit>
+      <trans-unit id="dz.azv.pdf_line" resname="drehzettel.azv.pdf_line">
+        <source>drehzettel.azv.pdf_line</source>
+        <target>AZV-Guthaben (TV FFS TZ 6) bis %date%: %hours% h aus %shooting% Drehtag(en), entspricht %days% à 10 h. Genommene AZV-Tage sind nicht abgezogen.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

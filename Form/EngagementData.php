@@ -4,6 +4,7 @@ namespace KimaiPlugin\DrehzettelBundle\Form;
 
 use App\Entity\Project;
 use App\Entity\User;
+use KimaiPlugin\DrehzettelBundle\Domain\Azv;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
@@ -44,6 +45,9 @@ final class EngagementData
     #[Assert\GreaterThanOrEqual(propertyPath: 'validFrom', message: 'drehzettel.engagement.ends_before_start')]
     public ?\DateTimeImmutable $validTo = null;
 
+    // Edit only: AZV per TV FFS TZ 6, shown as its effective value. A new engagement follows Azv::byDefault().
+    public bool $azv = false;
+
     public static function fromEngagement(Engagement $engagement): self
     {
         $data = new self();
@@ -55,6 +59,7 @@ final class EngagementData
         $data->cateringDeduction = $engagement->getCateringDeductionCents() / self::CENTS;
         $data->validFrom = $engagement->getValidFrom();
         $data->validTo = $engagement->getValidTo();
+        $data->azv = Azv::eligible($engagement);
 
         return $data;
     }
@@ -74,6 +79,10 @@ final class EngagementData
         $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
         $engagement->setValidFrom($this->validFrom);
         $engagement->setValidTo($this->validTo);
+
+        // Store only a deviation from the default, so a later start date change still applies it.
+        $byDefault = Azv::byDefault($engagement->getRulesetName(), $this->validFrom);
+        $engagement->setAzv($this->azv === $byDefault ? null : $this->azv);
     }
 
     private static function cents(?float $amount): int

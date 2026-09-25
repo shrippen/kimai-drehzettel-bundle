@@ -35,6 +35,7 @@ class WeekPageBuilder
         private readonly FilmDayRepository $filmDays,
         private readonly ComplianceChecker $compliance,
         private readonly MailRecipientRepository $mailRecipients,
+        private readonly AzvService $azv,
     ) {
     }
 
@@ -74,6 +75,7 @@ class WeekPageBuilder
             'has_pay' => $hasPay,
             'warnings' => $this->compliance->check($result, $this->weeks->lastDayBefore($engagement, $period->from)),
             'mail_to' => $this->mailRecipients->findForEngagement($engagement)?->getEmail() ?? '',
+            'azv' => $this->azvValues($engagement, $period, $drafts),
         ];
     }
 
@@ -208,6 +210,26 @@ class WeekPageBuilder
         }
 
         return $values;
+    }
+
+    /**
+     * AZV credit earned up to the end of the week, null when the engagement has none.
+     *
+     * @param array<string, FilmDayDraft> $drafts
+     * @return ?array{seconds: int, days: int, shooting_days: int}
+     */
+    private function azvValues(Engagement $engagement, Period $period, array $drafts): ?array
+    {
+        $balance = $this->azv->balance($engagement, $period->endExclusive(), $drafts);
+        if (!$balance->eligible) {
+            return null;
+        }
+
+        return [
+            'seconds' => self::seconds($balance->minutes()),
+            'days' => $balance->days(),
+            'shooting_days' => $balance->shootingDays,
+        ];
     }
 
     /**

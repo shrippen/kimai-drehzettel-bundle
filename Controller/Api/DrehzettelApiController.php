@@ -11,6 +11,7 @@ use KimaiPlugin\DrehzettelBundle\Domain\ApiQuery;
 use KimaiPlugin\DrehzettelBundle\Domain\FilmDayPatch;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
+use KimaiPlugin\DrehzettelBundle\Service\AzvService;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
 use KimaiPlugin\DrehzettelBundle\Service\DaySummaryService;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
@@ -58,6 +59,7 @@ final class DrehzettelApiController extends AbstractController
         private readonly Security $security,
         private readonly DayInputBuilder $dayInputs,
         private readonly DaySummaryService $daySummaries,
+        private readonly AzvService $azv,
     ) {
     }
 
@@ -96,7 +98,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/engagements', name: 'drehzettel_api_engagements')]
-    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault}].')]
+    #[OA\Response(response: 200, description: 'Engagements of the user (default: token owner) active on date (default: today), by project name: [{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible}]. azvEligible: the engagement earns AZV credit (TV FFS TZ 6), see /v1/engagements/{id}/azv.')]
     #[OA\Response(response: 400, description: 'code invalid_user or invalid_date.')]
     #[OA\Response(response: 403, description: 'code forbidden: another user without drehzettel_manage.')]
     #[OA\Response(response: 404, description: 'code unknown_user.')]
@@ -111,6 +113,22 @@ final class DrehzettelApiController extends AbstractController
             $visible = array_filter($this->engagements->activeOn($user, $date), $this->access->canView(...));
 
             return array_values(array_map(ApiJson::engagement(...), $visible));
+        });
+    }
+
+    #[Route(methods: ['GET'], path: '/v1/engagements/{id}/azv', name: 'drehzettel_api_engagement_azv', requirements: ['id' => '\d+'])]
+    #[OA\Response(response: 200, description: 'AZV credit (TV FFS TZ 6) earned up to and including date (default: today): {engagementId, eligible, countsFrom, date, shootingDays, minutes, days, openMinutes, dayMinutes, blockDays}. 2.5 h after 5 shooting days, 0.5 h per further one, per block of 20 shooting days (= 600 minutes = one AZV day). Travel days and days without entry do not count; counting starts at the engagement start, not before 2025-05-01. Not eligible: eligible false, shootingDays 0. Credit only: AZV days taken are not deducted.')]
+    #[OA\Response(response: 400, description: 'code invalid_date.')]
+    #[OA\Response(response: 403, description: 'code forbidden: someone else\'s engagement without drehzettel_manage.')]
+    #[OA\Response(response: 404, description: 'code unknown_engagement.')]
+    public function engagementAzv(Request $request, int $id): JsonResponse
+    {
+        return $this->respond(function () use ($request, $id): array {
+            $date = ApiQuery::date($request->query->get('date'), new \DateTimeImmutable('today'));
+            $engagement = $this->engagements->find($id) ?? throw ApiError::notFound(ApiError::UNKNOWN_ENGAGEMENT, 'Unknown engagement.');
+            $this->access->assertView($engagement);
+
+            return ApiJson::azv($engagement, $this->azv->balance($engagement, $date->modify('+1 day')));
         });
     }
 
@@ -154,7 +172,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/days/{date}/summary', name: 'drehzettel_api_day_summary', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
+    #[OA\Response(response: 200, description: 'Calculated figures of the day, from its whole ISO week: work/break/night/under minutes, daily overtime per tier [{percent, minutes}], category surcharge, week pool of weekly overtime, compliance warnings, payCents (day pay incl. extra pay, excl. weekly overtime; null without gage), shootingDayNumber (informational), azvMinutesToDate (AZV credit up to and including the date, TV FFS TZ 6; null when the engagement earns none). hasEntry false: no timesheet entry on that date, all figures 0/null.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function daySummary(Request $request, string $date): JsonResponse
     {

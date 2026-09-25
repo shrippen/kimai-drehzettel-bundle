@@ -82,6 +82,11 @@ class EngagementService
         $this->engagements->remove($engagement);
     }
 
+    public function find(int $id): ?Engagement
+    {
+        return $this->engagements->find($id);
+    }
+
     public function active(User $user, Project $project, \DateTimeImmutable $date): ?Engagement
     {
         return $this->engagements->findActive($user, $project, $date);

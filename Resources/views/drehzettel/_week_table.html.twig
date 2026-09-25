@@ -45,8 +45,12 @@
     {% for seconds in v.sums.tiers %}
         {% set surcharge_details = surcharge_details|merge([{label: _self.percent(v.tiers[loop.index0]), value: seconds|duration}]) %}
     {% endfor %}
+    {# AZV credit up to this week (TV FFS TZ 6), as details of the work time tile. #}
+    {% set work_details = v.azv is null ? [] : [
+        {label: 'drehzettel.azv.short'|trans, value: v.azv.seconds|duration ~ ' · ' ~ 'drehzettel.azv.days'|trans({'%count%': v.azv.days})},
+    ] %}
     {% set tiles = [
-        {label: 'drehzettel.pdf.work'|trans, value: v.sums.work|duration, highlight: not v.has_pay},
+        {label: 'drehzettel.pdf.work'|trans, value: v.sums.work|duration, highlight: not v.has_pay, details: work_details},
         {label: 'drehzettel.rules.surcharge_rounding'|trans, value: v.sums.surcharges|duration, details: surcharge_details},
         {label: 'drehzettel.pdf.night'|trans, value: v.sums.night|duration, hint: _self.percent(v.night_percent)},
     ] %}
