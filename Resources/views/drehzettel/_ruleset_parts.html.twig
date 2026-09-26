@@ -26,15 +26,15 @@
             {% set max = defined|last.after %}
             {% set scale = max + (max > 20 ? 4 : 2) %}
             <div class="dz-ladder-bar">
-                <div class="dz-ladder-seg bg-secondary text-secondary-fg" style="width:{{ defined|first.after / scale * 100 }}%">0–{{ defined|first.after }}</div>
+                <div class="dz-ladder-seg kpu-tier bg-secondary text-secondary-fg" data-kpu-tier="0" style="width:{{ defined|first.after / scale * 100 }}%">0–{{ defined|first.after }}</div>
                 {% for t in defined %}
                     {% set next = defined[loop.index] is defined ? defined[loop.index].after : scale %}
-                    <div class="dz-ladder-seg {{ tier_classes[min(loop.index0, 3)] }}" style="width:{{ (next - t.after) / scale * 100 }}%">+{{ t.percent }} %</div>
+                    <div class="dz-ladder-seg kpu-tier {{ tier_classes[min(loop.index0, 3)] }}" data-kpu-tier="{{ min(loop.index, 3) }}" style="width:{{ (next - t.after) / scale * 100 }}%">+{{ t.percent }} %</div>
                 {% endfor %}
             </div>
             <div class="dz-ladder-marks">
                 {% for t in defined %}
-                    <div class="dz-ladder-mark" style="left:{{ t.after / scale * 100 }}%">{{ t.after }}</div>
+                    <div class="dz-ladder-mark kpu-num" style="left:{{ t.after / scale * 100 }}%">{{ t.after }}</div>
                 {% endfor %}
             </div>
         {% endif %}

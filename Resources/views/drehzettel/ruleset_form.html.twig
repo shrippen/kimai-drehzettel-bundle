@@ -53,9 +53,11 @@
             return list;
         };
 
-        const segment = (className, width, text) => {
+        // tier: 0 = base, 1–3 rising (kit marker kpu-tier, see _ruleset_parts ladder())
+        const segment = (className, tier, width, text) => {
             const el = document.createElement('div');
-            el.className = 'dz-ladder-seg ' + className;
+            el.className = 'dz-ladder-seg kpu-tier ' + className;
+            el.dataset.kpuTier = String(tier);
             el.style.width = width + '%';
             el.textContent = text;
             return el;
@@ -71,14 +73,14 @@
             const scale = max + (max > 20 ? 4 : 2);
             const bar = document.createElement('div');
             bar.className = 'dz-ladder-bar';
-            bar.appendChild(segment('bg-secondary text-secondary-fg', list[0].after / scale * 100, '0–' + list[0].afterText));
+            bar.appendChild(segment('bg-secondary text-secondary-fg', 0, list[0].after / scale * 100, '0–' + list[0].afterText));
             const marks = document.createElement('div');
             marks.className = 'dz-ladder-marks';
             list.forEach((tier, index) => {
                 const next = index + 1 < list.length ? list[index + 1].after : scale;
-                bar.appendChild(segment(TIER_CLASSES[Math.min(index, 3)], (next - tier.after) / scale * 100, '+' + tier.percent + ' %'));
+                bar.appendChild(segment(TIER_CLASSES[Math.min(index, 3)], Math.min(index + 1, 3), (next - tier.after) / scale * 100, '+' + tier.percent + ' %'));
                 const mark = document.createElement('div');
-                mark.className = 'dz-ladder-mark';
+                mark.className = 'dz-ladder-mark kpu-num';
                 mark.style.left = (tier.after / scale * 100) + '%';
                 mark.textContent = tier.afterText;
                 marks.appendChild(mark);

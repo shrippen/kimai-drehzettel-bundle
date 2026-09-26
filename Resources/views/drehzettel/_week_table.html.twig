@@ -86,7 +86,7 @@
                     <tr>
                         <td></td>
                         <td class="text-nowrap">
-                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}</div>
+                            <div class="fw-medium">{{ row.date|day_name(true) }} <span class="kpu-num">{{ row.date|date_short }}</span></div>
                         </td>
                         <td colspan="{{ 5 + tier_count + (v.has_pay ? 1 : 0) }}">
                             {{ kit.status_badge('open', 'drehzettel.week.no_entry'|trans) }}
@@ -106,10 +106,10 @@
                             </button>
                         </td>
                         <td class="text-nowrap">
-                            <div class="fw-medium">{{ row.date|day_name(true) }} {{ row.date|date_short }}{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}
+                            <div class="fw-medium">{{ row.date|day_name(true) }} <span class="kpu-num">{{ row.date|date_short }}</span>{% if shoot_val %} <span class="badge bg-secondary-lt" title="{{ 'drehzettel.shooting_day.title'|trans }}">{{ 'drehzettel.shooting_day.label'|trans({'%number%': shoot_val}) }}</span>{% endif %}
                                 <span data-dz-live="day-number-{{ row.key }}">{% if row.day_number_shown %}<span class="badge bg-secondary-lt" title="{{ 'drehzettel.production_day.title'|trans }}">{{ 'drehzettel.production_day.label'|trans({'%number%': row.day_number}) }}</span>{% endif %}</span></div>
                             <div class="small text-secondary">
-                                {{ row.begin|time }}–{{ row.end|time }} ·
+                                <span class="kpu-num">{{ row.begin|time }}–{{ row.end|time }}</span> ·
                                 <span class="dz-view">{{ 'drehzettel.pdf.break'|trans }} {{ ((film.break ?? v.default_break) * 60)|duration }}{% if film.break is null %} ({{ 'drehzettel.week.break_default'|trans }}){% endif %}</span>
                                 <label class="dz-edit">
                                     <span class="visually-hidden">{{ 'drehzettel.week.break_minutes'|trans }}</span>
@@ -118,12 +118,12 @@
                                 </label>
                             </div>
                         </td>
-                        <td class="text-end fw-bold text-nowrap" data-dz-live="work-{{ row.key }}">{{ row.work|duration }}</td>
+                        <td class="text-end fw-bold text-nowrap kpu-num" data-dz-live="work-{{ row.key }}">{{ row.work|duration }}</td>
                         {% for seconds in row.tiers %}
-                            <td class="text-end text-nowrap" data-dz-live="tier{{ loop.index }}-{{ row.key }}">{{ _self.value(seconds) }}</td>
+                            <td class="text-end text-nowrap kpu-num" data-dz-live="tier{{ loop.index }}-{{ row.key }}">{{ _self.value(seconds) }}</td>
                         {% endfor %}
-                        <td class="text-end text-nowrap" data-dz-live="night-{{ row.key }}">{{ _self.value(row.night) }}</td>
-                        <td class="text-end text-nowrap" data-dz-live="under-{{ row.key }}">
+                        <td class="text-end text-nowrap kpu-num" data-dz-live="night-{{ row.key }}">{{ _self.value(row.night) }}</td>
+                        <td class="text-end text-nowrap kpu-num" data-dz-live="under-{{ row.key }}">
                             {{- _self.value(row.under) -}}
                         </td>
                         <td>
@@ -172,7 +172,7 @@
                                 </label>
                             </div>
                         </td>
-                        {% if v.has_pay %}<td class="text-end text-nowrap" data-dz-live="pay-{{ row.key }}">{{ row.pay is null ? '' : row.pay|money(currency) }}</td>{% endif %}
+                        {% if v.has_pay %}<td class="text-end text-nowrap kpu-num" data-dz-live="pay-{{ row.key }}">{{ row.pay is null ? '' : row.pay|money(currency) }}</td>{% endif %}
                         <td class="dz-note">
                             <div class="dz-view text-truncate text-secondary">{{ note_val != '' ? note_val : '–' }}</div>
                             <div class="dz-edit">
@@ -187,12 +187,12 @@
                 <tr class="fw-bold">
                     <td></td>
                     <td>{{ 'drehzettel.pdf.total'|trans }}</td>
-                    <td class="text-end text-nowrap">{{ v.sums.work|duration }}</td>
-                    {% for seconds in v.sums.tiers %}<td class="text-end text-nowrap">{{ seconds|duration }}</td>{% endfor %}
-                    <td class="text-end text-nowrap">{{ v.sums.night|duration }}</td>
-                    <td class="text-end text-nowrap">{{ v.sums.under|duration }}</td>
+                    <td class="text-end text-nowrap kpu-num">{{ v.sums.work|duration }}</td>
+                    {% for seconds in v.sums.tiers %}<td class="text-end text-nowrap kpu-num">{{ seconds|duration }}</td>{% endfor %}
+                    <td class="text-end text-nowrap kpu-num">{{ v.sums.night|duration }}</td>
+                    <td class="text-end text-nowrap kpu-num">{{ v.sums.under|duration }}</td>
                     <td class="text-nowrap">{{ 'drehzettel.week.catering_days'|trans({'%count%': v.sums.catering}) }}</td>
-                    {% if v.has_pay %}<td class="text-end text-nowrap">{{ v.sums.pay|money(currency) }}</td>{% endif %}
+                    {% if v.has_pay %}<td class="text-end text-nowrap kpu-num">{{ v.sums.pay|money(currency) }}</td>{% endif %}
                     <td></td>
                 </tr>
             </tfoot>

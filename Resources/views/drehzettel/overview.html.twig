@@ -42,10 +42,10 @@
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'role') }}">{{ e.role }}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'user') }}">{{ e.user.displayName }}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'ruleset') }}">{{ e.rulesetName }}</td>
-                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_from') }}">{{ e.validFrom|date_short }}</td>
-                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_to') }}">{{ e.validTo ? e.validTo|date_short : '–' }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_from') }} kpu-num">{{ e.validFrom|date_short }}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'valid_to') }} kpu-num">{{ e.validTo ? e.validTo|date_short : '–' }}</td>
                     {% set balance = azv[e.id] ?? null %}
-                    <td class="{{ datatable_column_class('drehzettel_engagements', 'azv') }}" title="{{ 'drehzettel.azv.title'|trans }}">{% if balance %}{{ (balance.minutes * 60)|duration }} · {{ 'drehzettel.azv.days'|trans({'%count%': balance.days}) }}{% else %}–{% endif %}</td>
+                    <td class="{{ datatable_column_class('drehzettel_engagements', 'azv') }} kpu-num" title="{{ 'drehzettel.azv.title'|trans }}">{% if balance %}{{ (balance.minutes * 60)|duration }} · {{ 'drehzettel.azv.days'|trans({'%count%': balance.days}) }}{% else %}–{% endif %}</td>
                     <td class="{{ datatable_column_class('drehzettel_engagements', 'actions') }}">
                         {% set event = actions(app.user, 'drehzettel_engagement', 'index', {engagement: e}) %}
                         {{ widgets.table_actions(event.actions) }}
