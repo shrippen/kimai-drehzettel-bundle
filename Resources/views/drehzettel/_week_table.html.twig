@@ -43,7 +43,7 @@
 <div data-dz-live="kpi">
     {% set surcharge_details = [] %}
     {% for seconds in v.sums.tiers %}
-        {% set surcharge_details = surcharge_details|merge([{label: _self.percent(v.tiers[loop.index0]), value: seconds|duration}]) %}
+        {% set surcharge_details = surcharge_details|merge([{label: _self.percent(v.tiers[loop.index0]), value: seconds|duration, tier: min(loop.index, 3)}]) %}
     {% endfor %}
     {# AZV credit up to this week (TV FFS TZ 6), as details of the work time tile. #}
     {% set work_details = v.azv is null ? [] : [
