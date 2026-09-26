@@ -27,4 +27,10 @@ final class DayInput
         public readonly ?DayCategory $nextCategory = null,
     ) {
     }
+
+    public function withTimes(\DateTimeImmutable $begin, \DateTimeImmutable $end): self
+    {
+        return new self($begin, $end, $this->category, $this->type, $this->catering, $this->breakMinutes,
+            $this->productionDay, $this->note, $this->extraPayCents, $this->shootingDayNumber, $this->nextCategory);
+    }
 }

@@ -19,7 +19,7 @@ use KimaiPlugin\DrehzettelBundle\Enum\SurchargeBasis;
 /**
  * One shooting day: work time, surcharge minutes, pay.
  *
- *   begin ──────────────── end
+ *   begin ──────────────── end    (each rounded on the clock, work rounding)
  *   gross = end - begin
  *   net   = gross - break          (break rule)
  *   work  = round(net)             (work rounding)
@@ -37,6 +37,11 @@ class DayCalculator
 
     public function calc(DayInput $day, Ruleset $rules, ?PayTerms $terms, int $dayNumber = 1): DayResult
     {
+        // Rounded clock times, so the timesheet row adds up: begin/end/break shown give the work time.
+        $day = $day->withTimes(
+            $rules->workRounding->clock($day->begin, true),
+            $rules->workRounding->clock($day->end, false),
+        );
         $gross = $this->grossMinutes($day);
         $break = $this->deductedBreak($day, $rules, $gross);
         $work = $rules->workRounding->apply($gross - $break);

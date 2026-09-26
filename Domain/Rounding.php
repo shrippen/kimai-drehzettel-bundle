@@ -30,4 +30,23 @@ final class Rounding
             RoundingMode::NEAREST => $rest * 2 >= $step ? $down + $step : $down,
         };
     }
+
+    /**
+     * Rounds a clock time on its own wall clock. The mode is meant for the work time, so a
+     * begin rounds the opposite way: UP (in the worker's favour) moves the begin earlier and
+     * the end later, DOWN the other way round, NEAREST both to the nearest step.
+     * 07:52 begin with QUARTER UP -> 07:45; 22:09 end -> 22:15. Seconds are dropped first.
+     */
+    public function clock(\DateTimeImmutable $time, bool $isBegin): \DateTimeImmutable
+    {
+        $minuteOfDay = (int) $time->format('G') * 60 + (int) $time->format('i');
+        $mode = $isBegin ? match ($this->mode) {
+            RoundingMode::UP => RoundingMode::DOWN,
+            RoundingMode::DOWN => RoundingMode::UP,
+            RoundingMode::NEAREST => RoundingMode::NEAREST,
+        } : $this->mode;
+        $rounded = (new self($this->unit, $mode))->apply($minuteOfDay);
+
+        return $time->setTime(0, 0)->modify(sprintf('+%d minutes', $rounded));
+    }
 }
