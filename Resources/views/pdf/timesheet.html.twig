@@ -33,7 +33,6 @@
     .sign { margin-top: 14mm; width: 100%; }
     .sign td { text-align: center; vertical-align: bottom; font-size: 8pt; }
     .sign .line { border-top: 0.3mm solid #111111; padding-top: 1mm; }
-    .sign img { height: 14mm; }
 </style>
 </head>
 <body>
@@ -137,7 +136,7 @@
             <td style="width: 48%;"></td>
             <td style="width: 24%; height: 15mm;"></td>
             <td style="width: 4%;"></td>
-            <td style="width: 24%; height: 15mm;">{% if v.signature_image %}<img src="{{ v.signature_image }}" alt="">{% endif %}</td>
+            <td style="width: 24%; height: 15mm;">{% if v.signature_image and v.signature_size %}<img src="{{ v.signature_image }}" alt="" style="width: {{ v.signature_size.width }}mm; height: {{ v.signature_size.height }}mm;">{% endif %}</td>
         </tr>
         <tr>
             <td></td>

@@ -39,6 +39,9 @@ class TimesheetViewBuilder
     ];
 
     private const SHORT_DATES = ['de' => 'd.m.Y', 'en' => 'j M Y'];
+    // Signature box above the crew signature line (24 % of the landscape page width).
+    private const SIGNATURE_MAX_WIDTH_MM = 60.0;
+    private const SIGNATURE_MAX_HEIGHT_MM = 14.0;
 
     // Currency of the timesheet being built, set by build() for the money columns.
     private string $currency = Format::CURRENCY;
@@ -86,8 +89,28 @@ class TimesheetViewBuilder
             'rounding' => $options->has(PdfOption::ROUNDING_NOTE) ? $this->roundingNote($rules, $locale) : null,
             'signature_lines' => $options->has(PdfOption::SIGNATURE_LINES),
             'signature_image' => $options->has(PdfOption::SIGNATURE_IMAGE) ? $meta->signatureDataUri : null,
+            'signature_size' => $options->has(PdfOption::SIGNATURE_IMAGE) ? $this->signatureSize($meta->signatureDataUri) : null,
             'azv' => $azv !== null && $azv->eligible ? $this->azvLine($azv, $locale) : null,
         ];
+    }
+
+    /**
+     * Signature image size in mm, scaled to fit the signature box with its aspect ratio kept.
+     * mPDF ignores CSS height on images in table cells and draws them at their native size,
+     * so a large upload would push the signature block onto its own page.
+     *
+     * @return array{width: float, height: float}|null
+     */
+    private function signatureSize(?string $dataUri): ?array
+    {
+        $bytes = $dataUri === null ? false : base64_decode(substr($dataUri, (int) strpos($dataUri, ',') + 1), true);
+        $info = $bytes === false ? false : @getimagesizefromstring($bytes);
+        if ($info === false || $info[0] <= 0 || $info[1] <= 0) {
+            return null;
+        }
+        $scale = min(self::SIGNATURE_MAX_WIDTH_MM / $info[0], self::SIGNATURE_MAX_HEIGHT_MM / $info[1]);
+
+        return ['width' => round($info[0] * $scale, 2), 'height' => round($info[1] * $scale, 2)];
     }
 
     // "AZV-Guthaben (TV FFS TZ 6) bis 30.06.2026: 12:30 h aus 25 Drehtagen, davon 1 AZV-Tag (10 h)."
