@@ -558,6 +558,10 @@
         <source>drehzettel.ruleset.delete_warning</source>
         <target>Engagements keep their own copy of the rules.</target>
       </trans-unit>
+      <trans-unit id="dz.ruleset.read_only" resname="drehzettel.ruleset.read_only">
+        <source>drehzettel.ruleset.read_only</source>
+        <target>Built-in ruleset, read-only. Copy it to make changes.</target>
+      </trans-unit>
       <trans-unit id="dz.rules.invalid" resname="drehzettel.rules.invalid">
         <source>drehzettel.rules.invalid</source>
         <target>The rules could not be saved. Check the values.</target>

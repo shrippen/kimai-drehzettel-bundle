@@ -19,7 +19,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * Custom ruleset templates: copy a preset, or an existing one, then edit it.
- * Built-in presets (TV FFS 2024, Quarter-Hour Ruleset) are read-only.
+ * Built-in presets (TV FFS 2024, Quarter-Hour Ruleset) are read-only: shown in the
+ * disabled editor, with copy in place of save.
  */
 #[Route(path: '/drehzettel/ruleset')]
 #[IsGranted('drehzettel_manage')]
@@ -50,6 +51,24 @@ class RulesetController extends AbstractController
             'page_setup' => $this->pages->create('drehzettel_rulesets', $this->pages->trans('drehzettel.rulesets')),
             'rows' => $rows,
         ]);
+    }
+
+    #[Route(path: '/view/{key}', name: 'drehzettel_ruleset_view', methods: ['GET'])]
+    public function view(string $key): Response
+    {
+        if (!\in_array($key, self::BUILTIN, true)) {
+            throw $this->createNotFoundException('Unknown ruleset.');
+        }
+
+        $ruleset = $this->catalog->get($key);
+        $form = $this->createForm(RulesetType::class, RulesetFormMapper::toForm($ruleset), ['disabled' => true]);
+
+        return $this->renderEditor(
+            $form,
+            $ruleset->name,
+            $this->pages->trans('drehzettel.ruleset.read_only'),
+            copy: $this->generateUrl('drehzettel_ruleset_new', ['from' => $key]),
+        );
     }
 
     #[Route(path: '/new/{from}', name: 'drehzettel_ruleset_new', methods: ['GET', 'POST'])]
@@ -151,7 +170,8 @@ class RulesetController extends AbstractController
         return true;
     }
 
-    private function renderEditor(FormInterface $form, string $title, ?string $context, ?string $delete = null): Response
+    // $copy: read-only view, the footer offers copy instead of save.
+    private function renderEditor(FormInterface $form, string $title, ?string $context, ?string $delete = null, ?string $copy = null): Response
     {
         $back = $this->generateUrl('drehzettel_ruleset_list');
 
@@ -161,6 +181,7 @@ class RulesetController extends AbstractController
             'title' => $title,
             'context' => [$context],
             'back' => $back,
+            'copy' => $copy,
         ]);
     }
 

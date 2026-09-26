@@ -558,6 +558,10 @@
         <source>drehzettel.ruleset.delete_warning</source>
         <target>Engagements behalten ihre eigene Kopie der Regeln.</target>
       </trans-unit>
+      <trans-unit id="dz.ruleset.read_only" resname="drehzettel.ruleset.read_only">
+        <source>drehzettel.ruleset.read_only</source>
+        <target>Eingebautes Regelwerk, nur lesbar. Kopiere es, um es anzupassen.</target>
+      </trans-unit>
       <trans-unit id="dz.rules.invalid" resname="drehzettel.rules.invalid">
         <source>drehzettel.rules.invalid</source>
         <target>Die Regeln konnten nicht gespeichert werden. Werte prüfen.</target>

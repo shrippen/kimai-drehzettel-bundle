@@ -1,5 +1,6 @@
 {#
     Ruleset editor (RulesetType): custom templates and the snapshot of one engagement.
+    With copy (URL) set, a built-in preset shown read-only: disabled form, copy instead of save.
     A long editor, so a page with Kimai's form card instead of a modal (kimai-plugin-ui GUIDELINES 3.7).
     Hours and percent, not minutes and basis points; an empty tier or surcharge is not used.
     The tier ladders are drawn from the field values and redrawn while typing (script below);
@@ -111,6 +112,13 @@
         back: back,
         reset: false,
     } %}
+        {% block submit_button %}
+            {% if copy %}
+                <a href="{{ copy }}" class="btn btn-primary">{{ 'drehzettel.ruleset.copy'|trans }}</a>
+            {% else %}
+                {{ parent() }}
+            {% endif %}
+        {% endblock %}
         {% block form_body %}
             {% import '@Drehzettel/drehzettel/_ruleset_parts.html.twig' as parts %}
             <datalist id="{{ constant('KimaiPlugin\\DrehzettelBundle\\Form\\RulesetType::LIST_PERCENT') }}">

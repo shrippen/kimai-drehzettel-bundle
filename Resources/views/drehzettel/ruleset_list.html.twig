@@ -23,7 +23,7 @@
         {% for r in rows %}
             <tr>
                 <td class="{{ datatable_column_class('drehzettel_rulesets', 'name') }}">
-                    {% if r.id %}<a href="{{ path('drehzettel_ruleset_edit', {id: r.id}) }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %}
+                    <a href="{{ r.id ? path('drehzettel_ruleset_edit', {id: r.id}) : path('drehzettel_ruleset_view', {key: r.key}) }}">{{ r.name }}</a>
                 </td>
                 <td class="{{ datatable_column_class('drehzettel_rulesets', 'kind') }} text-secondary">
                     {{ (r.id ? 'drehzettel.ruleset.custom' : 'drehzettel.ruleset.builtin')|trans }}

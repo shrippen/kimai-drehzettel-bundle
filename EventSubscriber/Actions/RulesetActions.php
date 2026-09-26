@@ -23,6 +23,8 @@ final class RulesetActions extends AbstractActionsSubscriber
 
         if ($id !== null) {
             $event->addEdit($this->path('drehzettel_ruleset_edit', ['id' => $id]), false);
+        } else {
+            $event->addAction('details', ['url' => $this->path('drehzettel_ruleset_view', ['key' => $payload['key']]), 'title' => 'details']);
         }
         $event->addAction('copy', ['url' => $this->path('drehzettel_ruleset_new', ['from' => $payload['key']]), 'title' => 'drehzettel.ruleset.copy']);
         if ($id !== null) {
