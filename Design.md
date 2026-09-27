@@ -5,8 +5,8 @@ All visual design decisions for this project follow the shared [shrippen DesignD
 ## Quick Links
 
 - **Full spec**: <https://github.com/shrippen/shrippen.github.io>
-- **CSS tokens**: <https://github.com/shrippen/shrippen.github.io/blob/main/tokens/variables.css>
-- **Landing page template**: <https://github.com/shrippen/shrippen.github.io/blob/main/templates/landing.html>
+- **CSS tokens**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/tokens/variables.css>
+- **Landing page template**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/templates/landing.html>
 
 ## Key Decisions
 
