@@ -14,3 +14,4 @@
 /reference                  export-ignore
 /research                   export-ignore
 /tests                      export-ignore
+/demo export-ignore
