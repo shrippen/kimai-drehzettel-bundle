@@ -15,15 +15,6 @@ Landing page: <https://shrippen.github.io/kimai-drehzettel-bundle/>
 - REST API for external clients (e.g. the Plasmai widget), see [API](#api)
 - Warnings for working and rest time limits, see [Working and rest time warnings](#working-and-rest-time-warnings)
 
-## Demo
-
-`demo/start.sh [de|en] [default|knust]` starts a local Kimai (Docker) with this plugin and made-up data from
-"Studio Weber", the demo world shared by all shrippen projects. The setup lives in the sibling checkout
-`shrippen.github.io/demo/kimai/`; `demo/seed.php` adds the plugin's data, `demo/world.json` and
-`demo/DemoWorld.php` are copies from there (`shrippen.github.io/demo/tools/sync-demo.py`, do not edit them here). Sign in as
-`mara` / `demo-password-1`. `demo/shots.json` describes the screenshots in `docs/shots/`
-(`shrippen.github.io/demo/tools/screenshots.py`).
-
 ## Install
 
 Needs Kimai 2.67 or newer and PHP 8.1 or newer.
