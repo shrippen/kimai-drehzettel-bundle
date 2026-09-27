@@ -7,6 +7,19 @@
 
 date_default_timezone_set('Europe/Berlin');
 
+// The date formatting uses intl, like Kimai itself. Some distributions (Arch) install the
+// extension but leave it disabled in php.ini: run once more with it loaded instead of
+// failing half-way.
+if (!extension_loaded('intl')) {
+    if (getenv('DREHZETTEL_TESTS_INTL_RETRY') === false) {
+        putenv('DREHZETTEL_TESTS_INTL_RETRY=1');
+        passthru(escapeshellarg(PHP_BINARY) . ' -d extension=intl ' . escapeshellarg(__FILE__), $code);
+        exit($code);
+    }
+    fwrite(STDERR, "The PHP extension intl is missing; install it or enable it in php.ini.\n");
+    exit(2);
+}
+
 spl_autoload_register(static function (string $class): void {
     $prefix = 'KimaiPlugin\\DrehzettelBundle\\';
     if (!str_starts_with($class, $prefix)) {
