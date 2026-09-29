@@ -30,6 +30,16 @@ The folder name must stay `DrehzettelBundle`. In the official Docker image use `
 
 Until the interface exists, engagements are created in code. `bin/console drehzettel:week USER PROJECT-ID YEAR WEEK` prints a calculated week.
 
+## Update
+
+```
+git -C var/plugins/DrehzettelBundle pull
+bin/console kimai:reload -n
+bin/console kimai:bundle:drehzettel:install
+```
+
+Run the install command after every update: it applies the plugin's database migrations. Kimai does not do this on its own. `./kimai.sh update` runs all plugin installers, but `kimai:update`, a restart of the Docker container and a manual update do not. Until then, Drehzettel pages show a hint with this command, the API answers `503 update_pending` and automatic mails wait.
+
 ## Mail
 
 "Mail week PDF" on the week page opens a dialog with recipient, subject and text. Both come from the engagement's template ("Mail template and automatic sending") and can be changed before sending. Placeholders: `{name}`, `{project}`, `{customer}`, `{role}`, `{period}`, `{from}`, `{to}`, `{week}`, `{month}`, `{year}`. Kimai's mail settings apply; the mail is sent in the user's name, replies go to the user.
@@ -140,6 +150,7 @@ Errors are `{"error": "...", "code": "..."}`:
 | 400 | `missing_project`, `invalid_project`, `invalid_user`, `invalid_date`, `invalid_json`, `invalid_value` |
 | 403 | `forbidden` |
 | 404 | `unknown_project`, `unknown_user`, `no_engagement`, `unknown_engagement` |
+| 503 | `update_pending`: database migrations missing, see [Update](#update); `ping` still answers |
 
 Malformed JSON never reaches the plugin: Kimai answers it with its own `{"code": 400, "message": "Bad Request"}`.
 

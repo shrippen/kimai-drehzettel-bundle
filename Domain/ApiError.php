@@ -13,6 +13,7 @@ final class ApiError extends \RuntimeException
     public const HTTP_BAD_REQUEST = 400;
     public const HTTP_FORBIDDEN = 403;
     public const HTTP_NOT_FOUND = 404;
+    public const HTTP_SERVICE_UNAVAILABLE = 503;
 
     public const MISSING_PROJECT = 'missing_project';
     public const INVALID_PROJECT = 'invalid_project';
@@ -25,6 +26,7 @@ final class ApiError extends \RuntimeException
     public const INVALID_JSON = 'invalid_json';
     public const INVALID_VALUE = 'invalid_value';
     public const FORBIDDEN = 'forbidden';
+    public const UPDATE_PENDING = 'update_pending';
 
     private function __construct(
         public readonly int $status,
@@ -47,6 +49,11 @@ final class ApiError extends \RuntimeException
     public static function forbidden(string $message): self
     {
         return new self(self::HTTP_FORBIDDEN, self::FORBIDDEN, $message);
+    }
+
+    public static function updatePending(string $message): self
+    {
+        return new self(self::HTTP_SERVICE_UNAVAILABLE, self::UPDATE_PENDING, $message);
     }
 
     /**

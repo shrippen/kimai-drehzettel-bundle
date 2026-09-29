@@ -1,0 +1,11 @@
+{# Plugin updated, migrations not run yet (SchemaSubscriber). #}
+{% extends 'base.html.twig' %}
+{% from '@theme/components/alert.html.twig' import alert %}
+
+{% block main %}
+    {% set html %}
+        <p>{{ 'drehzettel.update_pending'|trans }}</p>
+        <code class="user-select-all">{{ command }}</code>
+    {% endset %}
+    {{ alert({type: 'warning', title: 'drehzettel.update_pending.title'|trans, description: html, icon: 'warning', dismissible: false, important: true, raw: true}) }}
+{% endblock %}

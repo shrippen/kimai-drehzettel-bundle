@@ -5,6 +5,7 @@ namespace KimaiPlugin\DrehzettelBundle\EventSubscriber;
 use App\Event\ConfigureMainMenuEvent;
 use App\Utils\MenuItemModel;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
+use KimaiPlugin\DrehzettelBundle\Service\SchemaStatus;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -17,6 +18,7 @@ class MenuSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly Security $security,
         private readonly EngagementRepository $engagements,
+        private readonly SchemaStatus $schema,
     ) {
     }
 
@@ -35,6 +37,12 @@ class MenuSubscriber implements EventSubscriberInterface
         }
 
         $isManager = $this->security->isGranted('drehzettel_manage');
+
+        // Pending migrations: managers keep the entry, it leads to the install hint.
+        if (!$isManager && !$this->schema->isCurrent()) {
+            return;
+        }
+
         if (!$isManager && $this->engagements->countForUser($user) === 0) {
             return;
         }

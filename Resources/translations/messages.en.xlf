@@ -502,6 +502,14 @@
         <source>drehzettel.mail.sent</source>
         <target>Week PDF sent to %address%.</target>
       </trans-unit>
+      <trans-unit id="dz.update_pending.title" resname="drehzettel.update_pending.title">
+        <source>drehzettel.update_pending.title</source>
+        <target>Database update missing</target>
+      </trans-unit>
+      <trans-unit id="dz.update_pending" resname="drehzettel.update_pending">
+        <source>drehzettel.update_pending</source>
+        <target>Drehzettel was updated, but its database was not. Until then Drehzettel pages and automatic mails are paused. An administrator has to run once on the server:</target>
+      </trans-unit>
       <trans-unit id="dz.mail.failed" resname="drehzettel.mail.failed">
         <source>drehzettel.mail.failed</source>
         <target>The mail could not be sent. Check the mail settings of Kimai or try again later.</target>

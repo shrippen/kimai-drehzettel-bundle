@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\EventSubscriber;
 
 use KimaiPlugin\DrehzettelBundle\Service\ScheduledMails;
+use KimaiPlugin\DrehzettelBundle\Service\SchemaStatus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
@@ -22,6 +23,7 @@ final class ScheduledMailSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private readonly ScheduledMails $mails,
+        private readonly SchemaStatus $schema,
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
     ) {
@@ -35,6 +37,11 @@ final class ScheduledMailSubscriber implements EventSubscriberInterface
     public function onTerminate(TerminateEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        // Missing tables after an update: wait for the install command instead of logging each run.
+        if (!$this->schema->isCurrent()) {
             return;
         }
 

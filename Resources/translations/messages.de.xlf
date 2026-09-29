@@ -502,6 +502,14 @@
         <source>drehzettel.mail.sent</source>
         <target>Wochen-PDF an %address% gesendet.</target>
       </trans-unit>
+      <trans-unit id="dz.update_pending.title" resname="drehzettel.update_pending.title">
+        <source>drehzettel.update_pending.title</source>
+        <target>Datenbank-Update fehlt</target>
+      </trans-unit>
+      <trans-unit id="dz.update_pending" resname="drehzettel.update_pending">
+        <source>drehzettel.update_pending</source>
+        <target>Drehzettel wurde aktualisiert, die Datenbank aber noch nicht. Bis dahin sind die Drehzettel-Seiten und der automatische Mailversand pausiert. Ein Administrator muss einmal auf dem Server ausführen:</target>
+      </trans-unit>
       <trans-unit id="dz.mail.failed" resname="drehzettel.mail.failed">
         <source>drehzettel.mail.failed</source>
         <target>Die Mail konnte nicht gesendet werden. Mail-Einstellungen von Kimai prüfen oder später erneut versuchen.</target>
