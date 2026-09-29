@@ -12,6 +12,7 @@ Landing page: <https://shrippen.github.io/kimai-drehzettel-bundle/>
 - Engagements: pay, dates and a ruleset snapshot per user and project, so two people on one film can have different terms
 - Rounding of work time and surcharges: minute, quarter hour, half hour, hour; up, down or nearest
 - Time comes from normal Kimai timesheet entries, one per shooting day. Break, catering, day type, extra pay and note are stored per film day
+- Week PDF by mail: subject and text from a template with placeholders, editable before sending; optionally sent automatically every week or month, see [Mail](#mail)
 - REST API for external clients (e.g. the Plasmai widget), see [API](#api)
 - Warnings for working and rest time limits, see [Working and rest time warnings](#working-and-rest-time-warnings)
 
@@ -28,6 +29,18 @@ bin/console kimai:bundle:drehzettel:install
 The folder name must stay `DrehzettelBundle`. In the official Docker image use `/opt/kimai/bin/console` with `docker exec`.
 
 Until the interface exists, engagements are created in code. `bin/console drehzettel:week USER PROJECT-ID YEAR WEEK` prints a calculated week.
+
+## Mail
+
+"Mail week PDF" on the week page opens a dialog with recipient, subject and text. Both come from the engagement's template ("Mail template and automatic sending") and can be changed before sending. Placeholders: `{name}`, `{project}`, `{customer}`, `{role}`, `{period}`, `{from}`, `{to}`, `{week}`, `{month}`, `{year}`. Kimai's mail settings apply; the mail is sent in the user's name, replies go to the user.
+
+Automatic sending: every week on a weekday, or every month on the 1st, at an hour of the user's timezone. Weekly sends the week of the day before (Monday morning = last week), monthly the previous month. Nothing is sent for a period without film days.
+
+Without a cron job the due mails go out with the first Kimai request after the send time (checked at most every 10 minutes). For punctual mails add a cron job:
+
+```
+*/15 * * * * /opt/kimai/bin/console drehzettel:mail:due
+```
 
 ## 6th and 7th day
 

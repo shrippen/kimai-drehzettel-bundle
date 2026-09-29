@@ -6,16 +6,12 @@ use App\Controller\AbstractController;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
 use KimaiPlugin\DrehzettelBundle\Domain\Period;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
-use KimaiPlugin\DrehzettelBundle\Form\MailType;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
 use KimaiPlugin\DrehzettelBundle\Service\PageSetups;
-use KimaiPlugin\DrehzettelBundle\Repository\MailRecipientRepository;
 use KimaiPlugin\DrehzettelBundle\Service\PdfExporter;
-use KimaiPlugin\DrehzettelBundle\Service\TimesheetMailer;
 use KimaiPlugin\DrehzettelBundle\Service\WeekPageBuilder;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,8 +33,6 @@ class WeekController extends AbstractController
         private readonly WeekPageBuilder $pageBuilder,
         private readonly FilmDayService $filmDays,
         private readonly PdfExporter $pdfExporter,
-        private readonly TimesheetMailer $mailer,
-        private readonly MailRecipientRepository $mailRecipients,
         private readonly PageSetups $pages,
     ) {
     }
@@ -127,45 +121,6 @@ class WeekController extends AbstractController
         $document = $this->pdfExporter->export($engagement, $period, $options);
 
         return $this->pdfResponse($document->filename, $document->content);
-    }
-
-    // Kimai modal: recipient form (GET), send the week PDF (POST).
-    #[Route(path: '/week/{year}/{week}/mail', name: 'drehzettel_week_mail', requirements: ['year' => '\d+', 'week' => '\d+'], methods: ['GET', 'POST'])]
-    public function mail(Request $request, int $id, int $year, int $week): Response
-    {
-        $engagement = $this->findEngagement($id);
-        $url = $this->generateUrl('drehzettel_week_mail', ['id' => $id, 'year' => $year, 'week' => $week]);
-        $form = $this->createForm(MailType::class, [MailType::FIELD => $this->mailRecipients->findForEngagement($engagement)?->getEmail()], [
-            'action' => $url,
-            'attr' => ['data-form-event' => 'kpu.reload'],
-        ]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $address = (string) $form->get(MailType::FIELD)->getData();
-            $period = Period::week($year, $week, $engagement->getUser()->getDateTimezone());
-            $document = $this->pdfExporter->export($engagement, $period, $engagement->getPdfOptions());
-            $subject = sprintf('%s — %s', $document->filename, $engagement->getProject()->getName());
-
-            try {
-                $this->mailer->send($address, $subject, $subject, $document);
-                $this->mailRecipients->remember($engagement, $address);
-                $this->addFlash('kpu_result', $this->pages->trans('drehzettel.mail.sent', ['%address%' => $address]));
-
-                return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week], true);
-            } catch (\Throwable $e) {
-                // Transport errors can name hosts or accounts: log them, show only a generic error.
-                $this->logException($e);
-                $form->addError(new FormError($this->pages->trans('drehzettel.mail.failed')));
-            }
-        }
-
-        return $this->render('@Drehzettel/drehzettel/mail.html.twig', [
-            'page_setup' => $this->pages->create(self::ACTIONS . '_mail', $this->pages->trans(self::WEEK_KEY, ['%week%' => $week])),
-            'form' => $form->createView(),
-            'engagement' => $engagement,
-            'back' => $this->generateUrl('drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week]),
-        ]);
     }
 
     private function findEngagement(int $id): Engagement

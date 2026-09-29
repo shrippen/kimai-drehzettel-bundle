@@ -1,4 +1,5 @@
-{# Week PDF by mail: Kimai modal from the week page ("Mail" action), page without JS. #}
+{# Week PDF by mail: Kimai modal from the week page ("Mail" action), page without JS.
+   Subject and text come from the engagement's template and can be changed before sending. #}
 {% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
 
 {% block main %}
@@ -9,6 +10,12 @@
         reset: false,
         submit_button: 'drehzettel.mail.send',
     } %}
-        {% block modal_size %}{% endblock %}
+        {% block form_body %}
+            {{ form_row(form.to) }}
+            {{ form_row(form.subject) }}
+            {{ form_row(form.body) }}
+            {{ form_rest(form) }}
+            <a href="{{ settings_url }}" class="modal-ajax-form">{{ 'drehzettel.mail.settings_link'|trans }}</a>
+        {% endblock %}
     {% endembed %}
 {% endblock %}

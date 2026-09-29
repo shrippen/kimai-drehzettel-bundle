@@ -714,6 +714,87 @@
         <source>drehzettel.compliance.short.night_cutoff</source>
         <target>Night past 4:00</target>
       </trans-unit>
+      <trans-unit id="dz.mail.subject" resname="drehzettel.mail.subject">
+        <source>drehzettel.mail.subject</source>
+        <target>Subject</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.body" resname="drehzettel.mail.body">
+        <source>drehzettel.mail.body</source>
+        <target>Text</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.dialog_help" resname="drehzettel.mail.dialog_help">
+        <source>drehzettel.mail.dialog_help</source>
+        <target>Filled in from the template, change it freely. Placeholders such as {period} are replaced when sending.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.settings" resname="drehzettel.mail.settings">
+        <source>drehzettel.mail.settings</source>
+        <target>Mail template and automatic sending</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.settings_link" resname="drehzettel.mail.settings_link">
+        <source>drehzettel.mail.settings_link</source>
+        <target>Edit template, set up automatic sending …</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.settings_saved" resname="drehzettel.mail.settings_saved">
+        <source>drehzettel.mail.settings_saved</source>
+        <target>Mail settings saved.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.rhythm" resname="drehzettel.mail.rhythm">
+        <source>drehzettel.mail.rhythm</source>
+        <target>Send automatically</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.rhythm.off" resname="drehzettel.mail.rhythm.off">
+        <source>drehzettel.mail.rhythm.off</source>
+        <target>Never</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.rhythm.weekly" resname="drehzettel.mail.rhythm.weekly">
+        <source>drehzettel.mail.rhythm.weekly</source>
+        <target>Every week</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.rhythm.monthly" resname="drehzettel.mail.rhythm.monthly">
+        <source>drehzettel.mail.rhythm.monthly</source>
+        <target>Every month (on the 1st)</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.rhythm_help" resname="drehzettel.mail.rhythm_help">
+        <source>drehzettel.mail.rhythm_help</source>
+        <target>Weekly: the week of the day before (Monday morning = last week). Monthly: the previous month. Nothing is sent for a period without film days.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.weekday" resname="drehzettel.mail.weekday">
+        <source>drehzettel.mail.weekday</source>
+        <target>Weekday (weekly)</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.hour" resname="drehzettel.mail.hour">
+        <source>drehzettel.mail.hour</source>
+        <target>Time</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.template_help" resname="drehzettel.mail.template_help">
+        <source>drehzettel.mail.template_help</source>
+        <target>Empty: the default text. Placeholders: %placeholders%</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.to_required" resname="drehzettel.mail.to_required">
+        <source>drehzettel.mail.to_required</source>
+        <target>Automatic sending needs a recipient.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.next" resname="drehzettel.mail.next">
+        <source>drehzettel.mail.next</source>
+        <target>Next mail: %date% (%period%).</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.period_week" resname="drehzettel.mail.period_week">
+        <source>drehzettel.mail.period_week</source>
+        <target>CW %week%/%year%</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.default_subject" resname="drehzettel.mail.default_subject">
+        <source>drehzettel.mail.default_subject</source>
+        <target>Timesheet {period} – {project}</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.default_body" resname="drehzettel.mail.default_body">
+        <source>drehzettel.mail.default_body</source>
+        <target>Hello,
+
+please find attached my timesheet for {period} ({from} – {to}), project {project}.
+
+Best regards
+{name}</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

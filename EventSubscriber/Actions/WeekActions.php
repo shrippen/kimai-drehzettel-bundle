@@ -7,7 +7,7 @@ use App\EventSubscriber\Actions\AbstractActionsSubscriber;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 
 /**
- * Page header of the week: save, week PDF, month PDF, mail; managers get the
+ * Page header of the week: save, week PDF, month PDF, mail, mail settings; managers get the
  * engagement submenu (edit, rules, delete).
  */
 final class WeekActions extends AbstractActionsSubscriber
@@ -40,6 +40,7 @@ final class WeekActions extends AbstractActionsSubscriber
         $event->addAction('pdf', ['url' => $this->path('drehzettel_week_pdf', $week), 'target' => '_blank', 'title' => 'drehzettel.action.week_pdf']);
         $event->addAction('calendar', ['url' => $this->path('drehzettel_month_pdf', $month), 'target' => '_blank', 'title' => 'drehzettel.action.month_pdf']);
         $event->addAction('mail', ['url' => $this->path('drehzettel_week_mail', $week), 'class' => 'modal-ajax-form', 'title' => 'drehzettel.action.mail']);
+        $event->addAction('repeat', ['url' => $this->path('drehzettel_mail_settings', ['id' => $engagement->getId()]), 'class' => 'modal-ajax-form', 'title' => 'drehzettel.mail.settings']);
 
         if (!$this->isGranted('drehzettel_manage')) {
             return;

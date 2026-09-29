@@ -1,0 +1,27 @@
+{# Mail template and automatic sending of an engagement: Kimai modal, page without JS. #}
+{% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
+
+{% block main %}
+    {% embed (kimai_context.modalRequest ? 'default/_form_modal.html.twig' : 'default/_form.html.twig') with {
+        title: 'drehzettel.mail.settings'|trans,
+        form: form,
+        back: back,
+        reset: false,
+    } %}
+        {% block form_body %}
+            {{ form_row(form.to) }}
+            <div class="row">
+                <div class="col-md-4">{{ form_row(form.rhythm) }}</div>
+                <div class="col-md-4">{{ form_row(form.weekday) }}</div>
+                <div class="col-md-4">{{ form_row(form.hour) }}</div>
+            </div>
+            {% if next_slot is not null %}
+                <p class="text-muted">{{ 'drehzettel.mail.next'|trans({'%date%': next_slot|date_time, '%period%': next_period}) }}</p>
+            {% endif %}
+            <hr>
+            {{ form_row(form.subject) }}
+            {{ form_row(form.body) }}
+            {{ form_rest(form) }}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

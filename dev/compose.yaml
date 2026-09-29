@@ -1,6 +1,7 @@
 # Local Kimai 2.67 for plugin development. Not for production.
 # Start: docker compose -f dev/compose.yaml up -d
 # Login: http://localhost:8091  admin@example.test / admin-dev-pass
+# Sent mails: http://localhost:8025 (Mailpit)
 services:
   db:
     image: mariadb:11
@@ -28,9 +29,16 @@ services:
       ADMINPASS: admin-dev-pass
       DATABASE_URL: mysql://kimai:kimai-dev@db/kimai?charset=utf8mb4&serverVersion=11.0.0-MariaDB
       TRUSTED_HOSTS: '^(localhost|127\.0\.0\.1)$$'
+      MAILER_URL: smtp://mailpit:1025
+      MAILER_FROM: kimai@example.test
     volumes:
       - data:/opt/kimai/var/data
       - ..:/opt/kimai/var/plugins/DrehzettelBundle:ro
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:8025:8025"
 
 volumes:
   db:
