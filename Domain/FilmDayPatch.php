@@ -10,11 +10,13 @@ use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 /**
  * Partial update of one film day from an API body. Only sent keys change:
  *
- *   stored  {break 0, travel, day 6, note "Reise"}
+ *   stored  {break 0, travel, day 6}
  *   body    {"breakMinutes": 30}
- *   result  {break 30, travel, day 6, note "Reise"}
+ *   result  {break 30, travel, day 6}
  *
  * Unlike the week view's reader, bad values are rejected, not clamped.
+ * "note" is validated here but not applied: it is the description of the
+ * day's Kimai entries (Service\DayNotes), see noteText().
  */
 final class FilmDayPatch
 {
@@ -83,15 +85,22 @@ final class FilmDayPatch
         if (array_key_exists('productionDay', $this->values)) {
             $day->setProductionDay($this->values['productionDay']);
         }
-        if (array_key_exists('note', $this->values)) {
-            $day->setNote($this->values['note']);
-        }
         if (array_key_exists('extraPayCents', $this->values)) {
             $day->setExtraPayCents($this->values['extraPayCents']);
         }
         if (array_key_exists('shootingDayNumber', $this->values)) {
             $day->setShootingDayNumber($this->values['shootingDayNumber']);
         }
+    }
+
+    public function hasNote(): bool
+    {
+        return array_key_exists('note', $this->values);
+    }
+
+    public function noteText(): ?string
+    {
+        return $this->values['note'] ?? null;
     }
 
     // Null means "ruleset default". Integral numbers and digit strings ("45") pass.

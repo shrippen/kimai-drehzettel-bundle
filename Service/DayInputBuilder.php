@@ -15,7 +15,8 @@ use KimaiPlugin\DrehzettelBundle\Service\HolidayLookupInterface;
 use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 
 /**
- * Kimai timesheet entries + film day data -> calculator input.
+ * Kimai timesheet entries + film day data -> calculator input. The note is the
+ * entries' own description (DayNotes).
  *
  * One shooting day is one continuous span: earliest begin to latest end
  * of all entries that start on that date, plus an entry after midnight that
@@ -31,6 +32,7 @@ class DayInputBuilder
         private readonly TimesheetRangeRepository $timesheets,
         private readonly FilmDayRepository $filmDays,
         private readonly HolidayLookupInterface $holidays,
+        private readonly DayNotes $notes,
     ) {
     }
 
@@ -42,6 +44,7 @@ class DayInputBuilder
     {
         $spans = $this->spans($engagement, $from, $to);
         $film = $this->filmDaysByDate($engagement, $from, $to);
+        $notes = $this->notes->byDate($engagement, $from, $to);
 
         $inputs = [];
         foreach ($spans as $key => [$begin, $end]) {
@@ -55,7 +58,7 @@ class DayInputBuilder
                 catering: $extra?->getCatering() ?? Catering::NO,
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
-                note: $extra?->getNote(),
+                note: isset($drafts[$key]) ? $drafts[$key]->note : ($notes[$key] ?? null),
                 extraPayCents: $extra?->getExtraPayCents() ?? 0,
                 shootingDayNumber: $extra?->getShootingDayNumber(),
                 nextCategory: $override === null ? $this->nextCategory($engagement, $begin, $end) : null,
@@ -95,7 +98,6 @@ class DayInputBuilder
         $day->setCategory($draft->category);
         $day->setDayType($draft->type);
         $day->setProductionDay($draft->productionDay);
-        $day->setNote($draft->note);
         $day->setExtraPayCents($draft->extraPayCents);
         $day->setShootingDayNumber($draft->shootingDayNumber);
 

@@ -15,6 +15,7 @@ use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Service\AzvService;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
+use KimaiPlugin\DrehzettelBundle\Service\DayNotes;
 use KimaiPlugin\DrehzettelBundle\Service\DaySummaryService;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
@@ -63,6 +64,7 @@ final class DrehzettelApiController extends AbstractController
         private readonly DayInputBuilder $dayInputs,
         private readonly DaySummaryService $daySummaries,
         private readonly AzvService $azv,
+        private readonly DayNotes $notes,
     ) {
     }
 
@@ -144,7 +146,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['GET'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_get', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the default": defaultBreakMinutes (engagement ruleset) and effectiveCategory (weekday or public holiday, or the stored category). productionDay is the day within the shooting week, 1-7 (6/7 trigger the 6th/7th-day surcharge; null = count entries of the week). shootingDayNumber is the running shooting day of the production (1-999, "Drehtag 37"), informational only.')]
+    #[OA\Response(response: 200, description: 'The stored film day fields for this date, or nulls/defaults if none were saved yet. A null breakMinutes/category means "use the default": defaultBreakMinutes (engagement ruleset) and effectiveCategory (weekday or public holiday, or the stored category). productionDay is the day within the shooting week, 1-7 (6/7 trigger the 6th/7th-day surcharge; null = count entries of the week). shootingDayNumber is the running shooting day of the production (1-999, "Drehtag 37"), informational only. note is the description of the day\'s Kimai entries (several joined by a line break).')]
     #[OA\Response(response: 404, description: 'code no_engagement: no active engagement for project, user and date; or unknown_project/unknown_user.')]
     public function filmDayGet(Request $request, string $date): JsonResponse
     {
@@ -157,7 +159,7 @@ final class DrehzettelApiController extends AbstractController
     }
 
     #[Route(methods: ['PUT'], path: '/v1/film-days/{date}', name: 'drehzettel_api_film_day_put', requirements: ['date' => '\d{4}-\d{2}-\d{2}'])]
-    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default, extraPayCents to 0 and shootingDayNumber to none.')]
+    #[OA\Response(response: 200, description: 'Saves the film day fields for this date (upsert). Partial: only keys present in the body change, others keep their stored value. null resets breakMinutes/category/productionDay/note to the ruleset default, extraPayCents to 0 and shootingDayNumber to none. note is written to the description of the day\'s first Kimai entry (the others are cleared); without an entry on that date it is not stored and the answer has note null.')]
     #[OA\Response(response: 400, description: 'code invalid_json, or invalid_value for a field: breakMinutes 0-720, productionDay 1-7, extraPayCents integer 0-10000000, shootingDayNumber 1-999, note at most 500 characters, catering boolean, category/dayType one of the known values.')]
     #[OA\Response(response: 404, description: 'code no_engagement, unknown_project or unknown_user.')]
     public function filmDayPut(Request $request, string $date): JsonResponse
@@ -177,6 +179,9 @@ final class DrehzettelApiController extends AbstractController
             }
 
             $day = $this->filmDayService->patch($engagement, ApiQuery::date($date, new \DateTimeImmutable()), $patch);
+            if ($patch->hasNote()) {
+                $this->notes->write($engagement, ApiQuery::date($date, new \DateTimeImmutable()), $patch->noteText());
+            }
 
             return $this->filmDayJson($date, $engagement, $day);
         });
@@ -216,9 +221,10 @@ final class DrehzettelApiController extends AbstractController
     private function filmDayJson(string $date, Engagement $engagement, ?FilmDay $day): array
     {
         $rules = $this->engagements->ruleset($engagement);
-        $autoCategory = $this->dayInputs->categoryFor($engagement, ApiQuery::date($date, new \DateTimeImmutable()));
+        $dayDate = ApiQuery::date($date, new \DateTimeImmutable());
+        $autoCategory = $this->dayInputs->categoryFor($engagement, $dayDate);
 
-        return ApiJson::filmDay($date, $engagement, $day, $rules, $autoCategory);
+        return ApiJson::filmDay($date, $engagement, $day, $rules, $autoCategory, $this->notes->read($engagement, $dayDate));
     }
 
     // engagement-status may legitimately answer "false" for a user/project with no

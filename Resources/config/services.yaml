@@ -24,6 +24,7 @@ services:
 
     KimaiPlugin\DrehzettelBundle\Service\Labels: '@KimaiPlugin\DrehzettelBundle\Service\TranslatorLabels'
     KimaiPlugin\DrehzettelBundle\Service\HolidayLookupInterface: '@KimaiPlugin\DrehzettelBundle\Service\NullHolidayLookup'
+    KimaiPlugin\DrehzettelBundle\Service\TimesheetWriter: '@KimaiPlugin\DrehzettelBundle\Service\KimaiTimesheetWriter'
 
     KimaiPlugin\DrehzettelBundle\Controller\:
         resource: '../../Controller'

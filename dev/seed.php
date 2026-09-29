@@ -21,7 +21,9 @@ use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmRulesetRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
+use KimaiPlugin\DrehzettelBundle\Service\DayNotes;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
+use KimaiPlugin\DrehzettelBundle\Service\FlushTimesheetWriter;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
 
 const KIMAI_ROOT = '/opt/kimai';
@@ -76,7 +78,7 @@ $engagement = $service->open(
     RulesetCatalog::QUARTER_HOUR,
 );
 
-$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry));
+$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry), new DayNotes(new TimesheetRangeRepository($registry), new FlushTimesheetWriter($em)));
 $isFirstDay = true;
 foreach ($fixtures['weekly_gage']['weeks'] as $week) {
     foreach ($week['rows'] as $row) {
@@ -92,17 +94,17 @@ foreach ($fixtures['weekly_gage']['weeks'] as $week) {
         $sheet->setProject($project);
         $sheet->setBegin($begin);
         $sheet->setEnd($end);
+        // One note (the entry's description), to see it on the PDF.
+        $sheet->setDescription($isFirstDay ? 'Studio rebuild in the morning' : null);
+        $isFirstDay = false;
         $em->persist($sheet);
 
-        // One note, to see it on the PDF.
-        $note = $isFirstDay ? 'Studio rebuild in the morning' : null;
-        $isFirstDay = false;
         $filmDays->save(
             $engagement,
             new DateTimeImmutable($row['date']),
             $row['breakMinutes'],
             $row['catering'] ? Catering::YES : Catering::NO,
-            note: $note,
+            note: $sheet->getDescription(),
         );
     }
 }

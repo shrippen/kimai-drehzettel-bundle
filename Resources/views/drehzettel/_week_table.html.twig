@@ -176,7 +176,8 @@
                         <td class="dz-note">
                             <div class="dz-view text-truncate text-secondary">{{ note_val != '' ? note_val : '–' }}</div>
                             <div class="dz-edit">
-                                <input type="text" class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" maxlength="500" value="{{ note_val }}" aria-label="{{ 'drehzettel.note'|trans }}" placeholder="{{ 'drehzettel.note'|trans }}">
+                                {# A textarea: the note is the entries' description, which can have several lines. #}
+                                <textarea class="form-control form-control-sm dz-field" name="day[{{ row.key }}][note]" rows="2" maxlength="10000" aria-label="{{ 'drehzettel.note'|trans }}" placeholder="{{ 'drehzettel.note'|trans }}">{{ note_val }}</textarea>
                             </div>
                         </td>
                     </tr>

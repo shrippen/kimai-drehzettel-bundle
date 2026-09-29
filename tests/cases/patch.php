@@ -16,14 +16,13 @@ function travelDay(): FilmDay
     $day->setCategory(DayCategory::HOLIDAY);
     $day->setDayType(DayType::TRAVEL);
     $day->setProductionDay(6);
-    $day->setNote('Reise');
 
     return $day;
 }
 
 function dayFields(FilmDay $d): array
 {
-    return [$d->getBreakMinutes(), $d->getCatering(), $d->getCategory(), $d->getDayType(), $d->getProductionDay(), $d->getNote()];
+    return [$d->getBreakMinutes(), $d->getCatering(), $d->getCategory(), $d->getDayType(), $d->getProductionDay()];
 }
 
 function patchError(array $body): ?string
@@ -37,19 +36,25 @@ function patchError(array $body): ?string
     }
 }
 
-// Only sent fields change: {"breakMinutes":30} keeps travel/6/catering/note.
+// Only sent fields change: {"breakMinutes":30} keeps travel/6/catering.
 $day = travelDay();
 FilmDayPatch::fromArray(['breakMinutes' => 30])->applyTo($day);
-check('patch keeps unsent fields', [30, Catering::YES, DayCategory::HOLIDAY, DayType::TRAVEL, 6, 'Reise'], dayFields($day));
+check('patch keeps unsent fields', [30, Catering::YES, DayCategory::HOLIDAY, DayType::TRAVEL, 6], dayFields($day));
 
 // Every field, null resets to the ruleset default.
 $day = travelDay();
 FilmDayPatch::fromArray(['breakMinutes' => null, 'catering' => false, 'category' => null, 'dayType' => 'workday', 'productionDay' => null, 'note' => '  '])->applyTo($day);
-check('patch all fields', [null, Catering::NO, null, DayType::WORKDAY, null, null], dayFields($day));
+check('patch all fields', [null, Catering::NO, null, DayType::WORKDAY, null], dayFields($day));
 
 $day = new FilmDay();
-FilmDayPatch::fromArray(['breakMinutes' => '45', 'catering' => true, 'category' => 'sunday', 'dayType' => 'travel', 'productionDay' => 7, 'note' => ' Nachtdreh '])->applyTo($day);
-check('patch new day', [45, Catering::YES, DayCategory::SUNDAY, DayType::TRAVEL, 7, 'Nachtdreh'], dayFields($day));
+FilmDayPatch::fromArray(['breakMinutes' => '45', 'catering' => true, 'category' => 'sunday', 'dayType' => 'travel', 'productionDay' => 7])->applyTo($day);
+check('patch new day', [45, Catering::YES, DayCategory::SUNDAY, DayType::TRAVEL, 7], dayFields($day));
+
+// The note is validated and handed on (DayNotes writes it to the entries), not applied to the film day.
+$withNote = FilmDayPatch::fromArray(['note' => ' Nachtdreh ']);
+check('patch note', [true, 'Nachtdreh'], [$withNote->hasNote(), $withNote->noteText()]);
+check('patch note blank', [true, null], [FilmDayPatch::fromArray(['note' => '  '])->hasNote(), FilmDayPatch::fromArray(['note' => '  '])->noteText()]);
+check('patch note unsent', false, FilmDayPatch::fromArray(['breakMinutes' => 30])->hasNote());
 
 // Bad input is rejected, not clamped or dropped silently.
 check('patch empty body ok', null, patchError([]));
@@ -69,7 +74,7 @@ check('patch note 500 ok', null, patchError(['note' => str_repeat('ä', 500)]));
 // Extra pay: integer cents 0..10,000,000, null resets to 0.
 $day = travelDay();
 FilmDayPatch::fromArray(['extraPayCents' => 5000])->applyTo($day);
-check('patch extra pay', [5000, 0, 'Reise'], [$day->getExtraPayCents(), $day->getBreakMinutes(), $day->getNote()]);
+check('patch extra pay', [5000, 0], [$day->getExtraPayCents(), $day->getBreakMinutes()]);
 FilmDayPatch::fromArray(['note' => 'x'])->applyTo($day);
 check('patch keeps extra pay', 5000, $day->getExtraPayCents());
 FilmDayPatch::fromArray(['extraPayCents' => null])->applyTo($day);
@@ -83,7 +88,7 @@ check('patch extra pay bool', 'extraPayCents must be an integer from 0 to 100000
 // Shooting day of the production: integer 1..999 or null, informational only.
 $day = travelDay();
 FilmDayPatch::fromArray(['shootingDayNumber' => 37])->applyTo($day);
-check('patch shooting day', [37, 6, 'Reise'], [$day->getShootingDayNumber(), $day->getProductionDay(), $day->getNote()]);
+check('patch shooting day', [37, 6], [$day->getShootingDayNumber(), $day->getProductionDay()]);
 FilmDayPatch::fromArray(['note' => 'x'])->applyTo($day);
 check('patch keeps shooting day', 37, $day->getShootingDayNumber());
 FilmDayPatch::fromArray(['shootingDayNumber' => '38'])->applyTo($day);

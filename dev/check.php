@@ -21,11 +21,13 @@ use KimaiPlugin\DrehzettelBundle\Repository\FilmRulesetRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 use KimaiPlugin\DrehzettelBundle\Service\DayCalculator;
 use KimaiPlugin\DrehzettelBundle\Service\DayInputBuilder;
+use KimaiPlugin\DrehzettelBundle\Service\DayNotes;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
 use KimaiPlugin\DrehzettelBundle\Service\FilmWeekService;
 use KimaiPlugin\DrehzettelBundle\Service\NullHolidayLookup;
 use KimaiPlugin\DrehzettelBundle\Service\PayCalculator;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
+use KimaiPlugin\DrehzettelBundle\Service\FlushTimesheetWriter;
 use KimaiPlugin\DrehzettelBundle\Service\WeekCalculator;
 
 require '/opt/kimai/vendor/autoload.php';
@@ -54,8 +56,9 @@ $engagements = new EngagementRepository($registry);
 $service = new EngagementService($engagements, new RulesetCatalog(new FilmRulesetRepository($registry)));
 $pay = new PayCalculator();
 $dayCalc = new DayCalculator($pay);
+$notes = new DayNotes(new TimesheetRangeRepository($registry), new FlushTimesheetWriter($em));
 $weeks = new FilmWeekService(
-    new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry), new NullHolidayLookup()),
+    new DayInputBuilder(new TimesheetRangeRepository($registry), new FilmDayRepository($registry), new NullHolidayLookup(), $notes),
     new WeekCalculator($dayCalc, $pay),
     $dayCalc,
     $service,

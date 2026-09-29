@@ -43,7 +43,7 @@ check('draft reads values', [60, Catering::YES, DayCategory::SUNDAY, DayType::TR
 $blank = FilmDayDraftReader::read([]);
 check('draft defaults', [null, Catering::NO, null, DayType::WORKDAY, null, null], [$blank->breakMinutes, $blank->catering, $blank->category, $blank->type, $blank->productionDay, $blank->note]);
 $bad = FilmDayDraftReader::read(['break' => '99999', 'category' => 'bogus', 'type' => 'nope', 'production_day' => '42', 'note' => str_repeat('x', 900)]);
-check('draft clamps and ignores junk', [720, null, DayType::WORKDAY, 7, 500], [$bad->breakMinutes, $bad->category, $bad->type, $bad->productionDay, mb_strlen($bad->note)]);
+check('draft clamps and ignores junk', [720, null, DayType::WORKDAY, 7, 900], [$bad->breakMinutes, $bad->category, $bad->type, $bad->productionDay, mb_strlen($bad->note)]);
 $neg = FilmDayDraftReader::read(['break' => '-5', 'production_day' => 'abc']);
 check('draft negative and non numeric', [0, null], [$neg->breakMinutes, $neg->productionDay]);
 
@@ -67,12 +67,11 @@ $stored->setCatering(Catering::YES);
 $stored->setCategory(DayCategory::HOLIDAY);
 $stored->setDayType(DayType::TRAVEL);
 $stored->setProductionDay(6);
-$stored->setNote('Reise');
 $stored->setExtraPayCents(5000);
 $stored->setShootingDayNumber(37);
-$kept = FilmDayDraftReader::read(['break' => '15'], $stored);
+$kept = FilmDayDraftReader::read(['break' => '15'], $stored, 'Reise');
 check('draft keeps unsent fields', [15, Catering::YES, DayCategory::HOLIDAY, DayType::TRAVEL, 6, 'Reise', 5000, 37], [$kept->breakMinutes, $kept->catering, $kept->category, $kept->type, $kept->productionDay, $kept->note, $kept->extraPayCents, $kept->shootingDayNumber]);
-$cleared = FilmDayDraftReader::read(['break' => '', 'catering' => '0', 'category' => '', 'type' => '', 'production_day' => '', 'note' => '', 'extra_pay' => '', 'shooting_day' => ''], $stored);
+$cleared = FilmDayDraftReader::read(['break' => '', 'catering' => '0', 'category' => '', 'type' => '', 'production_day' => '', 'note' => '', 'extra_pay' => '', 'shooting_day' => ''], $stored, 'Reise');
 check('draft sent empty clears', [null, Catering::NO, null, DayType::WORKDAY, null, null, 0, null], [$cleared->breakMinutes, $cleared->catering, $cleared->category, $cleared->type, $cleared->productionDay, $cleared->note, $cleared->extraPayCents, $cleared->shootingDayNumber]);
 check('draft production day sent', 7, FilmDayDraftReader::read(['production_day' => '7'], $stored)->productionDay);
 

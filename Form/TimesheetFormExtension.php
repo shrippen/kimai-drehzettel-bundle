@@ -16,7 +16,6 @@ use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -55,13 +54,11 @@ final class TimesheetFormExtension extends AbstractTypeExtension
     public const FIELD_BREAK = 'drehzettelBreak';
     public const FIELD_CATERING = 'drehzettelCatering';
     public const FIELD_CATEGORY = 'drehzettelCategory';
-    public const FIELD_NOTE = 'drehzettelNote';
     public const FIELD_EXTRA_PAY = 'drehzettelExtraPay';
     public const FIELD_SHOOTING_DAY = 'drehzettelShootingDay';
     public const FIELD_PRODUCTION_DAY = 'drehzettelProductionDay';
 
     private const MAX_BREAK_MINUTES = 720;
-    private const MAX_NOTE_LENGTH = 500;
     private const CENTS = 100;
     private const DEFAULT_CURRENCY = 'EUR';
 
@@ -197,16 +194,10 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'currency' => $timesheet->getProject()?->getCustomer()?->getCurrency() ?? self::DEFAULT_CURRENCY,
             'data' => $existing?->getExtraPayCents() ?: null,
             'constraints' => [new Range(notInRangeMessage: 'drehzettel.extra_pay.range', min: 0, max: FilmDayPatch::MAX_EXTRA_PAY_CENTS)],
-            'row_attr' => ['class' => $rowClass()],
-        ]);
-
-        $builder->add(self::FIELD_NOTE, TextareaType::class, [
-            'mapped' => false,
-            'required' => false,
-            'label' => 'drehzettel.note',
-            'data' => $existing?->getNote(),
             'row_attr' => ['class' => $rowClass('dz-form-row-last')],
         ]);
+
+        // No note field: the film day's note is Kimai's own description of the entry.
 
         $builder->addEventListener(
             FormEvents::POST_SUBMIT,
@@ -237,8 +228,6 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         $extraPay = $form->get(self::FIELD_EXTRA_PAY)->getData();
         $shootingDay = $form->get(self::FIELD_SHOOTING_DAY)->getData();
         $productionDay = $form->get(self::FIELD_PRODUCTION_DAY)->getData();
-        $note = $form->get(self::FIELD_NOTE)->getData();
-        $note = ($note !== null && trim((string) $note) !== '') ? mb_substr(trim((string) $note), 0, self::MAX_NOTE_LENGTH) : null;
 
         // Day type is not on this form: it keeps its stored value.
         try {
@@ -246,7 +235,6 @@ final class TimesheetFormExtension extends AbstractTypeExtension
                 'breakMinutes' => $breakMinutes !== null ? (int) $breakMinutes : null,
                 'catering' => (bool) $form->get(self::FIELD_CATERING)->getData(),
                 'category' => $form->get(self::FIELD_CATEGORY)->getData(),
-                'note' => $note,
                 'extraPayCents' => $extraPay !== null ? (int) round((float) $extraPay) : 0,
                 'shootingDayNumber' => $shootingDay !== null ? (int) $shootingDay : null,
                 'productionDay' => $productionDay !== null ? (int) $productionDay : null,

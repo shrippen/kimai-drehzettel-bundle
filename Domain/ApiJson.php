@@ -68,9 +68,10 @@ final class ApiJson
      *   stored category null, date a Saturday -> category null, effectiveCategory "saturday"
      *
      * @param DayCategory $autoCategory what the date is without an override (weekday, public holiday)
+     * @param string|null $note description of the day's Kimai entries (DayNote)
      * @return array<string, mixed>
      */
-    public static function filmDay(string $date, Engagement $engagement, ?FilmDay $day, Ruleset $rules, DayCategory $autoCategory): array
+    public static function filmDay(string $date, Engagement $engagement, ?FilmDay $day, Ruleset $rules, DayCategory $autoCategory, ?string $note = null): array
     {
         return [
             'date' => $date,
@@ -78,7 +79,7 @@ final class ApiJson
             'breakMinutes' => $day?->getBreakMinutes(),
             'catering' => ($day?->getCatering() ?? Catering::NO) === Catering::YES,
             'category' => $day?->getCategory()?->value,
-            'note' => $day?->getNote(),
+            'note' => $note,
             'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
             'productionDay' => $day?->getProductionDay(),
             'extraPayCents' => $day?->getExtraPayCents() ?? 0,

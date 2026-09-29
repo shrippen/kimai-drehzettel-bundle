@@ -11,7 +11,7 @@ Landing page: <https://shrippen.github.io/kimai-drehzettel-bundle/>
 - TV FFS rules built in and editable: daily and weekly overtime, night work, Saturday, Sunday and holiday surcharges, break rule
 - Engagements: pay, dates and a ruleset snapshot per user and project, so two people on one film can have different terms
 - Rounding of work time and surcharges: minute, quarter hour, half hour, hour; up, down or nearest
-- Time comes from normal Kimai timesheet entries, one per shooting day. Break, catering, day type, extra pay and note are stored per film day
+- Time comes from normal Kimai timesheet entries, one per shooting day. Break, catering, day type and extra pay are stored per film day; the note is the Kimai entry's own description
 - Week PDF by mail: subject and text from a template with placeholders, editable before sending; optionally sent automatically every week or month, see [Mail](#mail)
 - REST API for external clients (e.g. the Plasmai widget), see [API](#api)
 - Warnings for working and rest time limits, see [Working and rest time warnings](#working-and-rest-time-warnings)
@@ -127,7 +127,7 @@ Film day (`GET`/`PUT`):
 - `productionDay` 1-7 or null, "Surcharge day" (Zuschlagstag): overrides the day of the calendar week behind the 6th/7th-day surcharge, null = automatic, see [6th and 7th day](#6th-and-7th-day)
 - `shootingDayNumber` 1-999 or null, "Production shooting day" (Drehtag der Produktion, "Drehtag 37"): running counter across the production, informational only, no effect on any figure
 - `extraPayCents` 0-10,000,000: Zusatzgage/Spesen, added to the day's pay as is; null resets to 0
-- `note` up to 500 characters
+- `note` up to 500 characters; it is the description of the day's Kimai entries (several joined by a line break). Saving writes it to the first entry and clears the others; without an entry on that date it is not stored
 
 Day summary: `{date, engagementId, hasEntry, begin, end, workMinutes, breakMinutes, overtime: [{percent, minutes}], nightMinutes, underMinutes, category, categoryPercent, categoryShares: [{percent, minutes}], waivedCategory, dayNumber, shootingDayNumber, weeklyOvertimeMinutes, warnings: [{issue, minutes, limitMinutes}], payCents, extraPayCents, currency, azvMinutesToDate}`. `dayNumber` is the day of the calendar week behind the 6th/7th-day surcharge (counted or `productionDay`). `payCents` is the day's pay including extra pay and excluding weekly overtime; null without a gage. `azvMinutesToDate` is the AZV credit up to and including the date, null when the engagement earns none. `categoryPercent` is the whole-day Saturday/Sunday/holiday surcharge, `categoryShares` the pro-rata ones of a day past midnight, `waivedCategory` the Sunday/holiday surcharge a staggered shoot waived (see [Night shoots, Sundays and holidays](#night-shoots-sundays-and-holidays)). Warning issues also include `staggered_shoot` and `night_cutoff`.
 

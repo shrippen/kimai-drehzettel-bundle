@@ -24,7 +24,9 @@ use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmRulesetRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\TimesheetRangeRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementService;
+use KimaiPlugin\DrehzettelBundle\Service\DayNotes;
 use KimaiPlugin\DrehzettelBundle\Service\FilmDayService;
+use KimaiPlugin\DrehzettelBundle\Service\FlushTimesheetWriter;
 use KimaiPlugin\DrehzettelBundle\Service\RulesetCatalog;
 
 require '/opt/kimai/vendor/autoload.php';
@@ -74,7 +76,7 @@ $em->createQueryBuilder()->delete(Timesheet::class, 't')
     ->setParameter('to', DateTime::createFromImmutable($world->date($e['to'] + 1)))
     ->getQuery()->execute();
 
-$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry));
+$filmDays = new FilmDayService(new FilmDayRepository($registry), new TimesheetRangeRepository($registry), new DayNotes(new TimesheetRangeRepository($registry), new FlushTimesheetWriter($em)));
 $now = new DateTimeImmutable('now', $world->today->getTimezone());
 $hourly = (float) $projects[$e['project']]['hourly_rate'];
 $count = 0;
@@ -94,7 +96,8 @@ foreach ($e['days'] as $i => $d) {
     $sheet->setBegin(DateTime::createFromImmutable($begin));
     $sheet->setEnd(DateTime::createFromImmutable($end));
     $sheet->setDuration($end->getTimestamp() - $begin->getTimestamp());
-    $sheet->setDescription($world->t($d['note']));
+    $place = $world->t($places[$d['location']]['name']);
+    $sheet->setDescription($place . ' · ' . $world->t($d['note']));
     $sheet->setBillable(false);
     $sheet->setHourlyRate($hourly);
     $em->persist($sheet);
@@ -102,14 +105,13 @@ foreach ($e['days'] as $i => $d) {
 
     $weekday = (int) $begin->format('N');
     $category = $weekday === 6 ? DayCategory::SATURDAY : ($weekday === 7 ? DayCategory::SUNDAY : DayCategory::WORKDAY);
-    $place = $world->t($places[$d['location']]['name']);
     $filmDays->save(
         $engagement,
         $begin->setTime(0, 0),
         $d['break_min'],
         $i % 3 === 0 ? Catering::YES : Catering::NO,
         $category,
-        note: $place . ' · ' . $world->t($d['note']),
+        note: $sheet->getDescription(),
         shootingDayNumber: $i + 1,
     );
     $count++;

@@ -9,7 +9,8 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * Read-only access to Kimai timesheets of one user and project.
+ * Read access to Kimai timesheets of one user and project. Writes go through
+ * Kimai's TimesheetService (Service\DayNotes), so its events run.
  *
  * @extends ServiceEntityRepository<Timesheet>
  */
@@ -33,6 +34,27 @@ class TimesheetRangeRepository extends ServiceEntityRepository
             ->andWhere('t.begin >= :from')
             ->andWhere('t.begin < :to')
             ->andWhere('t.end IS NOT NULL')
+            ->setParameter('user', $user)
+            ->setParameter('project', $project)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('t.begin', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Entries that begin in [from, to), running timers included, by begin.
+     *
+     * @return list<Timesheet>
+     */
+    public function findStarting(User $user, Project $project, \DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.user = :user')
+            ->andWhere('t.project = :project')
+            ->andWhere('t.begin >= :from')
+            ->andWhere('t.begin < :to')
             ->setParameter('user', $user)
             ->setParameter('project', $project)
             ->setParameter('from', $from)

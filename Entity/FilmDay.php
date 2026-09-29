@@ -45,9 +45,6 @@ class FilmDay
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $productionDay = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $note = null;
-
     // Zusatzgage/Spesen: added to the day's pay as is, no surcharges.
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $extraPayCents = 0;
@@ -130,16 +127,6 @@ class FilmDay
     public function setProductionDay(?int $day): void
     {
         $this->productionDay = $day;
-    }
-
-    public function getNote(): ?string
-    {
-        return $this->note;
-    }
-
-    public function setNote(?string $note): void
-    {
-        $this->note = $note;
     }
 
     public function getExtraPayCents(): int

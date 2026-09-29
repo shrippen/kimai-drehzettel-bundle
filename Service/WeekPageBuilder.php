@@ -36,6 +36,7 @@ class WeekPageBuilder
         private readonly ComplianceChecker $compliance,
         private readonly MailRecipientRepository $mailRecipients,
         private readonly AzvService $azv,
+        private readonly DayNotes $notes,
     ) {
     }
 
@@ -183,6 +184,10 @@ class WeekPageBuilder
     private function filmValues(Engagement $engagement, Period $period, array $drafts): array
     {
         $values = [];
+        $notes = $this->notes->byDate($engagement, $period->from, $period->endExclusive());
+        foreach ($notes as $key => $note) {
+            $values[$key] = ['note' => $note];
+        }
         foreach ($this->filmDays->findRange($engagement, $period->from, $period->endExclusive()) as $day) {
             $values[$day->getDate()->format(self::DATE_KEY)] = [
                 'break' => $day->getBreakMinutes(),
@@ -190,7 +195,7 @@ class WeekPageBuilder
                 'category' => $day->getCategory()?->value,
                 'type' => $day->getDayType()->value,
                 'production_day' => $day->getProductionDay(),
-                'note' => (string) $day->getNote(),
+                'note' => $notes[$day->getDate()->format(self::DATE_KEY)] ?? '',
                 'extra_pay' => $day->getExtraPayCents() / self::CENTS,
                 'shooting_day' => $day->getShootingDayNumber(),
             ];

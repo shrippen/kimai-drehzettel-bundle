@@ -19,10 +19,13 @@ class FilmDayService
     public function __construct(
         private readonly FilmDayRepository $days,
         private readonly TimesheetRangeRepository $timesheets,
+        private readonly DayNotes $notes,
     ) {
     }
 
-    // Creates the film day or updates the existing one for this date.
+    // Creates the film day or updates the existing one for this date. The note goes
+    // to the descriptions of the day's entries (DayNotes), changed ones only: pass
+    // the day's whole note (null clears the descriptions).
     public function save(
         Engagement $engagement,
         \DateTimeImmutable $date,
@@ -43,11 +46,11 @@ class FilmDayService
         $day->setCategory($category);
         $day->setDayType($type);
         $day->setProductionDay($productionDay);
-        $day->setNote($note);
         $day->setExtraPayCents($extraPayCents);
         $day->setShootingDayNumber($shootingDayNumber);
 
         $this->days->save($day);
+        $this->notes->write($engagement, $date, $note);
 
         return $day;
     }
@@ -59,7 +62,7 @@ class FilmDayService
      */
     public function draft(Engagement $engagement, \DateTimeImmutable $date, array $fields): FilmDayDraft
     {
-        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date));
+        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date), $this->notes->read($engagement, $date));
     }
 
     // Changes only the patched fields; a new day starts from the entity defaults.

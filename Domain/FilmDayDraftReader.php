@@ -19,13 +19,13 @@ final class FilmDayDraftReader
 {
     private const MAX_BREAK_MINUTES = 720;
     private const MAX_PRODUCTION_DAY = 7;
-    private const MAX_NOTE_LENGTH = 500;
     private const CENTS = 100;
 
     /**
      * @param array<string, mixed> $data fields of one day: break, catering, category, type, production_day, note, extra_pay (currency units), shooting_day
+     * @param string|null $storedNote the day's note (its entries' descriptions, see DayNote)
      */
-    public static function read(array $data, ?FilmDay $stored = null): FilmDayDraft
+    public static function read(array $data, ?FilmDay $stored = null, ?string $storedNote = null): FilmDayDraft
     {
         $has = static fn (string $key): bool => array_key_exists($key, $data);
 
@@ -35,7 +35,7 @@ final class FilmDayDraftReader
             category: $has('category') ? DayCategory::tryFrom((string) $data['category']) : $stored?->getCategory(),
             type: $has('type') ? (DayType::tryFrom((string) $data['type']) ?? DayType::WORKDAY) : ($stored?->getDayType() ?? DayType::WORKDAY),
             productionDay: $has('production_day') ? self::intOrNull($data['production_day'], 1, self::MAX_PRODUCTION_DAY) : $stored?->getProductionDay(),
-            note: $has('note') ? self::note($data['note']) : $stored?->getNote(),
+            note: $has('note') ? DayNote::clean((string) $data['note']) : $storedNote,
             extraPayCents: $has('extra_pay') ? self::cents($data['extra_pay']) : ($stored?->getExtraPayCents() ?? 0),
             shootingDayNumber: $has('shooting_day') ? self::intOrNull($data['shooting_day'], 1, FilmDayPatch::MAX_SHOOTING_DAY) : $stored?->getShootingDayNumber(),
         );
@@ -64,12 +64,5 @@ final class FilmDayDraftReader
         }
 
         return max(0, min(FilmDayPatch::MAX_EXTRA_PAY_CENTS, (int) round((float) $text * self::CENTS)));
-    }
-
-    private static function note(mixed $value): ?string
-    {
-        $text = trim((string) $value);
-
-        return $text === '' ? null : mb_substr($text, 0, self::MAX_NOTE_LENGTH);
     }
 }
