@@ -55,7 +55,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 
 ## Zeiteintrags-Formular (sitewide) und Arbeitszeiten-Seite
 - [x] ThemeSubscriber-JS: Texte aus Übersetzung über `data-*`, Start auf `kimai.initialized`, Hinweis als Tabler-Alert
-- [x] CSS nur mit `var(--tblr-…)`
+- [x] CSS nur mit `var(--tblr-…)`; Drehzettel-Felder als Kit-Feldgruppe, Drehtage auf `/contract` als Kit-Kalendertag `entity` (lila, Kit 0.7)
 - [x] Engagement-Hinweis als `alert-info` ohne eigene Farben (Knust 1.3: Info cyan, Warnung orange)
 
 ## PDF

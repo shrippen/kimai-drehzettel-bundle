@@ -6,19 +6,21 @@ use App\Event\ThemeEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Twig\Environment;
 
 /**
  * Two small, sitewide additions via Kimai's own theme extension points
  * (App\Event\ThemeEvent - see base.html.twig's "trigger()" calls), requested
  * 2026-09-23:
  *
- * 1. CSS that groups the five Drehzettel fields TimesheetFormExtension adds
- *    to Kimai's timesheet form into one amber-tinted block with a clear
- *    toggle (form concept A, https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS),
- *    added by ContractSubscriber (colors only through Tabler variables, so
- *    dark mode follows Kimai), plus (2026-09-24) ".dz-hidden" for the
- *    fields TimesheetFormExtension now renders but starts collapsed on a
- *    brand-new entry.
+ * 1. The kit CSS (kpu- classes only, inert elsewhere), so Kimai's own pages
+ *    can use the kit markers: the Drehzettel fields TimesheetFormExtension
+ *    adds to the timesheet form are wrapped in one kit field group (form
+ *    concept A, https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS), and the
+ *    film days ContractSubscriber marks on /contract become kit calendar
+ *    days of kind "entity" (both purple with Knust, Kante's entity colour).
+ *    Plus (2026-09-24) ".dz-hidden" for the fields TimesheetFormExtension
+ *    renders but starts collapsed on a brand-new entry.
  * 2. JS that calls the plugin's own API (research/api-external-clients.md)
  *    when the project *or activity* field changes on a timesheet form, so
  *    picking a project(+activity) with an active engagement gives immediate
@@ -42,6 +44,7 @@ class ThemeSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly UrlGeneratorInterface $urls,
         private readonly TranslatorInterface $translator,
+        private readonly Environment $twig,
     ) {
     }
 
@@ -55,12 +58,9 @@ class ThemeSubscriber implements EventSubscriberInterface
 
     public function onStylesheet(ThemeEvent $event): void
     {
+        $event->addContent($this->twig->render('@Drehzettel/_kit/assets.html.twig', ['kpu_part' => 'css']));
         $event->addContent(<<<'HTML'
             <style>
-                .dz-form-row{background:var(--tblr-yellow-lt);border-left:3px solid var(--tblr-yellow);padding-left:.75rem!important;margin-left:-.75rem;}
-                .dz-form-row-first{padding-top:.75rem!important;border-radius:var(--tblr-border-radius-lg) var(--tblr-border-radius-lg) 0 0;margin-top:.5rem;}
-                .dz-form-row-last{padding-bottom:.75rem!important;border-radius:0 0 var(--tblr-border-radius-lg) var(--tblr-border-radius-lg);}
-                .bg-drehzettel{background-color:var(--tblr-yellow-lt);--tblr-table-bg:var(--tblr-yellow-lt);}
                 .dz-hidden{display:none!important;}
             </style>
             HTML);
@@ -72,9 +72,10 @@ class ThemeSubscriber implements EventSubscriberInterface
         $url = htmlspecialchars($this->urls->generate('drehzettel_api_engagement_status'), ENT_QUOTES);
         $shown = htmlspecialchars($this->translator->trans('drehzettel.form.detected_shown'), ENT_QUOTES);
         $afterSave = htmlspecialchars($this->translator->trans('drehzettel.form.detected'), ENT_QUOTES);
+        $group = htmlspecialchars($this->translator->trans('drehzettel.menu'), ENT_QUOTES);
 
         $event->addContent(<<<HTML
-            <script data-dz-status-url="{$url}" data-dz-detected-shown="{$shown}" data-dz-detected="{$afterSave}">
+            <script data-dz-status-url="{$url}" data-dz-detected-shown="{$shown}" data-dz-detected="{$afterSave}" data-dz-group="{$group}">
             HTML . <<<'HTML'
             (function (config) {
                 // Delegated on document: survives the timesheet edit form being re-inserted by
@@ -98,6 +99,8 @@ class ThemeSubscriber implements EventSubscriberInterface
                     for (var i = 0; i < rows.length; i++) {
                         rows[i].classList.toggle('dz-hidden', !visible);
                     }
+                    var group = form.querySelector('.dz-field-group');
+                    if (group) { group.classList.toggle('dz-hidden', !visible); }
                     // Kimai's native break field stays in the form for new entries (it's only
                     // removed server-side when the fields are shown at build time), so swap it
                     // out visually - two "Pause" inputs at once is what concept A avoids. Only
@@ -181,7 +184,39 @@ class ThemeSubscriber implements EventSubscriberInterface
                 // fires on unrelated pages. Date is intentionally not read here - this
                 // is a same-day hint, the actual save-time check in
                 // TimesheetFormExtension uses the entry's real date.
+                // Kit markers on Kimai's own markup, which the plugin cannot template:
+                // the Drehzettel rows go into one kit field group (hidden with its rows),
+                // ContractSubscriber's film days (td.bg-drehzettel) become kit "entity" days.
+                // Rerun on DOM changes: Kimai's AJAX modal inserts the form later.
+                function applyMarkers() {
+                    var first = document.querySelectorAll('.dz-form-row-first');
+                    for (var i = 0; i < first.length; i++) {
+                        if (first[i].parentElement.classList.contains('dz-field-group')) { continue; }
+                        var group = document.createElement('fieldset');
+                        group.className = 'kpu-field-group dz-field-group';
+                        group.classList.toggle('dz-hidden', first[i].classList.contains('dz-hidden'));
+                        var legend = document.createElement('legend');
+                        legend.className = 'kpu-field-group-label';
+                        legend.textContent = config.dzGroup;
+                        group.appendChild(legend);
+                        first[i].parentElement.insertBefore(group, first[i]);
+                        var row = first[i];
+                        while (row && row.classList.contains('dz-form-row')) {
+                            var next = row.nextElementSibling;
+                            group.appendChild(row);
+                            row = next;
+                        }
+                    }
+                    var days = document.querySelectorAll('td.bg-drehzettel:not(.kpu-day)');
+                    for (var j = 0; j < days.length; j++) {
+                        days[j].classList.add('kpu-day');
+                        days[j].setAttribute('data-kpu-day', 'entity');
+                    }
+                }
+
                 document.addEventListener('kimai.initialized', function () {
+                    applyMarkers();
+                    new MutationObserver(applyMarkers).observe(document.body, {childList: true, subtree: true});
                     document.addEventListener('change', function (event) {
                         var target = event.target;
                         if (target && target.id && /_(project|activity)$/.test(target.id) && target.tagName === 'SELECT') {

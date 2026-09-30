@@ -111,8 +111,8 @@ final class TimesheetFormExtension extends AbstractTypeExtension
         $originalDate = $this->dateOf($timesheet);
         $existing = $originalEngagement !== null ? $this->filmDays->findOne($originalEngagement, $originalDate) : null;
 
-        // row_attr classes group these rows visually (amber box, see the sitewide CSS
-        // added by EventSubscriber\ThemeSubscriber) - matches form concept A from the workflow
+        // row_attr classes mark these rows; ThemeSubscriber's JS wraps them in one kit field group
+        // (kpu-field-group) - matches form concept A from the workflow
         // artifact (https://claude.ai/artifact/CB2kY9aB66GbHzLTVnTZjS), chosen 2026-09-23.
         // dz-hidden starts a brand-new entry's fields collapsed until ThemeSubscriber's JS
         // confirms a live-picked project/activity resolves to an active engagement.
