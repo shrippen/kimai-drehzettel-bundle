@@ -114,8 +114,8 @@ Under Kimai's own `/api`, same `Authorization: Bearer <token>`, listed in `/api/
 
 | Request | Answer |
 |---|---|
-| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber", "azv", "travelDays", "categoryShares"]}` |
-| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible, travelDays}]`; `travelDays` is the ruleset option `excluded` or `counted` |
+| `GET /api/drehzettel/ping` | `{installed, pluginVersion, apiVersions: ["v1"], permissions: {view, manage}, features: ["errorCodes", "engagements", "defaults", "extraPay", "daySummary", "shootingDayNumber", "azv", "travelDays", "categoryShares", "activityIds"]}` |
+| `GET /api/drehzettel/v1/engagements?date=&user=` | engagements active on `date` (default today): `[{engagementId, projectId, projectName, customerName, rulesetName, crewRole, validFrom, validTo, toggleDefault, azvEligible, travelDays, activityIds}]`; `travelDays` is the ruleset option `excluded` or `counted`; `activityIds` are the activities counted as film time (day begin/end, shooting days), `[]` = every activity of the project |
 | `GET /api/drehzettel/v1/engagements/{id}/azv?date=` | AZV credit up to and including `date` (default today), see below |
 | `GET /api/drehzettel/v1/engagement-status?project=&date=&user=` | `{active, engagementId, toggleDefault, rulesetName}`; no engagement is `active: false`, not 404 |
 | `GET /api/drehzettel/v1/film-days/{date}?project=&user=` | stored fields, see below |

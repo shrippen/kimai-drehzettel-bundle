@@ -35,6 +35,8 @@ final class ApiJson
             'toggleDefault' => true,
             'azvEligible' => Azv::eligible($engagement),
             'travelDays' => $rules->travelDays->value,
+            // Activities counted as film time (day begin/end, shooting days); [] = every activity.
+            'activityIds' => $engagement->getActivityIds(),
         ];
     }
 
