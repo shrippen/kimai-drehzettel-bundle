@@ -32,7 +32,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 - [x] Zeitraum über `kit.period_nav` (nur Woche; Monat nur als Monats-PDF, keine eigene Monatsansicht)
 - [x] Aktionen: Speichern, Wochen-PDF, Monats-PDF, Mailen (Modal), „…“: Engagement bearbeiten, Regeln, Löschen
 - [x] Kennzahlen über `kit.kpi_bar` (Arbeitszeit, Zuschläge, Nacht, Gage hervorgehoben); Zuschläge je Stufe (+25 %, +50 %, +100 %) als `details` statt im Hinweistext
-- [x] Tagesraster als Tabler-Tabelle in `.kpu-table-wrap`, ohne Hex-Farben
+- [x] Tagesraster als Tabler-Tabelle in `.kpu-table-wrap`, ohne Hex-Farben; passt bei 1280 px auch im Bearbeiten (Anmerkung unter den Tagesangaben, Zeilen umbrechen)
 - [x] Tag ohne Eintrag `kit.status_badge('open')`; Verstöße (Tageshöchstzeit, Ruhezeit) und Unterstunden als `kit.status_badge('warning', Grund)` mit Kurzgrund daneben, Wochenliste als Kimai-Hinweis; Spalte Unterstunden nur noch Zahl
 - [x] Live-Vorschau zeigt Fehler, ersetzt nur berechnete Zellen (Eingaben behalten den Fokus)
 - [x] Mail als FormType im Kimai-Modal; Erfolg als Ergebnis-Hinweis „Wochen-PDF an … gesendet“ (`kpu_result`) statt Toast

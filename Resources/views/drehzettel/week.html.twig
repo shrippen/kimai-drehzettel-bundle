@@ -16,12 +16,12 @@
         .dz-week-table tr.dz-editing .dz-view { display: none; }
         .dz-week-table tr.dz-editing .dz-edit { display: inline-block; }
         .dz-week-table tr.dz-editing .dz-edit-fields { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-        .dz-week-table tr.dz-editing .dz-note .dz-edit { display: block; }
         .dz-week-table .dz-break-input { width: 5rem; }
         .dz-week-table .dz-extra-pay-input { width: 6.5rem; }
         .dz-week-table .dz-shooting-day-input { width: 4.5rem; }
-        .dz-week-table .dz-edit-fields .form-select { width: auto; }
-        .dz-week-table .dz-note { min-width: 10rem; max-width: 16rem; }
+        .dz-week-table .dz-edit-fields .form-select { width: auto; max-width: 100%; }
+        /* Note under the day's badges: two lines at most, full text in the title. */
+        .dz-week-table .dz-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 {% endblock %}
 
