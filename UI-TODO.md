@@ -56,6 +56,7 @@ Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-
 ## Zeiteintrags-Formular (sitewide) und Arbeitszeiten-Seite
 - [x] ThemeSubscriber-JS: Texte aus Übersetzung über `data-*`, Start auf `kimai.initialized`, Hinweis als Tabler-Alert
 - [x] CSS nur mit `var(--tblr-…)`
+- [x] Engagement-Hinweis als `alert-info` ohne eigene Farben (Knust 1.3: Info cyan, Warnung orange)
 
 ## PDF
 - [x] AZV-Zeile unter der Tabelle (Guthaben bis Zeitraumende, Drehtage, AZV-Tage à 10 h)

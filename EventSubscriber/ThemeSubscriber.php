@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * 2. JS that calls the plugin's own API (research/api-external-clients.md)
  *    when the project *or activity* field changes on a timesheet form, so
  *    picking a project(+activity) with an active engagement gives immediate
- *    visual feedback (the amber banner) and, since 2026-09-24, actually
+ *    visual feedback (an info alert) and, since 2026-09-24, actually
  *    reveals TimesheetFormExtension's five fields live - they used to only
  *    appear after saving and reopening the entry, since that class only
  *    decided once, at the form's initial build time (see that class's own
@@ -61,8 +61,6 @@ class ThemeSubscriber implements EventSubscriberInterface
                 .dz-form-row-first{padding-top:.75rem!important;border-radius:var(--tblr-border-radius-lg) var(--tblr-border-radius-lg) 0 0;margin-top:.5rem;}
                 .dz-form-row-last{padding-bottom:.75rem!important;border-radius:0 0 var(--tblr-border-radius-lg) var(--tblr-border-radius-lg);}
                 .bg-drehzettel{background-color:var(--tblr-yellow-lt);--tblr-table-bg:var(--tblr-yellow-lt);}
-                .dz-detect-banner{display:flex;align-items:center;gap:.5rem;background:var(--tblr-yellow-lt);border-left:3px solid var(--tblr-yellow);border-radius:var(--tblr-border-radius,6px);padding:.5rem .75rem;margin-bottom:1rem;font-size:.85rem;}
-                .dz-detect-banner i{color:var(--tblr-yellow);}
                 .dz-hidden{display:none!important;}
             </style>
             HTML);
@@ -166,7 +164,7 @@ class ThemeSubscriber implements EventSubscriberInterface
                             }
                             if (!banner) {
                                 banner = document.createElement('div');
-                                banner.className = 'alert alert-warning dz-detect-banner';
+                                banner.className = 'alert alert-info dz-detect-banner';
                                 banner.setAttribute('role', 'status');
                                 row.insertAdjacentElement('afterend', banner);
                             }
