@@ -39,6 +39,8 @@ final class EngagementData
     #[Assert\PositiveOrZero]
     public ?float $cateringDeduction = null;
 
+    public bool $cateringDefault = false;
+
     #[Assert\NotNull]
     public ?\DateTimeImmutable $validFrom = null;
 
@@ -57,6 +59,7 @@ final class EngagementData
         $data->payKind = $engagement->getPayKind();
         $data->gage = $engagement->getGageCents() / self::CENTS;
         $data->cateringDeduction = $engagement->getCateringDeductionCents() / self::CENTS;
+        $data->cateringDefault = $engagement->isCateringDefault();
         $data->validFrom = $engagement->getValidFrom();
         $data->validTo = $engagement->getValidTo();
         $data->azv = Azv::eligible($engagement);
@@ -77,6 +80,7 @@ final class EngagementData
         $engagement->setPayKind($terms->kind);
         $engagement->setGageCents($terms->gageCents);
         $engagement->setCateringDeductionCents($terms->cateringDeductionCents);
+        $engagement->setCateringDefault($this->cateringDefault);
         $engagement->setValidFrom($this->validFrom);
         $engagement->setValidTo($this->validTo);
 

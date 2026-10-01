@@ -266,6 +266,14 @@
         <source>drehzettel.catering_deduction</source>
         <target>Catering-Abzug</target>
       </trans-unit>
+      <trans-unit id="dz.catering_default" resname="drehzettel.catering_default">
+        <source>drehzettel.catering_default</source>
+        <target>Catering standardmäßig an</target>
+      </trans-unit>
+      <trans-unit id="dz.catering_default_help" resname="drehzettel.catering_default_help">
+        <source>drehzettel.catering_default_help</source>
+        <target>Neue Drehtage starten mit eingeschaltetem Catering. Bereits gespeicherte Tage behalten ihren Wert.</target>
+      </trans-unit>
       <trans-unit id="dz.rules.edit" resname="drehzettel.rules.edit">
         <source>drehzettel.rules.edit</source>
         <target>Regeln bearbeiten</target>

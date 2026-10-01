@@ -266,6 +266,14 @@
         <source>drehzettel.catering_deduction</source>
         <target>Catering deduction</target>
       </trans-unit>
+      <trans-unit id="dz.catering_default" resname="drehzettel.catering_default">
+        <source>drehzettel.catering_default</source>
+        <target>Catering on by default</target>
+      </trans-unit>
+      <trans-unit id="dz.catering_default_help" resname="drehzettel.catering_default_help">
+        <source>drehzettel.catering_default_help</source>
+        <target>New film days start with catering switched on. Days you have already saved keep their value.</target>
+      </trans-unit>
       <trans-unit id="dz.rules.edit" resname="drehzettel.rules.edit">
         <source>drehzettel.rules.edit</source>
         <target>Edit rules</target>

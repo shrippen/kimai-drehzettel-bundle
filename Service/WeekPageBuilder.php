@@ -184,9 +184,15 @@ class WeekPageBuilder
     private function filmValues(Engagement $engagement, Period $period, array $drafts): array
     {
         $values = [];
+        // Days without stored data show the engagement's catering default.
+        if ($engagement->isCateringDefault()) {
+            for ($date = $period->from; $date < $period->endExclusive(); $date = $date->modify('+1 day')) {
+                $values[$date->format(self::DATE_KEY)] = ['catering' => true];
+            }
+        }
         $notes = $this->notes->byDate($engagement, $period->from, $period->endExclusive());
         foreach ($notes as $key => $note) {
-            $values[$key] = ['note' => $note];
+            $values[$key] = ['note' => $note] + ($values[$key] ?? []);
         }
         foreach ($this->filmDays->findRange($engagement, $period->from, $period->endExclusive()) as $day) {
             $values[$day->getDate()->format(self::DATE_KEY)] = [

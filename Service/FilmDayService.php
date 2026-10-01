@@ -62,13 +62,17 @@ class FilmDayService
      */
     public function draft(Engagement $engagement, \DateTimeImmutable $date, array $fields): FilmDayDraft
     {
-        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date), $this->notes->read($engagement, $date));
+        return FilmDayDraftReader::read($fields, $this->days->findOne($engagement, $date), $this->notes->read($engagement, $date), $engagement->getDefaultCatering());
     }
 
-    // Changes only the patched fields; a new day starts from the entity defaults.
+    // Changes only the patched fields; a new day starts from the defaults (catering: the engagement's).
     public function patch(Engagement $engagement, \DateTimeImmutable $date, FilmDayPatch $patch): FilmDay
     {
-        $day = $this->days->findOne($engagement, $date) ?? new FilmDay();
+        $day = $this->days->findOne($engagement, $date);
+        if ($day === null) {
+            $day = new FilmDay();
+            $day->setCatering($engagement->getDefaultCatering());
+        }
         $day->setEngagement($engagement);
         $day->setDate($date);
         $patch->applyTo($day);
