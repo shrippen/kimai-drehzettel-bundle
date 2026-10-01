@@ -3,7 +3,7 @@
     "description": "Kimai plugin: Drehzettel, film crew timesheets with TV FFS rules, weekly and monthly PDF",
     "homepage": "https://github.com/shrippen/kimai-drehzettel-bundle",
     "type": "kimai-plugin",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "keywords": [
         "kimai",
         "kimai-plugin",

@@ -59,13 +59,19 @@ $engagement->setRulesetName('TV FFS 2024');
 $engagement->setValidFrom(new DateTimeImmutable('2026-03-01'));
 check('api engagement json', [
     'engagementId' => null, 'projectId' => 7, 'projectName' => 'Musterfilm', 'customerName' => 'ACME',
-    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true, 'azvEligible' => true, 'travelDays' => 'excluded', 'activityIds' => [],
+    'rulesetName' => 'TV FFS 2024', 'crewRole' => 'Oberbeleuchterin', 'validFrom' => '2026-03-01', 'validTo' => null, 'toggleDefault' => true, 'azvEligible' => true, 'travelDays' => 'excluded', 'activityIds' => [], 'cateringDefault' => false,
 ], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement, KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024()));
 // Activity whitelist: clients count only these entries as film time ([] = every activity).
 $engagement->setActivityIds([12, 40]);
 check('api engagement activity ids', [12, 40], KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement, KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024())['activityIds']);
 check('api ping activity ids', true, in_array('activityIds', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
 $engagement->setActivityIds([]);
+// Catering default: a day without stored data starts with catering on.
+$engagement->setCateringDefault(true);
+check('api engagement catering default', true, KimaiPlugin\DrehzettelBundle\Domain\ApiJson::engagement($engagement, KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024())['cateringDefault']);
+check('api film day catering default', true, KimaiPlugin\DrehzettelBundle\Domain\ApiJson::filmDay('2026-03-07', $engagement, null, KimaiPlugin\DrehzettelBundle\Domain\Rulesets::tvFfs2024(), KimaiPlugin\DrehzettelBundle\Enum\DayCategory::SATURDAY)['catering']);
+check('api ping catering default', true, in_array('cateringDefault', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
+$engagement->setCateringDefault(false);
 check('api ping engagements', true, in_array('engagements', ApiInfo::ping(['view' => true, 'manage' => true])['features'], true));
 
 // Film day: a null field reports the default it falls back to.
