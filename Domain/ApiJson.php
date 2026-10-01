@@ -37,6 +37,8 @@ final class ApiJson
             'travelDays' => $rules->travelDays->value,
             // Activities counted as film time (day begin/end, shooting days); [] = every activity.
             'activityIds' => $engagement->getActivityIds(),
+            // A film day without stored data starts with catering on.
+            'cateringDefault' => $engagement->isCateringDefault(),
         ];
     }
 
@@ -79,7 +81,7 @@ final class ApiJson
             'date' => $date,
             'engagementId' => $engagement->getId(),
             'breakMinutes' => $day?->getBreakMinutes(),
-            'catering' => ($day?->getCatering() ?? Catering::NO) === Catering::YES,
+            'catering' => ($day?->getCatering() ?? $engagement->getDefaultCatering()) === Catering::YES,
             'category' => $day?->getCategory()?->value,
             'note' => $note,
             'dayType' => ($day?->getDayType() ?? DayType::WORKDAY)->value,
