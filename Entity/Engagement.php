@@ -8,6 +8,7 @@ use App\Entity\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use KimaiPlugin\DrehzettelBundle\Domain\PdfOptions;
+use KimaiPlugin\DrehzettelBundle\Enum\Catering;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 
@@ -44,6 +45,10 @@ class Engagement
 
     #[ORM\Column(type: Types::INTEGER)]
     private int $cateringDeductionCents = 0;
+
+    // Catering is pre-selected for film days that have no stored data yet.
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $cateringDefault = false;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $validFrom = null;
@@ -142,6 +147,21 @@ class Engagement
     public function setCateringDeductionCents(int $cents): void
     {
         $this->cateringDeductionCents = $cents;
+    }
+
+    public function isCateringDefault(): bool
+    {
+        return $this->cateringDefault;
+    }
+
+    public function setCateringDefault(bool $cateringDefault): void
+    {
+        $this->cateringDefault = $cateringDefault;
+    }
+
+    public function getDefaultCatering(): Catering
+    {
+        return $this->cateringDefault ? Catering::YES : Catering::NO;
     }
 
     public function getValidFrom(): ?\DateTimeImmutable

@@ -55,7 +55,7 @@ class DayInputBuilder
                 end: $end,
                 category: $override ?? $this->categoryFor($engagement, $begin),
                 type: $extra?->getDayType() ?? DayType::WORKDAY,
-                catering: $extra?->getCatering() ?? Catering::NO,
+                catering: $extra?->getCatering() ?? $engagement->getDefaultCatering(),
                 breakMinutes: $extra?->getBreakMinutes(),
                 productionDay: $extra?->getProductionDay(),
                 note: isset($drafts[$key]) ? $drafts[$key]->note : ($notes[$key] ?? null),

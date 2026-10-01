@@ -54,6 +54,12 @@ final class EngagementType extends AbstractType
         $builder->add('gage', MoneyType::class, $money + ['label' => 'drehzettel.gage']);
         $builder->add('cateringDeduction', MoneyType::class, $money + ['label' => 'drehzettel.catering_deduction']);
 
+        $builder->add('cateringDefault', CheckboxType::class, [
+            'label' => 'drehzettel.catering_default',
+            'help' => 'drehzettel.catering_default_help',
+            'required' => false,
+        ]);
+
         $builder->add('validFrom', DatePickerType::class, ['label' => 'drehzettel.valid_from', 'input' => 'datetime_immutable']);
         $builder->add('validTo', DatePickerType::class, [
             'label' => 'drehzettel.valid_to',

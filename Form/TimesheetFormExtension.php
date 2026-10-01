@@ -143,7 +143,7 @@ final class TimesheetFormExtension extends AbstractTypeExtension
             'mapped' => false,
             'required' => false,
             'label' => 'drehzettel.catering.title',
-            'data' => ($existing?->getCatering() ?? Catering::NO) === Catering::YES,
+            'data' => ($existing?->getCatering() ?? $originalEngagement?->getDefaultCatering() ?? Catering::NO) === Catering::YES,
             'row_attr' => ['class' => $rowClass()],
         ]);
 

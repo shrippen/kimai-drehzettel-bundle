@@ -24,14 +24,15 @@ final class FilmDayDraftReader
     /**
      * @param array<string, mixed> $data fields of one day: break, catering, category, type, production_day, note, extra_pay (currency units), shooting_day
      * @param string|null $storedNote the day's note (its entries' descriptions, see DayNote)
+     * @param Catering $defaultCatering catering of a day without stored data (the engagement's default)
      */
-    public static function read(array $data, ?FilmDay $stored = null, ?string $storedNote = null): FilmDayDraft
+    public static function read(array $data, ?FilmDay $stored = null, ?string $storedNote = null, Catering $defaultCatering = Catering::NO): FilmDayDraft
     {
         $has = static fn (string $key): bool => array_key_exists($key, $data);
 
         return new FilmDayDraft(
             breakMinutes: $has('break') ? self::intOrNull($data['break'], 0, self::MAX_BREAK_MINUTES) : $stored?->getBreakMinutes(),
-            catering: $has('catering') ? (self::checked($data['catering']) ? Catering::YES : Catering::NO) : ($stored?->getCatering() ?? Catering::NO),
+            catering: $has('catering') ? (self::checked($data['catering']) ? Catering::YES : Catering::NO) : ($stored?->getCatering() ?? $defaultCatering),
             category: $has('category') ? DayCategory::tryFrom((string) $data['category']) : $stored?->getCategory(),
             type: $has('type') ? (DayType::tryFrom((string) $data['type']) ?? DayType::WORKDAY) : ($stored?->getDayType() ?? DayType::WORKDAY),
             productionDay: $has('production_day') ? self::intOrNull($data['production_day'], 1, self::MAX_PRODUCTION_DAY) : $stored?->getProductionDay(),
