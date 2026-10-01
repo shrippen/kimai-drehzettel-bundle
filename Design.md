@@ -1,30 +1,17 @@
 # Design Reference
 
-All visual design decisions for this project follow the shared [shrippen DesignDefault](https://github.com/shrippen/shrippen.github.io) design system.
+## Landing page
 
-## Quick Links
-
-- **Full spec**: <https://github.com/shrippen/shrippen.github.io>
-- **CSS tokens**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/tokens/variables.css>
-- **Landing page template**: <https://github.com/shrippen/shrippen.github.io/blob/main/kante/templates/landing.html>
-
-## Key Decisions
-
-| Aspect | Choice |
-|---|---|
-| Palette | Gruvbox-inspired warm dark (`bg0: #282828`, `fg1: #ebdbb2`, accent cream `#e8dcc4`) |
-| Headings font | [Rajdhani](https://fonts.google.com/specimen/Rajdhani) 600/700 |
-| Body font | System sans stack |
-| Code font | JetBrains Mono / Fira Code / Cascadia Code |
-| Links / primary action | `--blue: #83a598` |
-| Landing page layout | DesignDefault vertical rhythm: icon → name → tagline → badges → install card → CTA → features → prose → footer |
-| Max content width | 860px |
-| Badges | shields.io with `labelColor=1c1c20`, version `e8dcc4`, tech `83a598`, license `a89984` |
-| No light mode | Dark-first only for landing pages |
+The landing page (`docs/index.html`) and other web-facing assets outside Kimai are generated from
+**Kante**, the shared shrippen design system: <https://github.com/shrippen/Kante> (checkout `../Kante`).
+The page links `https://shrippen.github.io/v1/shrippen.css` and `shrippen.js`, follows Kante's
+`templates/landing.html` and uses Kante's roles only (`--fg1`, `--primary`, `--link` …), never `#hex`.
+Badges, layout and the dark-only rule for landing pages are in Kante's `README.md`; missing elements
+go to Kante first. Kante does **not** apply to the pages inside Kimai.
 
 ## Inside Kimai
 
-The pages inside Kimai follow the shared UI guidelines of [kimai-plugin-ui](https://github.com/shrippen/kimai-plugin-ui) ([GUIDELINES.md](https://github.com/shrippen/kimai-plugin-ui/blob/main/GUIDELINES.md), [CHECKLIST.md](https://github.com/shrippen/kimai-plugin-ui/blob/main/CHECKLIST.md)). The kit lives in `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf`; update it only with `bin/sync.sh` from that repo. The DesignDefault palette above is for the landing page, not for Kimai pages. Status of the migration: `UI-TODO.md`.
+The pages inside Kimai follow the shared UI guidelines of [kimai-plugin-ui](https://github.com/shrippen/Kante/tree/main/kimai/kit) ([GUIDELINES.md](https://github.com/shrippen/Kante/blob/main/kimai/kit/GUIDELINES.md), [CHECKLIST.md](https://github.com/shrippen/Kante/blob/main/kimai/kit/CHECKLIST.md)). The kit lives in `Resources/views/_kit/` and `Resources/translations/kpu.*.xlf`; update it only with `kimai/kit/bin/sync.sh` from the Kante repo. The look comes from [Knust](https://github.com/shrippen/Kante/tree/main/kimai/knust). Status of the migration: `UI-TODO.md`.
 
 ## Timesheet PDF
 
@@ -33,8 +20,6 @@ The pages inside Kimai follow the shared UI guidelines of [kimai-plugin-ui](http
 - Every column is optional (see `roadmap.md`). Layout must stay readable with any subset.
 - Footer states the rounding rules used, so the production can verify the numbers.
 - Signature lines: production management left-hand slot, crew member right-hand slot.
-
-When making visual changes to the landing page (`docs/index.html`) or any future web-facing assets, consult the DesignDefault README for the full rules.
 
 ## Identity
 
