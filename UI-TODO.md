@@ -1,6 +1,6 @@
 # UI-TODO (kimai-plugin-ui)
 
-Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/kimai-plugin-ui/blob/main/GUIDELINES.md) im Drehzettel.
+Umsetzung von [kimai-plugin-ui GUIDELINES.md](https://github.com/shrippen/Kante/blob/main/kimai/kit/GUIDELINES.md) im Drehzettel.
 `[x]` erledigt, `[ ]` offen mit Grund.
 
 ## Alle Seiten
