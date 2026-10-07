@@ -59,6 +59,8 @@ class ScheduledMails
 
         $period = $schedule->period($slot);
         if ($this->days->build($engagement, $period->from, $period->endExclusive()) === []) {
+            $this->logger->info('Drehzettel: automatic mail of engagement {id} skipped, no entries from {from} to {to}', ['id' => $engagement->getId(), 'from' => $period->from->format('Y-m-d'), 'to' => $period->to->format('Y-m-d')]);
+
             return false; // nothing worked: no empty timesheet
         }
 
@@ -74,6 +76,8 @@ class ScheduledMails
 
             return false;
         }
+
+        $this->logger->info('Drehzettel: automatic mail of engagement {id} sent to {to} for {from} to {until}', ['id' => $engagement->getId(), 'to' => $settings->getEmail(), 'from' => $period->from->format('Y-m-d'), 'until' => $period->to->format('Y-m-d')]);
 
         return true;
     }
