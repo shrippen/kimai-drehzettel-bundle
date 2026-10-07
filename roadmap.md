@@ -639,3 +639,14 @@ was only a hint - the actual fields still needed a save+reopen round trip.
   `php -l` clean on both files, `php tests/run.php` unaffected (261 checks). Needs a manual check
   against the dev instance (pick a project with an active engagement on `/timesheet/create` and
   confirm the fields appear without saving) once that's convenient to set up - not yet done live.
+
+## Update-Hinweis (Kit 0.8)
+
+Ein Hinweis für Admins, wenn es ein neueres Release gibt, weil Kimai-Plugins von Hand kopiert werden und sonst niemand davon erfährt.
+Format und Regeln: `shrippen.github.io/overview/VERSIONS.md`.
+
+- [ ] Kit auf 0.8 bringen: `../Kante/kimai/kit/bin/sync.sh .`
+- [ ] `{{ kit.update_hint('kimai-drehzettel', <version>, {enabled: …}) }}` auf der Einstellungs- oder Übersichtsseite; Version aus `composer.json` (`version`)
+- [ ] Einstellung „Nach Updates suchen“ (Standard an); im Demo-Modus immer aus
+- [ ] README: was abgerufen wird (`https://shrippen.github.io/versions.json` ohne Parameter, höchstens einmal am Tag, nur im Browser von Nutzern mit dem Recht `plugins`)
+- [ ] Nach jedem Release `python3 ../shrippen.github.io/overview/tools/build-versions.py` und `docs/versions.json` dort committen
