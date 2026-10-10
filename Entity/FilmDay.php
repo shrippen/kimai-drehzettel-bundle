@@ -34,13 +34,13 @@ class FilmDay
     private ?int $breakMinutes = null;
 
     #[ORM\Column(type: Types::STRING, length: 8)]
-    private string $catering = Catering::NO->value;
+    private string $catering = 'no'; // Catering::NO; an enum case in a default needs PHP 8.2
 
     #[ORM\Column(type: Types::STRING, length: 16, nullable: true)]
     private ?string $category = null;
 
     #[ORM\Column(type: Types::STRING, length: 16)]
-    private string $dayType = DayType::WORKDAY->value;
+    private string $dayType = 'workday'; // DayType::WORKDAY; an enum case in a default needs PHP 8.2
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $productionDay = null;

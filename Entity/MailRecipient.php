@@ -35,7 +35,7 @@ class MailRecipient
     private ?string $body = null;
 
     #[ORM\Column(type: Types::STRING, length: 16, options: ['default' => 'off'])]
-    private string $rhythm = MailRhythm::OFF->value;
+    private string $rhythm = 'off'; // MailRhythm::OFF; an enum case in a default needs PHP 8.2
 
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => MailSchedule::DEFAULT_WEEKDAY])]
     private int $weekday = MailSchedule::DEFAULT_WEEKDAY;

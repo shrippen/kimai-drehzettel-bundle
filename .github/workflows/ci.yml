@@ -1,0 +1,45 @@
+# Checks on every pull request and on main: PHP lint and the dependency-free tests
+# (php tests/run.php), on the lowest and the highest supported PHP.
+#
+# This same file lives in .gitea/workflows and .github/workflows: Gitea reads only .gitea/workflows
+# as soon as it exists, GitHub only ever reads .github/workflows. Kept as two files, so a change
+# here is a reminder to update the other one too. Gitea then no longer reads release.yml (GitHub
+# only).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# One runner works the queue in order. A newer push to the same branch or PR replaces the
+# older run instead of queueing behind it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl
+          coverage: none
+
+      - name: Lint
+        run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Tests
+        run: php tests/run.php

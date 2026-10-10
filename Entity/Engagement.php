@@ -38,7 +38,7 @@ class Engagement
     private string $role = '';
 
     #[ORM\Column(type: Types::STRING, length: 16)]
-    private string $payKind = PayKind::WEEKLY->value;
+    private string $payKind = 'weekly'; // PayKind::WEEKLY; an enum case in a default needs PHP 8.2
 
     #[ORM\Column(type: Types::INTEGER)]
     private int $gageCents = 0;
