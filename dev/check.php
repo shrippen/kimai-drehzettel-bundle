@@ -12,7 +12,9 @@ use App\Entity\Activity;
 use App\Entity\Project;
 use App\Entity\Timesheet;
 use App\Entity\User;
+use App\Event\WorkingTimeYearEvent;
 use App\Kernel;
+use App\WorkingTime\Model\Year;
 use KimaiPlugin\DrehzettelBundle\Domain\MailSchedule;
 use KimaiPlugin\DrehzettelBundle\Enum\MailRhythm;
 use KimaiPlugin\DrehzettelBundle\Repository\MailLogRepository;
@@ -21,6 +23,8 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
+use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
+use KimaiPlugin\DrehzettelBundle\Enum\DayType;
 use KimaiPlugin\DrehzettelBundle\Enum\PayKind;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\FilmDayRepository;
@@ -133,12 +137,36 @@ expect('restricted engagement: commute entry has no active engagement', true, $s
 $engagement->setActivityIds([]);
 $service->save($engagement);
 
+// Remove the commute entry again: left in place, the next run's crew2 checks above count it.
+$em->remove($commuteSheet);
+$em->flush();
+
 // Period over one week: query range narrowed to week 21 only -> exactly one week result.
 // (The seed data spans many weeks of the reference fixtures, not just week 21, so a wider
 // range here would legitimately split into several WeekResults - that's not a bug.)
 $period = $weeks->period($engagements->findActive($admin, $project, new DateTimeImmutable('2025-05-20')), new DateTimeImmutable('2025-05-19', $zone), new DateTimeImmutable('2025-05-24', $zone));
 expect('period weeks', 1, count($period));
 expect('period work', 43 * 60 + 15, $period[0]->workMinutes);
+
+// /contract marks every shooting day, as the Drehzettel counts it: crew2's 20 May has an
+// entry but no saved FilmDay (entered with the stopwatch), a travel day is no shooting day.
+$contractMarks = static function () use ($kernel, $crew, $zone): array {
+    $year = new Year(new DateTimeImmutable('2025-01-01', $zone), $crew);
+    $kernel->getContainer()->get('event_dispatcher')->dispatch(new WorkingTimeYearEvent($year, new DateTimeImmutable('2025-12-31', $zone)));
+    $types = array_map(fn ($addon) => $addon->getType(), $year->getDay(new DateTimeImmutable('2025-05-20', $zone))->getAddons());
+
+    return array_values(array_filter($types, fn ($type) => $type === 'drehzettel'));
+};
+$filmDays = new FilmDayRepository($registry);
+expect('contract: shooting day without FilmDay marked', ['drehzettel'], $contractMarks());
+
+$travel = new FilmDay();
+$travel->setEngagement($engagement);
+$travel->setDate(new DateTimeImmutable('2025-05-20'));
+$travel->setDayType(DayType::TRAVEL);
+$filmDays->save($travel);
+expect('contract: travel day not marked', [], $contractMarks());
+$filmDays->delete($travel);
 
 // Mail log: an automatic mail is logged once per send time. A failure and its retry
 // stay on that row (attempts), a period without entries is logged as skipped.
