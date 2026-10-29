@@ -18,6 +18,7 @@ use KimaiPlugin\DrehzettelBundle\Repository\MailLogRepository;
 class MailLog
 {
     public const ERROR_LENGTH = 255;
+    private const TIME_FORMAT = 'Y-m-d\\TH:i:s.uP';
 
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
@@ -28,7 +29,8 @@ class MailLog
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Engagement $engagement = null;
 
-    // Time of the (last) attempt, e.g. "2026-10-26T07:04:12+01:00". A string like MailRecipient::$lastSlot.
+    // Time of the (last) attempt in UTC, e.g. "2026-10-26T06:04:12.123456+00:00": as text it sorts by time
+    // (MailLogRepository::findLatest()), the microseconds order attempts within one second.
     #[ORM\Column(name: 'attempted_at', type: Types::STRING, length: 32)]
     private string $attemptedAt = '';
 
@@ -73,14 +75,15 @@ class MailLog
         $this->engagement = $engagement;
     }
 
+    // In the user's zone, for display.
     public function getAttemptedAt(): \DateTimeImmutable
     {
-        return new \DateTimeImmutable($this->attemptedAt);
+        return (new \DateTimeImmutable($this->attemptedAt))->setTimezone($this->engagement->getUser()->getDateTimezone());
     }
 
     public function setAttemptedAt(\DateTimeImmutable $at): void
     {
-        $this->attemptedAt = $at->format(\DATE_ATOM);
+        $this->attemptedAt = $at->setTimezone(new \DateTimeZone('UTC'))->format(self::TIME_FORMAT);
     }
 
     public function setSlot(?\DateTimeImmutable $slot): void

@@ -23,11 +23,11 @@ class MailLogRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return list<MailLog> newest first
+     * @return list<MailLog> newest attempt first: a retry moves its row up
      */
     public function findLatest(Engagement $engagement, int $limit): array
     {
-        return $this->findBy(['engagement' => $engagement], ['id' => 'DESC'], $limit);
+        return $this->findBy(['engagement' => $engagement], ['attemptedAt' => 'DESC', 'id' => 'DESC'], $limit);
     }
 
     public function save(MailLog $entry): void

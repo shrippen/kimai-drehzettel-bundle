@@ -230,18 +230,35 @@ $recipients->save($settings);
 
 // A log that cannot be written (database error) must not disturb the sending: no exception.
 $brokenLog = new class($registry) extends MailLogRepository {
+    public function findForSlot(KimaiPlugin\DrehzettelBundle\Entity\Engagement $engagement, DateTimeImmutable $slot): ?KimaiPlugin\DrehzettelBundle\Entity\MailLog
+    {
+        throw new RuntimeException('database down');
+    }
+
     public function save(KimaiPlugin\DrehzettelBundle\Entity\MailLog $entry): void
     {
         throw new RuntimeException('database down');
     }
 };
 $quiet = new Psr\Log\NullLogger();
-try {
-    (new KimaiPlugin\DrehzettelBundle\Service\MailHistory($brokenLog, $quiet))->manual($engagement, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT);
-    expect('mail log: write error does not throw', true, true);
-} catch (Throwable $e) {
-    expect('mail log: write error does not throw', 'no exception', $e->getMessage());
+$brokenHistory = new KimaiPlugin\DrehzettelBundle\Service\MailHistory($brokenLog, $quiet);
+foreach (['manual' => fn () => $brokenHistory->manual($engagement, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT),
+    'automatic' => fn () => $brokenHistory->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x')] as $kind => $write) {
+    try {
+        $write();
+        expect("mail log: write error does not throw ($kind)", true, true);
+    } catch (Throwable $e) {
+        expect("mail log: write error does not throw ($kind)", 'no exception', $e->getMessage());
+    }
 }
+
+// Newest attempt first: a retry moves its row above a manual mail sent in between.
+$history = new KimaiPlugin\DrehzettelBundle\Service\MailHistory($mailLog, $quiet);
+$history->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x');
+$history->manual($engagement, $period, 'buchhaltung@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT);
+$history->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x');
+expect('mail log: retried row on top', ['automatic', 'manual'], array_map(fn ($e) => $e->getTrigger()->value, $history->latest($engagement)));
+$clearLog();
 
 echo $fails === 0 ? "All checks passed\n" : "$fails failed\n";
 exit($fails === 0 ? 0 : 1);

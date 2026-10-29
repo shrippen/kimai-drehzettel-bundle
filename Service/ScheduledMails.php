@@ -73,10 +73,10 @@ class ScheduledMails
             $this->mailer->send($engagement->getUser(), $settings->getEmail(), $mail, $document);
         } catch (\Throwable $e) {
             $this->logger->error('Drehzettel: automatic mail of engagement {id} failed: {error}', ['id' => $engagement->getId(), 'error' => $e->getMessage()]);
-            $this->history->automatic($engagement, $slot, $period, $settings->getEmail(), MailStatus::FAILED, $e->getMessage());
             if ($local < $slot->modify(self::RETRY_FOR)) {
                 $this->recipients->release($settings, $previous);
             }
+            $this->history->automatic($engagement, $slot, $period, $settings->getEmail(), MailStatus::FAILED, $e->getMessage());
 
             return false;
         }
