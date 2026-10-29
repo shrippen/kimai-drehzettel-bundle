@@ -23,12 +23,16 @@
         'rejected': 'bg-danger-lt',
         'billed': 'bg-lime-lt',
         'locked': 'bg-purple-lt',
+        'sent': 'bg-success-lt',
+        'failed': 'bg-danger-lt',
+        'skipped': 'bg-secondary-lt',
     }[status] ?? 'bg-secondary-lt' -}}
 {%- endmacro %}
 
 {#
     status_badge(status, tooltip = null)
-    status: open | requested | approved | rejected | billed | locked | warning
+    status: open | requested | approved | rejected | billed | locked | warning | sent | failed | skipped
+    sent, failed, skipped (seit 0.9): Ergebnis eines Versands (Mail), z. B. im Versandprotokoll; tooltip nennt bei failed den Grund.
     data-kpu-status (seit 0.7) trägt den Schlüssel auch als Attribut, damit ein Theme jeden Stand eigen gestalten kann
     (billed = erledigt und abgeschlossen: grün mit gefülltem Haken, nie wie eine Auswahl).
     warning (seit 0.2) ist orange und trägt immer das Kimai-Icon "warning" (Ausrufezeichen) – so bleibt es auch
@@ -547,3 +551,35 @@
     Tagesraster: bewusst NICHT im Kit. Das Wochenraster des Drehzettels (Tage × Stufen/Zuschläge) ist fachlich
     spezifisch und bleibt im Drehzettel-Plugin (siehe GUIDELINES.md, Abschnitt "Tagesraster").
 #}
+
+{#
+    update_hint(project, version, options = {})
+    Hinweis auf eine neue Version des Plugins (seit 0.8), nur für Nutzer mit dem Recht "plugins". Bleibt unsichtbar,
+    bis kit.js in versions.json eine höhere Version findet (höchstens eine Anfrage pro Tag, siehe kit.js);
+    dann Hinweiskarte mit Link zur Release-Seite und "Ausblenden" (bis zur nächsten Version). Lädt und installiert nichts.
+      project: Projekt-ID aus shrippen.github.io/overview/sites.json (z. B. 'kimai-anfahrten')
+      version: installierte Version (z. B. aus composer.json, extra.kimai.version)
+      options: { enabled: bool (Standard true; im Demo-Modus und für Nutzer mit abgeschalteter Prüfung false),
+                 url: '…' (andere versions.json) }
+    Platz: Einstellungs- oder Übersichtsseite des Plugins, nicht auf jeder Seite.
+    Beispiel: {{ kit.update_hint('kimai-anfahrten', plugin_version, {enabled: not demo and update_check}) }}
+#}
+{% macro update_hint(project, version, options) -%}
+    {%- set options = options ?? {} -%}
+    {%- if (options.enabled ?? true) and is_granted('plugins') -%}
+    <div class="kpu-update" data-kpu-update="{{ project }}" data-kpu-version="{{ version }}"
+         {%- if options.url ?? false %} data-kpu-update-url="{{ options.url }}"{% endif %} hidden>
+        <article class="kpu-hint-card" data-kpu-hint="info">
+            <header class="kpu-hint-card-header">
+                <span class="kpu-hint-card-type">{{ 'kpu.update.label'|trans({}, 'kpu') }}</span>
+                <span class="kpu-hint-card-source kpu-num">{{ 'kpu.update.installed'|trans({'%version%': version}, 'kpu') }}</span>
+            </header>
+            <a class="kpu-hint-card-title" href="#" target="_blank" rel="noopener noreferrer" data-kpu-update-link>{{ 'kpu.update.available'|trans({}, 'kpu') }}</a>
+            <div class="kpu-hint-card-due kpu-num text-body-secondary" data-kpu-update-latest></div>
+            <div class="kpu-hint-card-actions">
+                <button type="button" class="btn btn-sm" data-kpu-update-dismiss>{{ 'kpu.update.dismiss'|trans({}, 'kpu') }}</button>
+            </div>
+        </article>
+    </div>
+    {%- endif -%}
+{%- endmacro %}

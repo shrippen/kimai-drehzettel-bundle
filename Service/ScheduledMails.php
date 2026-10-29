@@ -3,6 +3,7 @@
 namespace KimaiPlugin\DrehzettelBundle\Service;
 
 use KimaiPlugin\DrehzettelBundle\Entity\MailRecipient;
+use KimaiPlugin\DrehzettelBundle\Enum\MailStatus;
 use KimaiPlugin\DrehzettelBundle\Repository\MailRecipientRepository;
 use Psr\Log\LoggerInterface;
 
@@ -13,7 +14,7 @@ use Psr\Log\LoggerInterface;
  *   web request end (ScheduledMailSubscriber)├──► sendDue() ──► claim slot ──► PDF + mail
  *
  * A period without film days is skipped. A failed send is retried by the next run,
- * for at most a day after its send time.
+ * for at most a day after its send time. Each outcome goes to the MailHistory.
  */
 class ScheduledMails
 {
@@ -25,6 +26,7 @@ class ScheduledMails
         private readonly PdfExporter $pdf,
         private readonly TimesheetMailer $mailer,
         private readonly DayInputBuilder $days,
+        private readonly MailHistory $history,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -60,6 +62,7 @@ class ScheduledMails
         $period = $schedule->period($slot);
         if ($this->days->build($engagement, $period->from, $period->endExclusive()) === []) {
             $this->logger->info('Drehzettel: automatic mail of engagement {id} skipped, no entries from {from} to {to}', ['id' => $engagement->getId(), 'from' => $period->from->format('Y-m-d'), 'to' => $period->to->format('Y-m-d')]);
+            $this->history->automatic($engagement, $slot, $period, $settings->getEmail(), MailStatus::SKIPPED);
 
             return false; // nothing worked: no empty timesheet
         }
@@ -73,10 +76,12 @@ class ScheduledMails
             if ($local < $slot->modify(self::RETRY_FOR)) {
                 $this->recipients->release($settings, $previous);
             }
+            $this->history->automatic($engagement, $slot, $period, $settings->getEmail(), MailStatus::FAILED, $e->getMessage());
 
             return false;
         }
 
+        $this->history->automatic($engagement, $slot, $period, $settings->getEmail(), MailStatus::SENT);
         $this->logger->info('Drehzettel: automatic mail of engagement {id} sent to {to} for {from} to {until}', ['id' => $engagement->getId(), 'to' => $settings->getEmail(), 'from' => $period->from->format('Y-m-d'), 'until' => $period->to->format('Y-m-d')]);
 
         return true;

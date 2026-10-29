@@ -15,6 +15,13 @@ use App\Entity\User;
 use App\Event\WorkingTimeYearEvent;
 use App\Kernel;
 use App\WorkingTime\Model\Year;
+use KimaiPlugin\DrehzettelBundle\Domain\MailSchedule;
+use KimaiPlugin\DrehzettelBundle\Enum\MailRhythm;
+use KimaiPlugin\DrehzettelBundle\Repository\MailLogRepository;
+use KimaiPlugin\DrehzettelBundle\Repository\MailRecipientRepository;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 use KimaiPlugin\DrehzettelBundle\Domain\PayTerms;
 use KimaiPlugin\DrehzettelBundle\Entity\FilmDay;
 use KimaiPlugin\DrehzettelBundle\Enum\DayType;
@@ -160,6 +167,98 @@ $travel->setDayType(DayType::TRAVEL);
 $filmDays->save($travel);
 expect('contract: travel day not marked', [], $contractMarks());
 $filmDays->delete($travel);
+
+// Mail log: an automatic mail is logged once per send time. A failure and its retry
+// stay on that row (attempts), a period without entries is logged as skipped.
+$recipients = new MailRecipientRepository($registry);
+$mailLog = new MailLogRepository($registry);
+$console = new Application($kernel);
+$console->setAutoExit(false);
+$sendDue = static fn () => $console->run(new ArrayInput(['command' => 'drehzettel:mail:due']), new NullOutput());
+$clearLog = static function () use ($mailLog, $em, $engagement): void {
+    foreach ($mailLog->findBy(['engagement' => $engagement]) as $entry) {
+        $em->remove($entry);
+    }
+    $em->flush();
+};
+
+$settings = $recipients->settingsFor($engagement);
+$settings->setEmail('kaputt'); // no address: the mail fails
+// Send time in the current hour: a failure is retried only for a day after it.
+$now = new DateTimeImmutable('now', $crew->getDateTimezone());
+$settings->setSchedule(new MailSchedule(MailRhythm::WEEKLY, (int) $now->format('N'), (int) $now->format('G')));
+$settings->setLastSlot(null); // a run before handled this hour's send time already
+$recipients->save($settings);
+$schedule = $settings->getSchedule();
+$slot = $schedule->lastSlot($now);
+$period = $schedule->period($slot);
+
+$shoot = new Timesheet();
+$shoot->setUser($crew);
+$shoot->setActivity($activity);
+$shoot->setProject($project);
+$shoot->setBegin(DateTime::createFromImmutable($period->from->setTime(8, 0)));
+$shoot->setEnd(DateTime::createFromImmutable($period->from->setTime(18, 0)));
+$em->persist($shoot);
+$em->flush();
+$clearLog();
+
+$recipients->release($settings, null);
+$sendDue();
+$entry = $mailLog->findForSlot($engagement, $slot);
+expect('mail log: failed', ['failed', 'automatic', 1, true], [$entry?->getStatus()->value, $entry?->getTrigger()->value, $entry?->getAttempts(), $entry?->getError() !== null]);
+$sendDue(); // released after the failure: the next run retries
+expect('mail log: retry on the same row', ['failed', 2], [$entry->getStatus()->value, $entry->getAttempts()]);
+
+$settings->setEmail('produktion@example.test');
+$recipients->save($settings);
+$sendDue();
+$sendDue(); // handled: no second mail
+expect('mail log: sent after retry', ['sent', 3, null, 'produktion@example.test'], [$entry->getStatus()->value, $entry->getAttempts(), $entry->getError(), $entry->getRecipient()]);
+expect('mail log: one row per send time', 1, count($mailLog->findBy(['engagement' => $engagement])));
+
+$em->remove($shoot);
+$em->flush();
+$clearLog();
+$recipients->release($settings, null);
+$sendDue();
+expect('mail log: period without entries skipped', 'skipped', $mailLog->findForSlot($engagement, $slot)?->getStatus()->value);
+
+$clearLog();
+$settings->setSchedule(new MailSchedule(MailRhythm::OFF));
+$recipients->save($settings);
+
+// A log that cannot be written (database error) must not disturb the sending: no exception.
+$brokenLog = new class($registry) extends MailLogRepository {
+    public function findForSlot(KimaiPlugin\DrehzettelBundle\Entity\Engagement $engagement, DateTimeImmutable $slot): ?KimaiPlugin\DrehzettelBundle\Entity\MailLog
+    {
+        throw new RuntimeException('database down');
+    }
+
+    public function save(KimaiPlugin\DrehzettelBundle\Entity\MailLog $entry): void
+    {
+        throw new RuntimeException('database down');
+    }
+};
+$quiet = new Psr\Log\NullLogger();
+$brokenHistory = new KimaiPlugin\DrehzettelBundle\Service\MailHistory($brokenLog, $quiet);
+foreach (['manual' => fn () => $brokenHistory->manual($engagement, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT),
+    'automatic' => fn () => $brokenHistory->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x')] as $kind => $write) {
+    try {
+        $write();
+        expect("mail log: write error does not throw ($kind)", true, true);
+    } catch (Throwable $e) {
+        expect("mail log: write error does not throw ($kind)", 'no exception', $e->getMessage());
+    }
+}
+
+// Newest attempt first: a retry moves its row above a manual mail sent in between.
+$history = new KimaiPlugin\DrehzettelBundle\Service\MailHistory($mailLog, $quiet);
+$history->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x');
+$history->manual($engagement, $period, 'buchhaltung@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT);
+$history->automatic($engagement, $slot, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::FAILED, 'x');
+expect('mail log: retried row on top', ['automatic', 'manual'], array_map(fn ($e) => $e->getTrigger()->value, $history->latest($engagement)));
+$clearLog();
 
 echo $fails === 0 ? "All checks passed\n" : "$fails failed\n";
 exit($fails === 0 ? 0 : 1);
