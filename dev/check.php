@@ -126,6 +126,10 @@ expect('restricted engagement: commute entry has no active engagement', true, $s
 $engagement->setActivityIds([]);
 $service->save($engagement);
 
+// Remove the commute entry again: left in place, the next run's crew2 checks above count it.
+$em->remove($commuteSheet);
+$em->flush();
+
 // Period over one week: query range narrowed to week 21 only -> exactly one week result.
 // (The seed data spans many weeks of the reference fixtures, not just week 21, so a wider
 // range here would legitimately split into several WeekResults - that's not a bug.)
