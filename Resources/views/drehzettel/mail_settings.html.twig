@@ -1,4 +1,4 @@
-{# Mail template and automatic sending of an engagement: Kimai modal, page without JS. #}
+{# Mail template and automatic sending of an engagement, log of the last mails: Kimai modal, page without JS. #}
 {% extends kimai_context.modalRequest ? 'form.html.twig' : 'base.html.twig' %}
 
 {% block main %}
@@ -9,6 +9,8 @@
         reset: false,
     } %}
         {% block form_body %}
+            {# Imported here: an import outside the embed does not reach its blocks. #}
+            {% import '@Drehzettel/_kit/macros.html.twig' as kit %}
             {{ form_row(form.to) }}
             <div class="row">
                 <div class="col-md-4">{{ form_row(form.rhythm) }}</div>
@@ -22,6 +24,48 @@
             {{ form_row(form.subject) }}
             {{ form_row(form.body) }}
             {{ form_rest(form) }}
+            <hr>
+            {% set log_body %}
+                {% if log is empty %}
+                    {{ kit.empty_state('drehzettel.mail.log.empty'|trans) }}
+                {% else %}
+                    <p class="text-muted">{{ 'drehzettel.mail.log.help'|trans }}</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'drehzettel.mail.log.at'|trans }}</th>
+                                    <th>{{ 'drehzettel.mail.log.period'|trans }}</th>
+                                    <th>{{ 'drehzettel.mail.to'|trans }}</th>
+                                    <th>{{ 'drehzettel.mail.log.trigger'|trans }}</th>
+                                    <th>{{ 'drehzettel.mail.log.status'|trans }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in log %}
+                                    {# The reason of a failure can name the mail server or its account: only for administrators. #}
+                                    {% set reason = {
+                                        'failed': is_granted('system_configuration') and entry.error ? entry.error : 'drehzettel.mail.log.failed'|trans,
+                                        'skipped': 'drehzettel.mail.log.skipped'|trans,
+                                    }[entry.status.value] ?? null %}
+                                    <tr>
+                                        <td class="kpu-num">{{ entry.attemptedAt|date_time }}</td>
+                                        <td class="kpu-num">{{ entry.from|date_short }} – {{ entry.to|date_short }}</td>
+                                        <td>{{ entry.recipient }}</td>
+                                        <td>{{ ('drehzettel.mail.log.trigger.' ~ entry.trigger.value)|trans }}</td>
+                                        <td>
+                                            {{- kit.status_badge(entry.status.value, reason) -}}
+                                            {%- if entry.attempts > 1 %} <span class="text-muted">{{ 'drehzettel.mail.log.attempts'|trans({'%count%': entry.attempts}) }}</span>{% endif -%}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            {% endset %}
+            {# Open when the last mail failed: that is what to look at. #}
+            {{ kit.fold('drehzettel.mail.log'|trans, log_body, {count: log|length, open: log is not empty and log[0].status.value == 'failed'}) }}
         {% endblock %}
     {% endembed %}
 {% endblock %}

@@ -790,6 +790,54 @@
         <source>drehzettel.mail.to_required</source>
         <target>Automatic sending needs a recipient.</target>
       </trans-unit>
+      <trans-unit id="dz.mail.log" resname="drehzettel.mail.log">
+        <source>drehzettel.mail.log</source>
+        <target>Mail log</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.help" resname="drehzettel.mail.log.help">
+        <source>drehzettel.mail.log.help</source>
+        <target>“Sent” means: accepted by the mail server.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.empty" resname="drehzettel.mail.log.empty">
+        <source>drehzettel.mail.log.empty</source>
+        <target>No mail sent yet.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.at" resname="drehzettel.mail.log.at">
+        <source>drehzettel.mail.log.at</source>
+        <target>Time</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.period" resname="drehzettel.mail.log.period">
+        <source>drehzettel.mail.log.period</source>
+        <target>Period</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger" resname="drehzettel.mail.log.trigger">
+        <source>drehzettel.mail.log.trigger</source>
+        <target>Type</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger.automatic" resname="drehzettel.mail.log.trigger.automatic">
+        <source>drehzettel.mail.log.trigger.automatic</source>
+        <target>Automatic</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger.manual" resname="drehzettel.mail.log.trigger.manual">
+        <source>drehzettel.mail.log.trigger.manual</source>
+        <target>Manual</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.status" resname="drehzettel.mail.log.status">
+        <source>drehzettel.mail.log.status</source>
+        <target>Result</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.skipped" resname="drehzettel.mail.log.skipped">
+        <source>drehzettel.mail.log.skipped</source>
+        <target>No entries in the period, so no mail.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.failed" resname="drehzettel.mail.log.failed">
+        <source>drehzettel.mail.log.failed</source>
+        <target>The reason is in the Kimai log.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.attempts" resname="drehzettel.mail.log.attempts">
+        <source>drehzettel.mail.log.attempts</source>
+        <target>(%count% attempts)</target>
+      </trans-unit>
       <trans-unit id="dz.mail.next" resname="drehzettel.mail.next">
         <source>drehzettel.mail.next</source>
         <target>Next mail: %date% (%period%).</target>

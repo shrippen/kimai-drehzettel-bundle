@@ -790,6 +790,54 @@
         <source>drehzettel.mail.to_required</source>
         <target>Für den automatischen Versand fehlt der Empfänger.</target>
       </trans-unit>
+      <trans-unit id="dz.mail.log" resname="drehzettel.mail.log">
+        <source>drehzettel.mail.log</source>
+        <target>Versandprotokoll</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.help" resname="drehzettel.mail.log.help">
+        <source>drehzettel.mail.log.help</source>
+        <target>„Gesendet“ heißt: vom Mailserver angenommen.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.empty" resname="drehzettel.mail.log.empty">
+        <source>drehzettel.mail.log.empty</source>
+        <target>Noch keine Mail versendet.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.at" resname="drehzettel.mail.log.at">
+        <source>drehzettel.mail.log.at</source>
+        <target>Zeitpunkt</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.period" resname="drehzettel.mail.log.period">
+        <source>drehzettel.mail.log.period</source>
+        <target>Zeitraum</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger" resname="drehzettel.mail.log.trigger">
+        <source>drehzettel.mail.log.trigger</source>
+        <target>Art</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger.automatic" resname="drehzettel.mail.log.trigger.automatic">
+        <source>drehzettel.mail.log.trigger.automatic</source>
+        <target>Automatisch</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.trigger.manual" resname="drehzettel.mail.log.trigger.manual">
+        <source>drehzettel.mail.log.trigger.manual</source>
+        <target>Von Hand</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.status" resname="drehzettel.mail.log.status">
+        <source>drehzettel.mail.log.status</source>
+        <target>Ergebnis</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.skipped" resname="drehzettel.mail.log.skipped">
+        <source>drehzettel.mail.log.skipped</source>
+        <target>Keine Einträge im Zeitraum, darum keine Mail.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.failed" resname="drehzettel.mail.log.failed">
+        <source>drehzettel.mail.log.failed</source>
+        <target>Der Grund steht im Kimai-Log.</target>
+      </trans-unit>
+      <trans-unit id="dz.mail.log.attempts" resname="drehzettel.mail.log.attempts">
+        <source>drehzettel.mail.log.attempts</source>
+        <target>(%count% Versuche)</target>
+      </trans-unit>
       <trans-unit id="dz.mail.next" resname="drehzettel.mail.next">
         <source>drehzettel.mail.next</source>
         <target>Nächster Versand: %date% (%period%).</target>

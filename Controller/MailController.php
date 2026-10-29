@@ -9,12 +9,14 @@ use KimaiPlugin\DrehzettelBundle\Domain\Period;
 use KimaiPlugin\DrehzettelBundle\Entity\Engagement;
 use KimaiPlugin\DrehzettelBundle\Entity\MailRecipient;
 use KimaiPlugin\DrehzettelBundle\Enum\MailRhythm;
+use KimaiPlugin\DrehzettelBundle\Enum\MailStatus;
 use KimaiPlugin\DrehzettelBundle\Form\MailSettingsType;
 use KimaiPlugin\DrehzettelBundle\Form\MailType;
 use KimaiPlugin\DrehzettelBundle\Repository\EngagementRepository;
 use KimaiPlugin\DrehzettelBundle\Repository\MailRecipientRepository;
 use KimaiPlugin\DrehzettelBundle\Service\EngagementAccess;
 use KimaiPlugin\DrehzettelBundle\Service\MailComposer;
+use KimaiPlugin\DrehzettelBundle\Service\MailHistory;
 use KimaiPlugin\DrehzettelBundle\Service\PageSetups;
 use KimaiPlugin\DrehzettelBundle\Service\PdfExporter;
 use KimaiPlugin\DrehzettelBundle\Service\TimesheetMailer;
@@ -27,7 +29,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * Timesheet mail of an engagement:
  *   week/{year}/{week}/mail  dialog: recipient, subject, text (from the template, editable), send
- *   mail/settings            template and automatic sending (MailSchedule)
+ *   mail/settings            template and automatic sending (MailSchedule), log of the last mails
  */
 #[Route(path: '/drehzettel/{id}', requirements: ['id' => '\d+'])]
 #[IsGranted('drehzettel')]
@@ -45,6 +47,7 @@ class MailController extends AbstractController
         private readonly MailComposer $composer,
         private readonly MailRecipientRepository $mailRecipients,
         private readonly PageSetups $pages,
+        private readonly MailHistory $history,
     ) {
     }
 
@@ -76,12 +79,14 @@ class MailController extends AbstractController
                 $document = $this->pdfExporter->export($engagement, $period, $engagement->getPdfOptions());
                 $this->mailer->send($engagement->getUser(), $address, $mail, $document);
                 $this->mailRecipients->remember($engagement, $address);
+                $this->history->manual($engagement, $period, $address, MailStatus::SENT);
                 $this->addFlash('kpu_result', $this->pages->trans('drehzettel.mail.sent', ['%address%' => $address]));
 
                 return $this->kpuFormSuccess($request, 'drehzettel_week', ['id' => $id, 'year' => $year, 'week' => $week], true);
             } catch (\Throwable $e) {
                 // Transport errors can name hosts or accounts: log them, show only a generic error.
                 $this->logException($e);
+                $this->history->manual($engagement, $period, $address, MailStatus::FAILED, $e->getMessage());
                 $form->addError(new FormError($this->pages->trans('drehzettel.mail.failed')));
             }
         }
@@ -141,6 +146,7 @@ class MailController extends AbstractController
             'engagement' => $engagement,
             'next_slot' => $next,
             'next_period' => $next !== null ? $this->composer->values($engagement, $settings->getSchedule()->period($next))['period'] : null,
+            'log' => $this->history->latest($engagement),
             'back' => $this->generateUrl('drehzettel_week', ['id' => $id]),
         ]);
     }

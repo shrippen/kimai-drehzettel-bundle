@@ -52,6 +52,8 @@ Without a cron job the due mails go out with the first Kimai request after the s
 */15 * * * * /opt/kimai/bin/console drehzettel:mail:due
 ```
 
+"Mail log" at the end of the same dialog shows the last 10 mails of the engagement, automatic and manual: time, period, recipient and result. "Sent" means the mail server accepted the mail; a failure is retried for a day and counted on the same row, a period without film days shows as skipped. The reason of a failure is shown to administrators only (it can name the mail server), others find it in the Kimai log.
+
 ## 6th and 7th day
 
 Day N is the n-th working day of the ISO calendar week (TV FFS TZ 5.4.3.1/5.4.3.4: "Arbeit am 6. und 7. Tag der Kalenderwoche"), 1-7. A day off does not reset the count, and weeks never carry over: Mon, Tue, (Wed off), Thu-Sun makes Sunday day 6; Wed-Tue worked makes Monday and Tuesday day 1 and 2 of the new week. A day is the local date an entry begins on. Travel days are no working days: travel time is paid "wie normale Arbeitszeit ohne Zuschläge" (TZ 12.1) and is no working time (Produktionsallianz FAQ), so a travel day neither advances N nor counts toward weekly overtime. Mon travel, Tue-Sun shooting makes Sunday day 6.
