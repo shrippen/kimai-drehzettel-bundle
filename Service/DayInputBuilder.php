@@ -76,17 +76,28 @@ class DayInputBuilder
      */
     public function shootingDays(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to, array $drafts = []): int
     {
+        return count($this->shootingDates($engagement, $from, $to, $drafts));
+    }
+
+    /**
+     * Dates (Y-m-d) of shootingDays(), e.g. for the marks on Kimai's /contract page.
+     *
+     * @param array<string, FilmDayDraft> $drafts unsaved film day data by date, wins over stored data
+     * @return list<string>
+     */
+    public function shootingDates(Engagement $engagement, \DateTimeImmutable $from, \DateTimeImmutable $to, array $drafts = []): array
+    {
         $film = $this->filmDaysByDate($engagement, $from, $to);
 
-        $count = 0;
+        $dates = [];
         foreach (array_keys($this->spans($engagement, $from, $to)) as $key) {
             $type = isset($drafts[$key]) ? $drafts[$key]->type : ($film[$key] ?? null)?->getDayType();
             if (($type ?? DayType::WORKDAY) === DayType::WORKDAY) {
-                ++$count;
+                $dates[] = (string) $key;
             }
         }
 
-        return $count;
+        return $dates;
     }
 
     // A draft is applied through a throw-away FilmDay, so both sources read alike.
