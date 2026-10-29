@@ -159,6 +159,7 @@ $settings->setEmail('kaputt'); // no address: the mail fails
 // Send time in the current hour: a failure is retried only for a day after it.
 $now = new DateTimeImmutable('now', $crew->getDateTimezone());
 $settings->setSchedule(new MailSchedule(MailRhythm::WEEKLY, (int) $now->format('N'), (int) $now->format('G')));
+$settings->setLastSlot(null); // a run before handled this hour's send time already
 $recipients->save($settings);
 $schedule = $settings->getSchedule();
 $slot = $schedule->lastSlot($now);
@@ -198,6 +199,21 @@ expect('mail log: period without entries skipped', 'skipped', $mailLog->findForS
 $clearLog();
 $settings->setSchedule(new MailSchedule(MailRhythm::OFF));
 $recipients->save($settings);
+
+// A log that cannot be written (database error) must not disturb the sending: no exception.
+$brokenLog = new class($registry) extends MailLogRepository {
+    public function save(KimaiPlugin\DrehzettelBundle\Entity\MailLog $entry): void
+    {
+        throw new RuntimeException('database down');
+    }
+};
+$quiet = new Psr\Log\NullLogger();
+try {
+    (new KimaiPlugin\DrehzettelBundle\Service\MailHistory($brokenLog, $quiet))->manual($engagement, $period, 'produktion@example.test', KimaiPlugin\DrehzettelBundle\Enum\MailStatus::SENT);
+    expect('mail log: write error does not throw', true, true);
+} catch (Throwable $e) {
+    expect('mail log: write error does not throw', 'no exception', $e->getMessage());
+}
 
 echo $fails === 0 ? "All checks passed\n" : "$fails failed\n";
 exit($fails === 0 ? 0 : 1);

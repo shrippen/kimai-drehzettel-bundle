@@ -8,17 +8,22 @@ use KimaiPlugin\DrehzettelBundle\Entity\MailLog;
 use KimaiPlugin\DrehzettelBundle\Enum\MailStatus;
 use KimaiPlugin\DrehzettelBundle\Enum\MailTrigger;
 use KimaiPlugin\DrehzettelBundle\Repository\MailLogRepository;
+use Psr\Log\LoggerInterface;
 
 /**
  * Log of the timesheet mails of an engagement, to check afterwards that the
  * automatic ones went out. "Sent" means the mail server accepted the mail.
+ * Writing the log never throws: a mail that went out must not count as failed,
+ * and a failed one must still be retried (ScheduledMails).
  */
 class MailHistory
 {
     public const SHOWN = 10;
 
-    public function __construct(private readonly MailLogRepository $log)
-    {
+    public function __construct(
+        private readonly MailLogRepository $log,
+        private readonly LoggerInterface $logger,
+    ) {
     }
 
     // One row per send time: a retry after a failure updates the row and counts the attempt.
@@ -66,6 +71,10 @@ class MailHistory
         $entry->setStatus($status);
         $entry->setError($error);
 
-        $this->log->save($entry);
+        try {
+            $this->log->save($entry);
+        } catch (\Throwable $e) {
+            $this->logger->error('Drehzettel: mail log not written: {error}', ['error' => $e->getMessage()]);
+        }
     }
 }
