@@ -80,11 +80,11 @@ All changes: https://github.com/shrippen/kimai-drehzettel-bundle/compare/v0.1.0.
 
 ### Deutsch
 
-Die Regeln decken mehr vom TV FFS ab (AZV, Reisetage, gestaffelter Dreh, Nachtdrehs über Mitternacht), die Wochen-Mail lässt sich bearbeiten und nach Plan versenden, die Seiten sind auf Kimais eigenen Bausteinen neu gebaut, und die API gibt Clients wie Plasmai, was sie brauchen.
+Die Regeln decken mehr vom TV FFS ab (AZV, Reisetage, versetzter Dreh, Nachtdrehs über Mitternacht), die Wochen-Mail lässt sich bearbeiten und nach Plan versenden, die Seiten sind auf Kimais eigenen Bausteinen neu gebaut, und die API gibt Clients wie Plasmai, was sie brauchen.
 
 #### Neu
 - AZV-Gutschrift nach TV FFS TZ 6: 2,5 h nach 5 Drehtagen und 0,5 h für jeden weiteren, je Block von 20 Drehtagen, gezählt je Engagement ab 1. Mai 2025; auf der Wochenseite, im Monats-PDF und in der Übersicht, je Engagement abschaltbar.
-- Gestaffelter Dreh (TZ 5.6.3): ein Sonntag oder einer von vier genannten Feiertagen, der 1. bis 5. Produktionstag der Woche ist, bekommt keinen Zuschlag, mit Warnung an dem Tag. Ein Nachtdreh, der bis 04:00 endet, gehört zum vorigen Arbeitstag (TZ 5.2.4).
+- Versetzter Dreh (TZ 5.6.3): ein Sonntag oder einer von vier genannten Feiertagen, der 1. bis 5. Produktionstag der Woche ist, bekommt keinen Zuschlag, mit Warnung an dem Tag. Ein Nachtdreh, der bis 04:00 endet, gehört zum vorigen Arbeitstag (TZ 5.2.4).
 - Regelwerk-Option: Reisetage für den 6./7. Tag und die Wochenmehrarbeit mitzählen (Standard: der Tarif, sie zählen nicht).
 - Je Drehtag: Zusatzgage/Spesen, die laufende Drehtag-Nummer der Produktion („Drehtag 37“) und der Tag der Drehwoche (1 bis 7), um die Zählung für den 6./7. Tag zu überschreiben; als Badge in der Wochenansicht und im PDF.
 - Wochen-Mail: Betreff und Text vor dem Senden bearbeitbar, aus einer Vorlage je Engagement mit Platzhaltern; automatischer Versand wöchentlich oder monatlich zu einer festen Stunde, per Cron (`drehzettel:mail:due`) oder ohne Cron nach einem Seitenaufruf, nie doppelt.
