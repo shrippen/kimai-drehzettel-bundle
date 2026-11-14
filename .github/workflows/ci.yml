@@ -1,5 +1,5 @@
-# Checks on every push: PHP lint and the dependency-free tests (php tests/run.php), on the lowest
-# and the highest supported PHP.
+# Checks on every push: the structure limits (tools/structure-check.py), PHP lint and the
+# dependency-free tests (php tests/run.php), on the lowest and the highest supported PHP.
 #
 # Public mirror: Gitea pushes every branch and tag here on each commit.
 # This runs the checks and reports them back to the commit on Gitea as
@@ -48,6 +48,9 @@ jobs:
           GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
 
       - uses: actions/checkout@v4
+
+      - name: Structure limits
+        run: pipx run tools/structure-check.py
 
       - name: CHANGELOG.md headings
         run: scripts/release-notes.sh --check
