@@ -61,7 +61,7 @@ for, as a page, a PDF, a mail and an API for other programs.
   read them, and `Repository/` queries the entries of a period.
 - Each service of Kimai is used from exactly one class in `Service/`, so a Kimai change
   touches one class: writing entries behind `TimesheetWriter`, holidays behind
-  `HolidayLookupInterface`, names behind `Labels`, PDF in `PdfExporter`, mail in
+  `HolidayLookupInterface`, PDF in `PdfExporter`, mail in
   `TimesheetMailer`, page setup in `PageSetups`.
 
 ## Where new things go
