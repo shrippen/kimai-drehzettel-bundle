@@ -1,0 +1,7 @@
+# What is over a structure limit today (tools/structure-check.py). An entry may shrink,
+# never grow; a raised or new entry needs its reason in the PR. Rewrite with --update.
+# Lines: exclude<TAB>glob | path<TAB>function or - for the file<TAB>metric=value ...
+exclude	Resources/views/_kit/*
+EventSubscriber/ThemeSubscriber.php	ThemeSubscriber::onJavascript	ccn=36 length=161
+Form/TimesheetFormExtension.php	TimesheetFormExtension::buildForm	length=126
+Service/TimesheetViewBuilder.php	TimesheetViewBuilder::build	ccn=16
