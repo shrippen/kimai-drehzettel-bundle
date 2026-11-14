@@ -17,17 +17,19 @@ for, as a page, a PDF, a mail and an API for other programs.
 | `Enum/` | The fixed choices of the domain (day type, catering, rounding, mail rhythm). |
 | `Domain/` | Values and rules without framework: ruleset, period, rounding, tiers, results, AZV, mail template and schedule, and the API's values (`Api*`, `DaySummary`, `FilmDayPatch`). |
 | `Entity/` | What is stored: engagement, film day, custom ruleset, mail settings and log, signature. |
-| `Repository/` | The queries for those entities and for Kimai's timesheet entries of a period. |
+| `Repository/` | The queries for those entities and for Kimai's timesheet entries of a period (`TimesheetRangeRepository`). |
 | `Migrations/` | One version file per schema change; `Service/SchemaStatus` finds pending ones. |
-| `Service/` | Every use case. Calculation (`DayCalculator`, `WeekCalculator`, `PayCalculator`, `ComplianceChecker`), engagements and film days (`EngagementService`, `FilmDayService`, `FilmWeekService`, `EngagementAccess`), output (`WeekPageBuilder`, `TimesheetViewBuilder`, `PdfExporter`, `DaySummaryService`), mail (`MailComposer`, `TimesheetMailer`, `ScheduledMails`, `MailHistory`). |
+| `Service/` | Every use case. Calculation (`DayCalculator`, `WeekCalculator`, `PayCalculator`, `ComplianceChecker`), engagements and film days (`EngagementService`, `FilmDayService`, `FilmWeekService`, `EngagementAccess`), output (`WeekPageBuilder`, `TimesheetViewBuilder`, `PdfExporter`, `DaySummaryService`), mail (`MailComposer`, `TimesheetMailer`, `ScheduledMails`, `MailHistory`). `Holiday/` holds the adapter to the holiday plugin. |
 | `Controller/` | The plugin's own pages: overview, week, engagement, ruleset, mail, signature. |
 | `Controller/Api/` | The REST API for other programs (e.g. the Plasmai widget). |
 | `Form/` | Symfony forms, and `TimesheetFormExtension`, which adds the film day fields to Kimai's own entry form. |
-| `EventSubscriber/` | Hooks into Kimai: menu, permissions, page actions (`Actions/`), entry saved or deleted, theme, pending migrations, automatic mails. |
+| `EventSubscriber/` | Hooks into Kimai: menu, permissions, page actions (`Actions/`), entry saved or deleted, film days on Kimai's working time page, theme, pending migrations, automatic mails. |
 | `Command/` | Console commands: install, week, PDF, due mails. |
 | `Resources/views/` | Templates: pages (`drehzettel/`), PDF (`pdf/`), mail (`mail/`). `_kit/` is the vendored Kimai plugin kit, never edited here. |
 | `Resources/translations/` | All texts, German and English. |
+| `DrehzettelBundle.php`, `DependencyInjection/`, `Resources/config/` | Registration in Kimai: services (`services.yaml`) and routes, web and `/api` apart (`routes.yaml`). |
 | `tests/` | Dependency-free tests (`php tests/run.php`), one file per topic in `cases/`. |
+| `demo/`, `dev/`, `docs/`, `scripts/`, `tools/` | Not part of the plugin zip: demo data, local Kimai, landing page, release and check scripts. |
 
 ## Layers
 
@@ -35,17 +37,18 @@ for, as a page, a PDF, a mail and an API for other programs.
  entry points   Controller  Controller/Api  Command  EventSubscriber  Form
                      │  ask for a use case, show the answer
                      ▼
- use cases      Service ──────────────► Kimai  (only through TimesheetWriter,
-                     │                          HolidayLookupInterface, Labels)
+ use cases      Service ──────────────► Kimai's services (each from one class)
+                     │
                      ▼
  storage        Repository
                      │
                      ▼
- model          Entity   Domain   Enum      (used by every layer above)
+ model          Entity   Domain   Enum   Kimai's entities   (used by every layer above)
 ```
 
 - An entry point calls services, never a plugin repository. It may use Kimai's own
-  repositories only to turn an id from the request into a user, project or activity.
+  repositories only for Kimai's own things: to turn an id from the request into a user,
+  project or activity, and to list them for a choice.
 - An entry point holds no rule. Loading an engagement with its permission check, limits of
   a field, what a save does: all of that is a service or a domain value.
 - `Domain/` and `Enum/` import nothing outside the plugin: no Symfony, no Doctrine, no
@@ -54,19 +57,23 @@ for, as a page, a PDF, a mail and an API for other programs.
   format it.
 - Whatever enters from a browser or an API client (form field, query value, JSON body) is
   read and limited in one `Domain/` value per input, shared by every entry point.
-- Kimai is written to and read from behind an interface in `Service/`, so a Kimai change
-  touches one class.
+- Kimai's entities (user, project, activity, timesheet entry) are model: every layer may
+  read them, and `Repository/` queries the entries of a period.
+- Each service of Kimai is used from exactly one class in `Service/`, so a Kimai change
+  touches one class: writing entries behind `TimesheetWriter`, holidays behind
+  `HolidayLookupInterface`, names behind `Labels`, PDF in `PdfExporter`, mail in
+  `TimesheetMailer`, page setup in `PageSetups`.
 
 ## Where new things go
 
 | Change | Touch |
 |---|---|
-| A field on the film day | `Entity/FilmDay` and a migration; its limits once in `Domain/`; `Service/FilmDayService` and `DayInputBuilder`; the three inputs (`_week_table.html.twig`, `Form/TimesheetFormExtension`, `Domain/FilmDayPatch`); translations; a test in `tests/cases/`. |
-| A tariff rule or surcharge | The rule as a `Domain/` value; its key in `RulesetCodec` and `RulesetFormMapper`; the calculator in `Service/`; `Form/RulesetType`; `tests/cases/tariff.php`. |
-| A sum or column of the week | The service that calculates the week; then `WeekPageBuilder` and `TimesheetViewBuilder` format it; for the PDF also `Enum/PdfOption`. |
-| A page | `Controller/`, a template in `Resources/views/drehzettel/`, `Service/PageSetups`, its actions in `EventSubscriber/Actions/`, the permission in `Service/EngagementAccess`. |
-| An API endpoint or field | `Controller/Api/`, the answer as a `Domain/` value, a feature name in `Domain/ApiInfo`, errors through `Domain/ApiError`, the API section of `README.md`, `tests/cases/api.php`. |
-| A mail option | `Enum/Mail*`, `Domain/MailSchedule` or `MailTemplate`, the mail services, `Form/MailSettingsType`. |
+| A field on the film day | `Entity/FilmDay` and a migration; its limits once in `Domain/`; `Service/FilmDayService` and `DayInputBuilder`; the three inputs (`_week_table.html.twig`, `Form/TimesheetFormExtension`, `Domain/FilmDayPatch`); the three outputs (week page, PDF, API: see the rows below); if it counts, `Domain/DayInput`, `DayResult` and `Service/DayCalculator`; translations; a test in `tests/cases/`. |
+| A tariff rule or surcharge | The rule as a `Domain/` value in `Ruleset`; its key in `RulesetCodec` and `RulesetFormMapper`; the calculator in `Service/`; `Form/RulesetType` and `ruleset_form.html.twig`; the API answer (see below); translations; the source in `README.md`; `tests/cases/tariff.php`. |
+| A sum or column of the week | The service that calculates the week; then `WeekPageBuilder` and `TimesheetViewBuilder` format it; the templates `_week_table.html.twig` and `pdf/timesheet.html.twig`; translations; for the PDF also `Enum/PdfOption`. |
+| A page | `Controller/`, a template in `Resources/views/drehzettel/`, `Service/PageSetups`, its actions in `EventSubscriber/Actions/`, the menu entry in `EventSubscriber/MenuSubscriber`, the permission in `Service/EngagementAccess`, translations. |
+| An API endpoint or field | `Controller/Api/`, the answer as a `Domain/` value (`ApiJson`), a feature name in `Domain/ApiInfo`, errors through `Domain/ApiError`, the API section of `README.md`, `tests/cases/api.php`. |
+| A mail option | `Enum/Mail*`, `Domain/MailSchedule` or `MailTemplate`, the mail services, `Form/MailSettingsType`, `Resources/views/mail/`; if stored, `Entity/MailRecipient` and a migration; translations; `tests/cases/mail.php`. |
 | A table or column | `Entity/`, `Repository/`, a new file in `Migrations/`. |
 | A console command | `Command/`, which calls a service. |
 
